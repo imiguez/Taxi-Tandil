@@ -1,7 +1,7 @@
 {
   "expo": {
-    "name": "taxi-tandil",
-    "slug": "taxi-tandil",
+    "name": "taxi-tandil-mobile-frontend",
+    "slug": "taxi-tandil-mobile-frontend",
     "version": "1.0.0",
     "orientation": "portrait",
     "icon": "./assets/icon.png",
