@@ -1,3 +1,5 @@
+import { Dimensions } from "react-native";
+
 const constants = {
     tandilLocation: {
         latitude: -37.32167,
@@ -10,7 +12,9 @@ const constants = {
     rndLocation2: {
         latitude: -37.3281787,
         longitude: -59.14199120000001,
-    }
+    },
+    screenWidth: Dimensions.get("screen").width,
+    screenHeight: Dimensions.get("screen").height,
 };
 
 export default constants;

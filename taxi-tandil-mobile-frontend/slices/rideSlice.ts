@@ -1,6 +1,19 @@
 import {createSlice} from '@reduxjs/toolkit';
 
-const initialState = {
+type location = {
+  location: {
+    lat: number,
+    lng: number,
+  },
+  description: string,
+}
+
+type initialStateType ={
+  origin: location | null,
+  destination: location | null,
+}
+
+const initialState: initialStateType = {
     origin: null,
     destination: null,
 }
@@ -20,7 +33,7 @@ export const rideSlice = createSlice({
   
 export const { setOrigin, setDestination } = rideSlice.actions;
 
-export const selectOrigin = (state) => state.ride.origin;
-export const selectDestination = (state) => state.ride.destination;
+export const selectOrigin = (state: any) => state.ride.origin;
+export const selectDestination = (state: any) => state.ride.destination;
 
 export default rideSlice.reducer;
