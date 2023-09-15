@@ -1,16 +1,20 @@
-import { StatusBar } from 'expo-status-bar';
-import { Button, StyleSheet, Text, View } from 'react-native';
-import { Home } from './src/pages/Home';
-
+import * as ExpoStatusBar from 'expo-status-bar';
+import { SafeAreaProvider, SafeAreaView } from 'react-native-safe-area-context';
+import { StyleSheet } from 'react-native';
+import { Home } from './src/screens/Home';
+import { Provider } from 'react-redux';
+import { store } from './store';
 
 export default function App() {
   return (
-    <View style={styles.container}>
-      <Home>
-
-      </Home>
-      <StatusBar style="auto" />
-    </View>
+    <Provider store={store}>
+      <SafeAreaProvider style={styles.container}>
+        <SafeAreaView>
+          <Home/>
+        </SafeAreaView>
+        <ExpoStatusBar.StatusBar style='auto' />
+      </SafeAreaProvider>
+    </Provider>
   );
 }
 

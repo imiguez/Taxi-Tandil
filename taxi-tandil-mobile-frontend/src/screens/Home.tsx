@@ -10,9 +10,9 @@ export const Home: FC<PropsWithChildren> = () => {
     const [rol, setRol] = useState<"user"|"taxi">();
 
     return (
-        <View>
-            {rol == undefined && 
-            <View style={styles.container}>
+        <View style={styles.homeContainer}>
+            {rol == undefined &&
+            <View style={styles.rolsContainer}>
                 <Text>Seleccione su rol!</Text>
                 <View>
                     <Button title="User" onPress={() => setRol("user")}/>
@@ -31,11 +31,15 @@ export const Home: FC<PropsWithChildren> = () => {
 }
 
 const styles = StyleSheet.create({
-    container: {
+    homeContainer: {
+        padding: 0,
+        margin: 0
+    },
+    rolsContainer: {
       flex: 1,
       flexDirection: 'column',
       width: '100%',
-      height: '100%',
+      height: '10%',
       alignItems: 'center',
       justifyContent: 'center',
     },
