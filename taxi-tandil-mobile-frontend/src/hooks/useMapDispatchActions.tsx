@@ -1,10 +1,16 @@
 import { useDispatch, useSelector } from "react-redux";
-import { Location, selectDestination, selectOrigin, setDestination, setOrigin } from "../../slices/rideSlice";
+import { Location, selectDestination, selectOrigin, selectLastModified, selectSelectInMap,
+    selectFocusInput,setDestination, setOrigin, setLastModified, 
+    setFocusInput as setFocusInputFromRideSlice, 
+    setSelectInMap as setSelectInMapFromRideSlice } from "../../slices/rideSlice";
 
 export const useMapDispatchActions = () => {
     const dispatch = useDispatch();
     const origin = useSelector(selectOrigin);
     const destination = useSelector(selectDestination);
+    const lastModified = useSelector(selectLastModified);
+    const selectInMap = useSelector(selectSelectInMap);
+    const focusInput = useSelector(selectFocusInput);
 
     const setLocation = (location: Location | null, set: 'origin' | 'destination') => {
         if (set == 'origin') {
@@ -13,19 +19,27 @@ export const useMapDispatchActions = () => {
         else {
             dispatch(setDestination(location));
         }
+        dispatch(setLastModified(set));
     };
 
     const invertLocations = () => {
         if (!origin && !destination)
             return;
-        console.log("INV Executed");
         let aux = origin;
         dispatch(setOrigin(destination));
         dispatch(setDestination(aux));
     }
 
+    const setSelectInMap = (param: boolean) => {
+        dispatch(setSelectInMapFromRideSlice(param));
+    }
+
+    const setFocusInput = (input: 'origin' | 'destination') => {
+        dispatch(setFocusInputFromRideSlice(input));
+    }
+
     return {
-        setLocation, invertLocations,
-        origin, destination, 
+        setLocation, invertLocations, setSelectInMap, setFocusInput,
+        origin, destination, lastModified, selectInMap, focusInput
     }
 }

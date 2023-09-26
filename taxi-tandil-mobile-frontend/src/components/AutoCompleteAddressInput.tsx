@@ -6,6 +6,7 @@ import { GOOGLE_MAPS_API_KEY } from "@env";
 import { AutoCompleteRow } from "./AutoCompleteRow";
 import { useMapDispatchActions } from "../hooks/useMapDispatchActions";
 import { CurrentLocationInBetweenCompo } from "./CurrentLocationInBetweenCompo";
+import { SelectInMapInBetweenCompo } from "./SelectInMapInBetweenCompo";
 
 type AutoCompleteAddressInputProps = {
     placeholder: string,
@@ -14,7 +15,7 @@ type AutoCompleteAddressInputProps = {
 
 export const AutoCompleteAddressInput: FC<AutoCompleteAddressInputProps> = ({placeholder, set}) => {
   const ref = useRef<GooglePlacesAutocompleteRef>(null);
-  const {setLocation, origin, destination} = useMapDispatchActions();
+  const {setLocation, origin, destination, selectInMap, setFocusInput} = useMapDispatchActions();
   const [isFocus, setIsFocus] = useState<boolean>(false);
 
   const setInputValue = (address: string) => {
@@ -45,8 +46,8 @@ export const AutoCompleteAddressInput: FC<AutoCompleteAddressInputProps> = ({pla
           borderStyle: 'solid',
           width: constants.screenWidth,
           position: 'absolute',
-          left: (constants.screenWidth*-.14), 
-          top: set == 'destination' ? 125 : 175,
+          left: ((constants.screenWidth-20)*-.12)-10, 
+          top: set == 'destination' ? 195 : 245,
         }
       }}
       ref={ref}
@@ -55,7 +56,10 @@ export const AutoCompleteAddressInput: FC<AutoCompleteAddressInputProps> = ({pla
       }}
       placeholder={placeholder}
       textInputProps={{
-        onFocus: () => setIsFocus(true),
+        onFocus: () => {
+          setIsFocus(true);
+          setFocusInput(set);
+        },
         onBlur: () => setIsFocus(false),
       }}
       fetchDetails={true}
@@ -90,12 +94,17 @@ export const AutoCompleteAddressInput: FC<AutoCompleteAddressInputProps> = ({pla
       enableHighAccuracyLocation={true}
       renderRow={(data, index) => <AutoCompleteRow data={data} index={index}/>}
       inbetweenCompo={<View style={{
-        display: isFocus ? 'flex' : 'none',
-        width: '100%',
+        display: isFocus && !selectInMap ? 'flex' : 'none',
+        width: constants.screenWidth,
         position: 'absolute',
+        borderWidth: 0,
+        borderColor: 'red',
+        borderStyle: 'solid',
         top: set=='origin' ? 105 : 55,
+        left: ((constants.screenWidth-20)*-.12) - 10,
       }}>
-        <CurrentLocationInBetweenCompo set={set} setInputValue={setInputValue} />
+        <CurrentLocationInBetweenCompo set={set} />
+        <SelectInMapInBetweenCompo />
       </View>}
     />
   );

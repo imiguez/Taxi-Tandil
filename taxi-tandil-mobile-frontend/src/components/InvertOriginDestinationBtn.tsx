@@ -2,6 +2,7 @@ import { FC } from "react";
 import { StyleSheet, Text } from "react-native";
 import { TouchableHighlight } from "react-native-gesture-handler";
 import { useMapDispatchActions } from "../hooks/useMapDispatchActions";
+import constants from "../constants";
 
 
 export const InvertOriginDestinationBtn: FC = () => {
@@ -22,6 +23,6 @@ const styles = StyleSheet.create({
         elevation: 8,
         margin: 0,
         height: 60,
-        minWidth: 30,
+        width: (constants.screenWidth - 20)*.08,
     },
 });

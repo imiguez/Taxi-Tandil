@@ -4,6 +4,7 @@ import { useMapDispatchActions } from "../hooks/useMapDispatchActions";
 import { AutoCompleteAddressInput } from "./AutoCompleteAddressInput";
 import { LinearGradient } from "expo-linear-gradient";
 import { InvertOriginDestinationBtn } from "./InvertOriginDestinationBtn";
+import constants from "../constants";
 
 
 
@@ -68,7 +69,7 @@ const styles = StyleSheet.create({
     inputsContainer: {
         margin: 0,
         display: 'flex',
-        width: '88%',
+        width: (constants.screenWidth - 20)*.88,
         minHeight: 100,
     },
     confirmBtnContainer: {
