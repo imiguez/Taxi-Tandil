@@ -4,8 +4,6 @@ import MapView, { Marker } from "react-native-maps";
 import { useCoords } from "../../hooks/useCoords";
 import { useMapDispatchActions } from "../../hooks/useMapDispatchActions";
 
-
-
 export const ConfirmedRideMap: FC = () => {
     const {origin, destination} = useMapDispatchActions();
     const {calculateIntermediateCoord} = useCoords();
@@ -57,11 +55,10 @@ export const ConfirmedRideMap: FC = () => {
     );
 }
 
-
 const styles = StyleSheet.create({
     mapContainer: {
-        flex: .5,
-        borderWidth: 1,
+        flex: .6,
+        borderWidth: 0,
         borderColor: 'red',
         borderStyle: 'solid',
         margin: 0,

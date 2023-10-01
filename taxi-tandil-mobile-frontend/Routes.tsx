@@ -34,8 +34,7 @@ const HomeScreenStack: FC = () => {
                 headerTitle: ''
             }}/>
             <HomeStack.Screen name="ConfirmedRide" component={ConfirmedRide} options={{
-                headerTitle: '',
-                headerShown: true,
+                headerShown: false,
             }}/>
             <HomeStack.Screen name="Settings" component={Settings} options={{
                 title: 'Configuraciones',

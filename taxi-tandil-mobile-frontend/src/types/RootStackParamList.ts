@@ -8,7 +8,6 @@ export type HomeStackParamList = {
 }
 
 export type RootStackParamList = {
-  // [x: string]: any;
   Login: undefined,
   Register: undefined,
   HomeStack: NavigatorScreenParams<HomeStackParamList>,
