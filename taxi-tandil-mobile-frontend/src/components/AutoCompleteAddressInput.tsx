@@ -1,5 +1,5 @@
-import { FC, useEffect, useRef, useState } from "react";
-import { StyleSheet, View } from "react-native";
+import { FC, useEffect, useMemo, useRef, useState } from "react";
+import { Keyboard, StyleSheet, View } from "react-native";
 import { GooglePlacesAutocomplete, GooglePlacesAutocompleteRef } from "react-native-google-places-autocomplete";
 import constants from "../constants";
 import { GOOGLE_MAPS_API_KEY } from "@env";
@@ -19,20 +19,30 @@ export const AutoCompleteAddressInput: FC<AutoCompleteAddressInputProps> = ({pla
   const [isFocus, setIsFocus] = useState<boolean>(false);
 
   const setInputValue = (address: string) => {
-    ref.current?.setAddressText(address);
+    if (ref.current)
+      ref.current.setAddressText(address);
   }
 
   useEffect(() => {
     let address: string = '';
     if (set == 'origin'){
-      ref.current?.focus();
-      setIsFocus(true);
+      if (!origin) {
+        ref.current?.focus();
+        setIsFocus(true);
+      }
       address = origin ? origin.longStringLocation : '';
-    } else
+    } else {
       address = destination ? destination.longStringLocation : '';
-
+      if (origin && destination) {
+        Keyboard.dismiss();
+      } else if (origin) {
+        ref.current?.focus();
+        setIsFocus(true);
+      }
+    }
+    
     setInputValue(address);
-  }, set == 'origin' ? [origin] : [destination]);
+  }, set == 'origin' ? [origin] : [origin, destination]);
 
   return (
     <GooglePlacesAutocomplete 

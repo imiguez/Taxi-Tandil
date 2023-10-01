@@ -15,6 +15,7 @@ type initialStateType ={
   focusInput: 'origin' | 'destination',
   lastModified: 'origin' | 'destination' | null,
   selectInMap: boolean,
+  rideConfirmed: boolean,
 }
 
 const initialState: initialStateType = {
@@ -23,6 +24,7 @@ const initialState: initialStateType = {
   focusInput: 'origin',
   lastModified: null,
   selectInMap: false,
+  rideConfirmed: false,
 }
 
 export const rideSlice = createSlice({
@@ -44,15 +46,20 @@ export const rideSlice = createSlice({
       setSelectInMap: (state, action) => {
         state.selectInMap = action.payload;
       },
+      setRideConfirmed: (state, action) => {
+        state.rideConfirmed = action.payload;
+      },
     }
 })
   
-export const { setOrigin, setDestination, setLastModified, setSelectInMap, setFocusInput } = rideSlice.actions;
+export const { setOrigin, setDestination, setLastModified, setSelectInMap, 
+  setFocusInput, setRideConfirmed } = rideSlice.actions;
 
 export const selectOrigin: (state: any) => Location | null = (state: any) => state.ride.origin;
 export const selectDestination: (state: any) => Location | null = (state: any) => state.ride.destination;
 export const selectFocusInput: (state: any) => 'origin' | 'destination' = (state: any) => state.ride.focusInput;
 export const selectLastModified: (state: any) => 'origin' | 'destination' | null = (state: any) => state.ride.lastModified;
 export const selectSelectInMap: (state: any) => boolean = (state: any) => state.ride.selectInMap;
+export const selectRideConfirmed: (state: any) => boolean = (state: any) => state.ride.rideConfirmed;
 
 export default rideSlice.reducer;

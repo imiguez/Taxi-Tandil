@@ -1,5 +1,5 @@
 import { FC } from "react";
-import { StyleSheet, Text, TouchableHighlight } from "react-native";
+import { Keyboard, StyleSheet, Text, TouchableHighlight } from "react-native";
 import { useMapDispatchActions } from "../hooks/useMapDispatchActions";
 
 
@@ -7,6 +7,7 @@ export const SelectInMapInBetweenCompo: FC = () => {
   const {setSelectInMap} = useMapDispatchActions();
 
     const onPressedBtn = () => {
+        Keyboard.dismiss();
         setSelectInMap(true);
     };
 

@@ -174,8 +174,10 @@ export const RideMap: FC = () => {
 
 const styles = StyleSheet.create({
     mapContainer: {
+        position:'absolute',
+        top: 110,
         width: constants.screenWidth,
-        height: (constants.screenHeight-110),
+        height: (constants.windowHeight*.9)-110,
         borderWidth: 0,
         borderColor: 'red',
         borderStyle: 'solid',

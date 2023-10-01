@@ -1,8 +1,11 @@
 import { useDispatch, useSelector } from "react-redux";
 import { Location, selectDestination, selectOrigin, selectLastModified, selectSelectInMap,
-    selectFocusInput,setDestination, setOrigin, setLastModified, 
+    selectFocusInput, selectRideConfirmed, setDestination, setOrigin, setLastModified, 
     setFocusInput as setFocusInputFromRideSlice, 
-    setSelectInMap as setSelectInMapFromRideSlice } from "../../slices/rideSlice";
+    setSelectInMap as setSelectInMapFromRideSlice, 
+    setRideConfirmed as setRideConfirmedFromRideSlice
+    } from "../../slices/rideSlice";
+import { Keyboard } from "react-native";
 
 export const useMapDispatchActions = () => {
     const dispatch = useDispatch();
@@ -11,6 +14,7 @@ export const useMapDispatchActions = () => {
     const lastModified = useSelector(selectLastModified);
     const selectInMap = useSelector(selectSelectInMap);
     const focusInput = useSelector(selectFocusInput);
+    const rideConfirmed = useSelector(selectRideConfirmed);
 
     const setLocation = (location: Location | null, set: 'origin' | 'destination') => {
         if (set == 'origin') {
@@ -38,8 +42,12 @@ export const useMapDispatchActions = () => {
         dispatch(setFocusInputFromRideSlice(input));
     }
 
+    const setRideConfirmed = (param: boolean) => {
+        dispatch(setRideConfirmedFromRideSlice(param));
+    }
+
     return {
-        setLocation, invertLocations, setSelectInMap, setFocusInput,
-        origin, destination, lastModified, selectInMap, focusInput
+        setLocation, invertLocations, setSelectInMap, setFocusInput, setRideConfirmed,
+        origin, destination, lastModified, selectInMap, focusInput, rideConfirmed
     }
 }

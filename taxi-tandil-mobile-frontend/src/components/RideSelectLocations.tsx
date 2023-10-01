@@ -1,17 +1,10 @@
 import { FC } from "react";
-import { StyleSheet, Text, TouchableHighlight, View } from "react-native";
-import { useMapDispatchActions } from "../hooks/useMapDispatchActions";
+import { StyleSheet, View } from "react-native";
 import { AutoCompleteAddressInput } from "./AutoCompleteAddressInput";
-import { LinearGradient } from "expo-linear-gradient";
 import { InvertOriginDestinationBtn } from "./InvertOriginDestinationBtn";
 import constants from "../constants";
 
-
-
 export const RideSelectLocations: FC = () => {
-
-    const {origin, destination, setLocation} = useMapDispatchActions();
-    
 
     return (
         <View style={styles.container}>
@@ -24,15 +17,9 @@ export const RideSelectLocations: FC = () => {
                         placeholder="A dónde te dirigís?..." set='destination' />
                 </View>
             </View>
-
-            {/* <View style={styles.confirmBtnContainer}>
-                <TouchableHighlight style={[styles.confirmBtn, styles.btns]}>
-                    <Text style={styles.textBtn}>Confirmar</Text>
-                </TouchableHighlight>
-            </View> */}
         </View>
     );
-}
+};
 
 const styles = StyleSheet.create({
     btns: {

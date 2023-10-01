@@ -1,5 +1,5 @@
 import { FC } from "react";
-import { Linking, StyleSheet, Text, TouchableHighlight } from "react-native";
+import { Keyboard, Linking, StyleSheet, Text, TouchableHighlight } from "react-native";
 import { useMapDispatchActions } from "../hooks/useMapDispatchActions";
 import * as ExpoLocation from 'expo-location';
 
@@ -15,6 +15,7 @@ export const CurrentLocationInBetweenCompo: FC<CurrentLocationInBetweenCompoProp
     const [status, requestPermission, getForegroundPermissions] = ExpoLocation.useForegroundPermissions();
 
     const onPressedBtn = async () => {
+        Keyboard.dismiss();
         // If the status is denied then the user has to choose an option from location settings
         let permissions = await getForegroundPermissions();
         if (permissions.status == 'denied') {
