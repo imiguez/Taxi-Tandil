@@ -1,6 +1,6 @@
 import { FC } from "react";
 import { Keyboard, Linking, StyleSheet, Text, TouchableHighlight } from "react-native";
-import { useMapDispatchActions } from "../hooks/useMapDispatchActions";
+import { useMapDispatchActions } from "../../hooks/useMapDispatchActions";
 import * as ExpoLocation from 'expo-location';
 
 type CurrentLocationInBetweenCompoProps = {

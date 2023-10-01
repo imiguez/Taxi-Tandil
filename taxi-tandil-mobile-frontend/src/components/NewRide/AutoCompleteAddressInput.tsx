@@ -1,10 +1,10 @@
 import { FC, useEffect, useMemo, useRef, useState } from "react";
 import { Keyboard, StyleSheet, View } from "react-native";
 import { GooglePlacesAutocomplete, GooglePlacesAutocompleteRef } from "react-native-google-places-autocomplete";
-import constants from "../constants";
+import constants from "../../constants";
 import { GOOGLE_MAPS_API_KEY } from "@env";
 import { AutoCompleteRow } from "./AutoCompleteRow";
-import { useMapDispatchActions } from "../hooks/useMapDispatchActions";
+import { useMapDispatchActions } from "../../hooks/useMapDispatchActions";
 import { CurrentLocationInBetweenCompo } from "./CurrentLocationInBetweenCompo";
 import { SelectInMapInBetweenCompo } from "./SelectInMapInBetweenCompo";
 

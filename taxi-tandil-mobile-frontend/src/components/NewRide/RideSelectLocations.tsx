@@ -1,8 +1,8 @@
 import { FC } from "react";
 import { StyleSheet, View } from "react-native";
-import { AutoCompleteAddressInput } from "./AutoCompleteAddressInput";
 import { InvertOriginDestinationBtn } from "./InvertOriginDestinationBtn";
-import constants from "../constants";
+import { AutoCompleteAddressInput } from "./AutoCompleteAddressInput";
+import constants from "../../constants";
 
 export const RideSelectLocations: FC = () => {
 

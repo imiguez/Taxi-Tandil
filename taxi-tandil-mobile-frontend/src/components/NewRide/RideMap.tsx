@@ -1,10 +1,10 @@
 import React, { FC, useMemo, useRef, useState } from "react";
 import { SafeAreaView, StyleSheet } from "react-native";
 import MapView, { Details, MapMarker, Marker, MarkerDragStartEndEvent, Region } from "react-native-maps";
-import constants from '../constants';
-import { useMapDispatchActions } from "../hooks/useMapDispatchActions";
 import * as ExpoLocation from 'expo-location';
 import { SelectInMapOptions } from "./SelectInMapOptions";
+import constants from "../../constants";
+import { useMapDispatchActions } from "../../hooks/useMapDispatchActions";
 
 export const RideMap: FC = () => {
 

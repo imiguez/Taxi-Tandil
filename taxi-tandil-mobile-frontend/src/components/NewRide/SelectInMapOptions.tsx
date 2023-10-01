@@ -1,7 +1,7 @@
 import { FC, useState } from "react";
 import { StyleSheet, Text, View } from "react-native";
 import { TouchableHighlight } from "react-native-gesture-handler";
-import constants from "../constants";
+import constants from "../../constants";
 
 type SelectInMapOptionsProps = {
     onConfirm: () => Promise<boolean>,

@@ -1,8 +1,8 @@
 import { FC } from "react";
 import { StyleSheet, Text } from "react-native";
 import { TouchableHighlight } from "react-native-gesture-handler";
-import { useMapDispatchActions } from "../hooks/useMapDispatchActions";
-import constants from "../constants";
+import { useMapDispatchActions } from "../../hooks/useMapDispatchActions";
+import constants from "../../constants";
 
 
 export const InvertOriginDestinationBtn: FC = () => {

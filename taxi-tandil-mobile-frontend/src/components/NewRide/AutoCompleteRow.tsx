@@ -1,7 +1,7 @@
 import { FC } from "react";
 import { StyleSheet, Text, View } from "react-native";
 import { GooglePlaceData } from "react-native-google-places-autocomplete";
-import constants from "../constants";
+import constants from "../../constants";
 
 type AutoCompleteRowProps = {
     data: GooglePlaceData,
