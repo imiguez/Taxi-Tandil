@@ -1,41 +1,49 @@
 import { FC, PropsWithChildren, useState } from "react";
 import { Button, StyleSheet, Text, View } from "react-native";
-import { UserPage } from "./UserPage";
 import { TaxiPage } from "./TaxiPage";
 import { joinRoom } from "../client-sockets/UserClientSocket";
+import { useNavigation } from "@react-navigation/native";
+import { SafeAreaView } from "react-native-safe-area-context";
+import RootStackParamList from "../types/RootStackParamList";
 
 
-export const Home: FC<PropsWithChildren> = () => {
+export const Login: FC = () => {
     
+    const navigation = useNavigation();
     const [rol, setRol] = useState<"user"|"taxi">();
 
     return (
-        <View>
-            {rol == undefined && 
-            <View style={styles.container}>
+        <View style={styles.homeContainer}>
+            {
+            //rol == undefined &&
+            <View style={styles.rolsContainer}>
                 <Text>Seleccione su rol!</Text>
                 <View>
-                    <Button title="User" onPress={() => setRol("user")}/>
+                    <Button title="User" onPress={() => {
+                        setRol("user");
+                        navigation.navigate('HomeStack', {screen: 'Home'});
+                    }}/>
                     <Button title="Taxi" onPress={() => {
                         setRol("taxi");
                         joinRoom('taxi');
                     }}/>
                 </View>
             </View>}
-            {rol == 'user' && 
-            <UserPage></UserPage>}
-            {rol == 'taxi' && 
-            <TaxiPage></TaxiPage>}
         </View>
     );
 }
 
 const styles = StyleSheet.create({
-    container: {
+    homeContainer: {
+        flex: 1,
+        padding: 0,
+        margin: 0,
+    },
+    rolsContainer: {
       flex: 1,
       flexDirection: 'column',
       width: '100%',
-      height: '100%',
+      height: '10%',
       alignItems: 'center',
       justifyContent: 'center',
     },

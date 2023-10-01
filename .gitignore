@@ -30,6 +30,7 @@ yarn-error.*
 
 # local env files
 .env*.local
+taxi-tandil-mobile-frontend/.env
 
 # typescript
 *.tsbuildinfo
