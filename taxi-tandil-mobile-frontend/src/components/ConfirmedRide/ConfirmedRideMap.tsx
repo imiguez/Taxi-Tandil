@@ -9,12 +9,12 @@ export const ConfirmedRideMap: FC = () => {
     const {calculateIntermediateCoord} = useCoords();
 
     let originCoord = {
-        latitude: origin?.location.lat!,
-        longitude: origin?.location.lng!,
+        latitude: origin?.location.latitude!,
+        longitude: origin?.location.longitude!,
     };
     let destinationCoord = {
-        latitude: destination?.location.lat!,
-        longitude: destination?.location.lng!,
+        latitude: destination?.location.latitude!,
+        longitude: destination?.location.longitude!,
     };
 
     let middleCoord = calculateIntermediateCoord(originCoord, destinationCoord);
@@ -38,15 +38,15 @@ export const ConfirmedRideMap: FC = () => {
 
                 {origin?.location &&
                     <Marker coordinate={{
-                        latitude: origin.location.lat,
-                        longitude: origin.location.lng,
+                        latitude: origin.location.latitude,
+                        longitude: origin.location.longitude,
                     }} title={origin.shortStringLocation}/>
                 }
 
                 {destination?.location &&
                     <Marker coordinate={{
-                        latitude: destination.location.lat,
-                        longitude: destination.location.lng,
+                        latitude: destination.location.latitude,
+                        longitude: destination.location.longitude,
                     }} title={destination.shortStringLocation}/>
                 }
 

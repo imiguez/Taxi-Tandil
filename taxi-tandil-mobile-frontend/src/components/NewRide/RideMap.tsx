@@ -1,6 +1,6 @@
 import React, { FC, useMemo, useRef, useState } from "react";
 import { SafeAreaView, StyleSheet } from "react-native";
-import MapView, { Details, MapMarker, Marker, MarkerDragStartEndEvent, Region } from "react-native-maps";
+import MapView, { Details, LatLng, MapMarker, Marker, MarkerDragStartEndEvent, Region } from "react-native-maps";
 import * as ExpoLocation from 'expo-location';
 import { SelectInMapOptions } from "./SelectInMapOptions";
 import constants from "../../constants";
@@ -20,7 +20,7 @@ export const RideMap: FC = () => {
     const markerRef = useRef<MapMarker>(null);
     
     const [mapCoords, setMapCoords] = useState(coords);
-    const [markerCoords, setMarkerCoords] = useState<{latitude: number, longitude: number}>({
+    const [markerCoords, setMarkerCoords] = useState<LatLng>({
         latitude: 0,
         longitude: 0,
     });
@@ -30,12 +30,12 @@ export const RideMap: FC = () => {
             let lat = mapRef.current.props.region.latitude;
             let lng = mapRef.current.props.region.longitude;
             if (focusInput == 'origin' && origin?.location) {
-                lat = origin.location.lat;
-                lng = origin.location.lng;
+                lat = origin.location.latitude;
+                lng = origin.location.longitude;
             }
             if (focusInput == 'destination' && destination?.location) {
-                lat = destination.location.lat;
-                lng = destination.location.lng;
+                lat = destination.location.latitude;
+                lng = destination.location.longitude;
             }
             setMarkerCoords({
                 latitude: lat,
@@ -52,12 +52,12 @@ export const RideMap: FC = () => {
             longitudeDelta: 0.0421,
         };
         if (lastModified == 'origin' && origin) {
-            region.latitude = origin.location.lat;
-            region.longitude = origin.location.lng;
+            region.latitude = origin.location.latitude;
+            region.longitude = origin.location.longitude;
         }
         if (lastModified == 'destination' && destination) {
-            region.latitude = destination.location.lat;
-            region.longitude = destination.location.lng;
+            region.latitude = destination.location.latitude;
+            region.longitude = destination.location.longitude;
         }
         mapRef.current?.animateToRegion(region);
     }, [lastModified]);
@@ -90,20 +90,20 @@ export const RideMap: FC = () => {
         }
         if (focusInput == 'origin') {
             if (origin?.location) {
-                p.latitude = origin.location.lat;
-                p.longitude = origin.location.lng;
+                p.latitude = origin.location.latitude;
+                p.longitude = origin.location.longitude;
             } else if (destination?.location) {
-                p.latitude = destination.location.lat;
-                p.longitude = destination.location.lng;
+                p.latitude = destination.location.latitude;
+                p.longitude = destination.location.longitude;
             }
         }
         if (focusInput == 'destination'){
             if (destination?.location) {
-                p.latitude = destination.location.lat;
-                p.longitude = destination.location.lng;
+                p.latitude = destination.location.latitude;
+                p.longitude = destination.location.longitude;
             } else if (origin?.location) {
-                p.latitude = origin.location.lat;
-                p.longitude = origin.location.lng;
+                p.latitude = origin.location.latitude;
+                p.longitude = origin.location.longitude;
             }
         }
         setMapCoords(p);
@@ -116,8 +116,8 @@ export const RideMap: FC = () => {
             let longStringLocationValue = `${value[0].street} ${value[0].streetNumber}, ${value[0].city}, ${value[0].region}, ${value[0].country}`;
             let location = {
                 location: {
-                    lat: markerCoords.latitude,
-                    lng: markerCoords.longitude,
+                    latitude: markerCoords.latitude,
+                    longitude: markerCoords.longitude,
                 },
                 longStringLocation: longStringLocationValue,
                 shortStringLocation: `${value[0].street} ${value[0].streetNumber}`,
@@ -147,15 +147,15 @@ export const RideMap: FC = () => {
 
                 {origin?.location && !selectInMap && 
                     <Marker coordinate={{
-                        latitude: origin.location.lat,
-                        longitude: origin.location.lng,
+                        latitude: origin.location.latitude,
+                        longitude: origin.location.longitude,
                     }} title={origin.shortStringLocation}/>
                 }
 
                 {destination?.location && !selectInMap &&
                     <Marker coordinate={{
-                        latitude: destination.location.lat,
-                        longitude: destination.location.lng,
+                        latitude: destination.location.latitude,
+                        longitude: destination.location.longitude,
                     }} title={destination.shortStringLocation}/>
                 }
 

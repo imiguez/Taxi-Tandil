@@ -1,13 +1,10 @@
+import { LatLng } from "../types/Location";
 
 
 export const useCoords = () => {
 
-    type coord = {
-        latitude: number,
-        longitude: number,
-    }
 
-    const calculateIntermediateCoord = (coord1: coord, coord2: coord) => {
+    const calculateIntermediateCoord = (coord1: LatLng, coord2: LatLng) => {
         let lat1 = coord1.latitude;
         let lon1 = coord1.longitude;
         let lat2 = coord2.latitude;

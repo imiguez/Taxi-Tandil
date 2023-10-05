@@ -2,12 +2,13 @@ import { NavigationContainer } from "@react-navigation/native";
 import { CardStyleInterpolators, createStackNavigator } from "@react-navigation/stack";
 import { FC, PropsWithChildren } from "react";
 import { Login } from "./src/screens/Login";
-import { Home } from "./src/screens/Home";
+import { UserHome } from "./src/screens/UserHome";
 import { NewRide } from "./src/screens/NewRide";
 import RootStackParamList, { HomeStackParamList } from "./src/types/RootStackParamList";
 import { Button, StyleSheet } from "react-native";
 import { Settings } from "./src/screens/Settings";
 import { ConfirmedRide } from "./src/screens/ConfirmedRide";
+import { TaxiHome } from "./src/screens/TaxiHome";
 
 
 const HomeStack = createStackNavigator<HomeStackParamList>();
@@ -18,7 +19,7 @@ const RootStack = createStackNavigator<RootStackParamList>();
 const HomeScreenStack: FC = () => {
 
     return (
-        <HomeStack.Navigator initialRouteName="Home" screenOptions={({ navigation }) => ({
+        <HomeStack.Navigator screenOptions={({ navigation }) => ({
             headerShown: true,
             headerTitleAlign: 'center',
             cardStyleInterpolator: CardStyleInterpolators.forHorizontalIOS,
@@ -26,10 +27,12 @@ const HomeScreenStack: FC = () => {
                 navigation.navigate('Settings');
             }}/>),
         })}>
-            <HomeStack.Screen name="Home" component={Home} options={{
+            <HomeStack.Screen name="UserHome" component={UserHome} options={{
                 headerLeft: () => (<></>),
             }}/>
-
+            <HomeStack.Screen name="TaxiHome" component={TaxiHome} options={{
+                headerLeft: () => (<></>),
+            }}/>
             <HomeStack.Screen name="NewRide" component={NewRide} options={{
                 headerTitle: ''
             }}/>

@@ -40,8 +40,8 @@ export const CurrentLocationInBetweenCompo: FC<CurrentLocationInBetweenCompoProp
                     console.log(currentLocation.coords.latitude +", "+currentLocation.coords.longitude);
                     let location = {
                         location: {
-                            lat: currentLocation.coords.latitude,
-                            lng: currentLocation.coords.longitude,
+                            latitude: currentLocation.coords.latitude,
+                            longitude: currentLocation.coords.longitude,
                         },
                         longStringLocation: longStringLocationValue,
                         shortStringLocation: "Ubicación actual",

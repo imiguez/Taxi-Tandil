@@ -77,8 +77,8 @@ export const AutoCompleteAddressInput: FC<AutoCompleteAddressInputProps> = ({pla
         if (details != null) {
           setLocation({
             location: {
-              lat: details.geometry.location.lat,
-              lng: details.geometry.location.lng,
+              latitude: details.geometry.location.lat,
+              longitude: details.geometry.location.lng,
             }, 
             longStringLocation: details.formatted_address,
             shortStringLocation: details.address_components[1].long_name+" "+details.address_components[0].long_name,

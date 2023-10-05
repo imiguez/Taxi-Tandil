@@ -1,18 +1,48 @@
-import { FC, useState } from "react";
+import { FC, useContext, useEffect, useState } from "react";
 import { StyleSheet, Text, TouchableHighlight, View } from "react-native";
 import constants from "../../constants";
 import { useMapDispatchActions } from "../../hooks/useMapDispatchActions";
 import { useNavigation } from "@react-navigation/native";
+import { LatLng } from "../../types/Location";
+import { SocketContext } from "../../hooks/useSocketContext";
 
 
 export const ConfirmedRideCard: FC = () => {
+    const socket = useContext(SocketContext);
     const {origin, destination, setRideConfirmed} = useMapDispatchActions();
     const navigation = useNavigation();
-    const [searchingTaxi, setSearchingTaxi] = useState(true);
+    const [taxiResponse, setTaxiResponse] = useState<{
+        taxi: string,
+        taxiLocation: LatLng,
+    } | null>(null);
 
     const onCancel = () => {
         navigation.goBack();
     }
+
+    const onTaxiConfirmedRide = (location: LatLng, taxiId: string) => setTaxiResponse({
+        taxi: taxiId,
+        taxiLocation: location,
+    });
+
+    useEffect(() => {
+        console.log("mounted ConfirmedRideCard");
+        const ride = {
+            origin: {
+                latitude: origin?.location.latitude!,
+                longitude: origin?.location.longitude!,
+            },
+            destination: {
+                latitude: destination?.location.latitude!,
+                longitude: destination?.location.longitude!,
+            }
+        };
+        socket.emit('new-ride', ride);
+        socket.on('taxi-confirmed-ride', onTaxiConfirmedRide);
+        return () => {
+            socket.off('taxi-confirmed-ride', onTaxiConfirmedRide);
+        }
+    }, []);
 
     return (
         <View style={styles.cardContainer}>
@@ -22,8 +52,8 @@ export const ConfirmedRideCard: FC = () => {
             </View>
 
             <View >
-
-                {searchingTaxi && <Text>Esperando taxi...</Text>}
+                {taxiResponse == null && <Text>Esperando taxi...</Text>}
+                {taxiResponse && <Text>{taxiResponse.taxi} acepto tu viaje!</Text>}
             </View>
 
             <TouchableHighlight style={styles.button} onPress={onCancel} >

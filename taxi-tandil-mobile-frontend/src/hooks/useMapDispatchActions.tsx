@@ -1,11 +1,11 @@
 import { useDispatch, useSelector } from "react-redux";
-import { Location, selectDestination, selectOrigin, selectLastModified, selectSelectInMap,
+import { selectDestination, selectOrigin, selectLastModified, selectSelectInMap,
     selectFocusInput, selectRideConfirmed, setDestination, setOrigin, setLastModified, 
     setFocusInput as setFocusInputFromRideSlice, 
     setSelectInMap as setSelectInMapFromRideSlice, 
     setRideConfirmed as setRideConfirmedFromRideSlice
     } from "../../slices/rideSlice";
-import { Keyboard } from "react-native";
+import { LocationWithName } from "../types/Location";
 
 export const useMapDispatchActions = () => {
     const dispatch = useDispatch();
@@ -16,7 +16,7 @@ export const useMapDispatchActions = () => {
     const focusInput = useSelector(selectFocusInput);
     const rideConfirmed = useSelector(selectRideConfirmed);
 
-    const setLocation = (location: Location | null, set: 'origin' | 'destination') => {
+    const setLocation = (location: LocationWithName | null, set: 'origin' | 'destination') => {
         if (set == 'origin') {
             dispatch(setOrigin(location));
         }

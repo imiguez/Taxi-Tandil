@@ -7,10 +7,15 @@ import constants from "../../constants";
 
 export const InvertOriginDestinationBtn: FC = () => {
 
-    const {invertLocations} = useMapDispatchActions();
+    const {invertLocations, setLocation} = useMapDispatchActions();
+    
+    const autoAssignLocations = () => {
+        setLocation(constants.rndLocation1, 'origin');
+        setLocation(constants.rndLocation2, 'destination');
+    }
 
     return (
-        <TouchableHighlight underlayColor="white" onPress={invertLocations} style={styles.btn}>
+        <TouchableHighlight underlayColor="white" onPress={autoAssignLocations} style={styles.btn}>
             <Text>INV</Text>
         </TouchableHighlight>
     );

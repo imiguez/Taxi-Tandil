@@ -5,12 +5,17 @@ import { store } from './store';
 import 'react-native-gesture-handler';
 import Routes from './Routes';
 import { StyleSheet, View } from 'react-native';
+import { SocketContext } from './src/hooks/useSocketContext';
+import { useContext } from 'react';
 
 
 export default function App() {
 
+  const socket = useContext(SocketContext);
+
   return (
     <Provider store={store}>
+      <SocketContext.Provider value={socket}>
         <SafeAreaProvider>
           <View style={styles.container}>
             <Routes>
@@ -18,6 +23,7 @@ export default function App() {
             </Routes>
           </View>
         </SafeAreaProvider>
+      </SocketContext.Provider>
     </Provider>
   );
 }

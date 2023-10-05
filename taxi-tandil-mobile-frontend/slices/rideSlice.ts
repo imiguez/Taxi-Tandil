@@ -1,17 +1,9 @@
 import {createSlice} from '@reduxjs/toolkit';
-
-export type Location = {
-  location: {
-    lat: number,
-    lng: number,
-  },
-  longStringLocation: string,
-  shortStringLocation: string,
-}
+import { LocationWithName } from '../src/types/Location';
 
 type initialStateType ={
-  origin: Location | null,
-  destination: Location | null,
+  origin: LocationWithName | null,
+  destination: LocationWithName | null,
   focusInput: 'origin' | 'destination',
   lastModified: 'origin' | 'destination' | null,
   selectInMap: boolean,
@@ -55,8 +47,8 @@ export const rideSlice = createSlice({
 export const { setOrigin, setDestination, setLastModified, setSelectInMap, 
   setFocusInput, setRideConfirmed } = rideSlice.actions;
 
-export const selectOrigin: (state: any) => Location | null = (state: any) => state.ride.origin;
-export const selectDestination: (state: any) => Location | null = (state: any) => state.ride.destination;
+export const selectOrigin: (state: any) => LocationWithName | null = (state: any) => state.ride.origin;
+export const selectDestination: (state: any) => LocationWithName | null = (state: any) => state.ride.destination;
 export const selectFocusInput: (state: any) => 'origin' | 'destination' = (state: any) => state.ride.focusInput;
 export const selectLastModified: (state: any) => 'origin' | 'destination' | null = (state: any) => state.ride.lastModified;
 export const selectSelectInMap: (state: any) => boolean = (state: any) => state.ride.selectInMap;
