@@ -1,11 +1,11 @@
 import { FC } from "react";
 import { LinearGradient } from "expo-linear-gradient";
 import { StyleSheet, Text, TouchableHighlight } from "react-native";
-import constants from "../constants";
-import { useMapDispatchActions } from "../hooks/useMapDispatchActions";
+import constants from "../../constants";
+import { useMapDispatchActions } from "../../hooks/useMapDispatchActions";
 import { useNavigation } from "@react-navigation/native";
-import { RideMap } from "../components/NewRide/RideMap";
-import { RideSelectLocations } from "../components/NewRide/RideSelectLocations";
+import { RideMap } from "../../components/NewRide/RideMap";
+import { RideSelectLocations } from "../../components/NewRide/RideSelectLocations";
 
 
 export const NewRide: FC = () => {

@@ -20,3 +20,8 @@ export type Ride = {
     origin: LatLng,
     destination: LatLng,
 };
+
+export type RideWithAddress = {
+    origin: LocationWithName,
+    destination: LocationWithName,
+};

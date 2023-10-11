@@ -1,12 +1,33 @@
-import { FC } from "react";
+import { FC, useContext, useEffect, useRef, useState } from "react";
 import { StyleSheet, View } from "react-native";
-import MapView, { Marker } from "react-native-maps";
+import MapView, { MapMarker, Marker } from "react-native-maps";
 import { useCoords } from "../../hooks/useCoords";
 import { useMapDispatchActions } from "../../hooks/useMapDispatchActions";
+import { SocketContext } from "../../hooks/useSocketContext";
+import { LatLng } from "../../types/Location";
 
 export const ConfirmedRideMap: FC = () => {
     const {origin, destination} = useMapDispatchActions();
+    const socket = useContext(SocketContext);
     const {calculateIntermediateCoord} = useCoords();
+    const [taxi, setTaxi] = useState<{
+        location: LatLng,
+        name: string,
+    } | null>(null);
+
+    useEffect(() => {
+        const onTaxiUpdate = (location: LatLng, name: string) => {
+            setTaxi({
+                location: location,
+                name: name
+            });
+        }
+        socket.on('location-update-from-taxi', onTaxiUpdate);
+        
+        return () => {
+            socket.off('location-update-from-taxi', onTaxiUpdate);
+        }
+    }, []);
 
     let originCoord = {
         latitude: origin?.location.latitude!,
@@ -48,6 +69,10 @@ export const ConfirmedRideMap: FC = () => {
                         latitude: destination.location.latitude,
                         longitude: destination.location.longitude,
                     }} title={destination.shortStringLocation}/>
+                }
+
+                {taxi && <Marker coordinate={taxi.location} title={taxi.name} />
+
                 }
 
             </MapView>

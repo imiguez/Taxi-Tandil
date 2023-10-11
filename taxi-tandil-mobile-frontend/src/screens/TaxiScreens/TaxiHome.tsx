@@ -1,15 +1,19 @@
 import { FC, useContext, useEffect, useMemo, useState } from "react";
 import { Button, StyleSheet, Text, View } from "react-native";
 import { TouchableHighlight } from "react-native-gesture-handler";
-import constants from "../constants";
-import { LatLng, Ride } from "../types/Location";
-import { SocketContext } from "../hooks/useSocketContext";
+import constants from "../../constants";
+import { LatLng, Ride } from "../../types/Location";
+import { SocketContext } from "../../hooks/useSocketContext";
+import { useTaxiDispatchActions } from "../../hooks/useTaxiDispatchActions";
+import { AvailableBtn } from "../../components/Taxi/AvailableBtn";
+import { useExpoTaskManager } from "../../hooks/useExpoTaskManager";
 
 
 export const TaxiHome: FC = () => {
     const socket = useContext(SocketContext);
+    const {setRide, userId} = useTaxiDispatchActions();
+    const {startBackgroundUpdate, stopBackgroundUpdate} = useExpoTaskManager()
     
-    const [available, setAvailable] = useState(false);
     const [rideRequest, setRideRequest] = useState<{ride: Ride | null, userId: string} | null>(null);
     const [taxiCoords, setTaxiCoords] = useState<LatLng>(constants.rndLocation1.location);
     const [userRequestLocation, setUserRequestLocation] = useState<{
@@ -18,7 +22,7 @@ export const TaxiHome: FC = () => {
     }>();
 
     useEffect(() => {
-        console.log("mounted TaxiHome");
+        // console.log("mounted TaxiHome");
         const onUpdateTaxisLocation = (userId: string) => {
             setUserRequestLocation({
                 userId: userId,
@@ -26,15 +30,15 @@ export const TaxiHome: FC = () => {
             });
         };
         const onRideRequest = (ride: Ride, userId: string) => {
-            console.log(`ride-request from: ${userId}.`);
+            // console.log(`ride-request from: ${userId}.`);
             setRideRequest({
                 ride: ride,
                 userId: userId,
             });
+            setRide(ride, userId);
         };
         socket.on('update-taxis-location', onUpdateTaxisLocation);
         socket.on('ride-request', onRideRequest);
-
         return () => {
             socket.off('update-taxis-location', onUpdateTaxisLocation);
             socket.off('ride-request', onRideRequest);
@@ -42,56 +46,47 @@ export const TaxiHome: FC = () => {
     }, []);
 
     useMemo(() => {
-        console.log(`update-taxis-location taxiCoords: ${taxiCoords.latitude}, ${taxiCoords.longitude}`);
+        // console.log(`update-taxis-location taxiCoords: ${taxiCoords.latitude}, ${taxiCoords.longitude}`);
         socket.volatile.emit('taxis-location-updated', taxiCoords, userRequestLocation?.userId);
     }, [userRequestLocation]);
 
-    const handleDisp = (available: boolean) => {
-        if (available)
-            socket.emit('join-room', 'taxis-available');
-        else
-            socket.emit('leave-room', 'taxis-available');
-        setAvailable(available);
-    }
-
-    const handleNewRideRequest = (accepted: boolean) => {
-        if (rideRequest)
+    const handleNewRideRequest = async (accepted: boolean) => {
+        if (rideRequest) {
             socket.emit('ride-response', accepted, rideRequest.userId);
-        if (accepted) {
-            setAvailable(false);
-            socket.emit('leave-room', 'taxis-available');
-        } else {
-            setRideRequest(null);
+            if (accepted) {
+                socket.emit('leave-room', 'taxis-available');
+                await startBackgroundUpdate(userId!);
+                setTimeout(async () => {
+                    await stopBackgroundUpdate();
+                }, 20000);
+            } else {
+                setRideRequest(null);
+            }
         }
     }
 
     return (
         <View style={styles.mainContainer}>
-            <TouchableHighlight style={[styles.touch, {
-                backgroundColor: available ? '#f95959' : '#42b883',
-            }]} 
-                onPress={() => handleDisp(!available)}>
-                <Text>Disponible</Text>
-            </TouchableHighlight>
+            <AvailableBtn />
 
             <Button title="Change location" onPress={() => {
-                setTaxiCoords(constants.rndLocation2.location);
-                console.log(constants.rndLocation2.location);
+                setTaxiCoords(constants.rndLocation3.location);
+                console.log(constants.rndLocation3.location);
             }}/>
 
-            {available && rideRequest?.ride && <>
-            <Text>Ride from: {rideRequest.userId}</Text>
-            <TouchableHighlight style={styles.touch} 
-                onPress={() => handleNewRideRequest(true)}>
-                <Text>Aceptar</Text>
-            </TouchableHighlight>
+            {rideRequest?.ride &&
+            <>
+                <Text>Ride from: {rideRequest.userId}</Text>
+                <TouchableHighlight style={styles.touch} 
+                    onPress={() => handleNewRideRequest(true)}>
+                    <Text>Aceptar</Text>
+                </TouchableHighlight>
 
-            <TouchableHighlight style={styles.touch} 
-                onPress={() => handleNewRideRequest(false)}>
-                <Text>No Aceptar</Text>
-            </TouchableHighlight>
+                <TouchableHighlight style={styles.touch} 
+                    onPress={() => handleNewRideRequest(false)}>
+                    <Text>No Aceptar</Text>
+                </TouchableHighlight>
             </>}
-
         </View>
     );
 }
@@ -117,5 +112,5 @@ const styles = StyleSheet.create({
         marginLeft: '15%',
         justifyContent: 'center',
         alignItems: 'center'
-    }
+    },
 });

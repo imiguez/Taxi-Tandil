@@ -5,12 +5,14 @@ import { useMapDispatchActions } from "../../hooks/useMapDispatchActions";
 import { useNavigation } from "@react-navigation/native";
 import { LatLng } from "../../types/Location";
 import { SocketContext } from "../../hooks/useSocketContext";
+import { io } from "socket.io-client";
 
 
 export const ConfirmedRideCard: FC = () => {
     const socket = useContext(SocketContext);
     const {origin, destination, setRideConfirmed} = useMapDispatchActions();
     const navigation = useNavigation();
+    const [msg, setMsg] = useState<string>("Esperando taxi...");
     const [taxiResponse, setTaxiResponse] = useState<{
         taxi: string,
         taxiLocation: LatLng,
@@ -20,10 +22,21 @@ export const ConfirmedRideCard: FC = () => {
         navigation.goBack();
     }
 
-    const onTaxiConfirmedRide = (location: LatLng, taxiId: string) => setTaxiResponse({
-        taxi: taxiId,
-        taxiLocation: location,
-    });
+    const onTaxiConfirmedRide = (location: LatLng, taxiId: string) => {
+        setTaxiResponse({
+            taxi: taxiId,
+            taxiLocation: location,
+        });
+        setMsg(`${taxiId} acepto tu viaje!`);
+    };
+
+    const onNoTaxisAvailable = () => {
+        setMsg(`Actualmente no hay taxis disponibles.`);
+    }
+
+    const onAllTaxisReject = () => {
+        setMsg(`Ningun taxi disponible tomo el viaje.`);
+    }
 
     useEffect(() => {
         console.log("mounted ConfirmedRideCard");
@@ -37,10 +50,16 @@ export const ConfirmedRideCard: FC = () => {
                 longitude: destination?.location.longitude!,
             }
         };
+        // const s2 = io('http://192.168.0.187:3001');
+        // s2.emit('new-ride', ride);
         socket.emit('new-ride', ride);
         socket.on('taxi-confirmed-ride', onTaxiConfirmedRide);
+        socket.on('no-taxis-available', onNoTaxisAvailable);
+        socket.on('all-taxis-reject', onAllTaxisReject);
         return () => {
             socket.off('taxi-confirmed-ride', onTaxiConfirmedRide);
+            socket.off('no-taxis-available', onNoTaxisAvailable);
+            socket.off('all-taxis-reject', onAllTaxisReject);
         }
     }, []);
 
@@ -52,8 +71,7 @@ export const ConfirmedRideCard: FC = () => {
             </View>
 
             <View >
-                {taxiResponse == null && <Text>Esperando taxi...</Text>}
-                {taxiResponse && <Text>{taxiResponse.taxi} acepto tu viaje!</Text>}
+                <Text>{msg}</Text>
             </View>
 
             <TouchableHighlight style={styles.button} onPress={onCancel} >

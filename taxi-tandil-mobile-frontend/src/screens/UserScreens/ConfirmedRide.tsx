@@ -1,8 +1,8 @@
 import { FC } from "react";
 import { StyleSheet, View } from "react-native";
-import constants from "../constants";
-import { ConfirmedRideMap } from "../components/ConfirmedRide/ConfirmedRideMap";
-import { ConfirmedRideCard } from "../components/ConfirmedRide/ConfirmedRideCard";
+import constants from "../../constants";
+import { ConfirmedRideMap } from "../../components/ConfirmedRide/ConfirmedRideMap";
+import { ConfirmedRideCard } from "../../components/ConfirmedRide/ConfirmedRideCard";
 import { LinearGradient } from "expo-linear-gradient";
 
 

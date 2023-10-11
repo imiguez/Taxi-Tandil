@@ -1,8 +1,51 @@
+import * as ExpoLocation from 'expo-location';
 import { LatLng } from "../types/Location";
 
 
 export const useCoords = () => {
 
+
+    const reverseGeocode = async (coord: LatLng) => {
+        try {
+            let value = await ExpoLocation.reverseGeocodeAsync(coord);
+            let longStringLocationValue = `${value[0].street} ${value[0].streetNumber}, ${value[0].city}, ${value[0].region}, ${value[0].country}`;
+            return {
+                location: coord,
+                longStringLocation: longStringLocationValue,
+                shortStringLocation: `${value[0].street} ${value[0].streetNumber}`,
+            }
+        } catch (e) {
+            console.log("reverseGeocodeAsync: "+e);
+        }
+    }
+
+    const getLatLngCurrentPosition = async () => {
+        try {
+            let currentLocation = await ExpoLocation.getCurrentPositionAsync({accuracy: ExpoLocation.Accuracy.Highest});
+            return currentLocation;
+        } catch (e) {
+            console.log(`getCurrentPositionLatLng: ${e}`);
+        }
+    }
+
+    const getFullCurrentPosition = async () => {
+        let currentLocation = await getLatLngCurrentPosition();
+        if (currentLocation == undefined) {
+            console.log(`getFullCurrentPosition: currentLocation is undefined`);
+            return;
+        }
+        let param: Pick<ExpoLocation.LocationGeocodedLocation, "latitude" | "longitude"> = {
+            latitude: currentLocation.coords.latitude, 
+            longitude: currentLocation.coords.longitude
+        };
+        let location = await reverseGeocode(param);
+        if (location == undefined) {
+            console.log(`getFullCurrentPosition: reverse geocode return undefined`);
+            return;
+        }
+        location.shortStringLocation = "Ubicación actual";
+        return location;
+    }
 
     const calculateIntermediateCoord = (coord1: LatLng, coord2: LatLng) => {
         let lat1 = coord1.latitude;
@@ -70,6 +113,6 @@ export const useCoords = () => {
     }
 
     return {
-        calculateIntermediateCoord,
+        calculateIntermediateCoord, reverseGeocode, getLatLngCurrentPosition, getFullCurrentPosition
     };
 };

@@ -5,9 +5,11 @@ import * as ExpoLocation from 'expo-location';
 import { SelectInMapOptions } from "./SelectInMapOptions";
 import constants from "../../constants";
 import { useMapDispatchActions } from "../../hooks/useMapDispatchActions";
+import { useCoords } from "../../hooks/useCoords";
 
 export const RideMap: FC = () => {
 
+    const {reverseGeocode} = useCoords();
     const {origin, destination, lastModified, selectInMap, setLocation, focusInput, setSelectInMap} = useMapDispatchActions();
     let coords = {
         latitude: constants.tandilLocation.latitude,
@@ -110,31 +112,19 @@ export const RideMap: FC = () => {
     }
 
     const onConfirm = async () => {
-        let result = false;
-        try {
-            let value = await ExpoLocation.reverseGeocodeAsync(markerCoords);
-            let longStringLocationValue = `${value[0].street} ${value[0].streetNumber}, ${value[0].city}, ${value[0].region}, ${value[0].country}`;
-            let location = {
-                location: {
-                    latitude: markerCoords.latitude,
-                    longitude: markerCoords.longitude,
-                },
-                longStringLocation: longStringLocationValue,
-                shortStringLocation: `${value[0].street} ${value[0].streetNumber}`,
-            }
-            setLocation(location, focusInput);
-            setSelectInMap(false);
-            setMapCoords({
-                latitude: markerCoords.latitude,
-                longitude: markerCoords.longitude,
-                latitudeDelta: mapCoords.latitudeDelta,
-                longitudeDelta: mapCoords.longitudeDelta
-            });
-            result = true;
-        } catch (e) {
-            console.log("reverseGeocodeAsync: "+e);
-        }
-        return result;
+        let location = await reverseGeocode(markerCoords);
+        if (location == null)
+            return false;
+        
+        setLocation(location, focusInput);
+        setSelectInMap(false);
+        setMapCoords({
+            latitude: markerCoords.latitude,
+            longitude: markerCoords.longitude,
+            latitudeDelta: mapCoords.latitudeDelta,
+            longitudeDelta: mapCoords.longitudeDelta
+        });
+        return true;
     }
 
     return (

@@ -2,13 +2,13 @@ import { NavigationContainer } from "@react-navigation/native";
 import { CardStyleInterpolators, createStackNavigator } from "@react-navigation/stack";
 import { FC, PropsWithChildren } from "react";
 import { Login } from "./src/screens/Login";
-import { UserHome } from "./src/screens/UserHome";
-import { NewRide } from "./src/screens/NewRide";
+import { UserHome } from "./src/screens/UserScreens/UserHome";
+import { NewRide } from "./src/screens/UserScreens/NewRide";
 import RootStackParamList, { HomeStackParamList } from "./src/types/RootStackParamList";
 import { Button, StyleSheet } from "react-native";
 import { Settings } from "./src/screens/Settings";
-import { ConfirmedRide } from "./src/screens/ConfirmedRide";
-import { TaxiHome } from "./src/screens/TaxiHome";
+import { ConfirmedRide } from "./src/screens/UserScreens/ConfirmedRide";
+import { TaxiHome } from "./src/screens/TaxiScreens/TaxiHome";
 
 
 const HomeStack = createStackNavigator<HomeStackParamList>();

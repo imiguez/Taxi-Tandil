@@ -5,9 +5,21 @@ import { store } from './store';
 import 'react-native-gesture-handler';
 import Routes from './Routes';
 import { StyleSheet, View } from 'react-native';
-import { SocketContext } from './src/hooks/useSocketContext';
-import { useContext } from 'react';
+import { SocketContext, idSetter } from './src/hooks/useSocketContext';
+import { FC, PropsWithChildren, useContext, useMemo } from 'react';
+import { useTaxiDispatchActions } from './src/hooks/useTaxiDispatchActions';
 
+const MainContainer: FC<PropsWithChildren> = ({children}) => {
+  const { userId } = useTaxiDispatchActions();
+  useMemo(() => {
+    idSetter(userId!);
+  }, [userId]);
+  return (
+    <View style={styles.container}>
+      {children}
+    </View>
+  )
+}
 
 export default function App() {
 
@@ -17,11 +29,11 @@ export default function App() {
     <Provider store={store}>
       <SocketContext.Provider value={socket}>
         <SafeAreaProvider>
-          <View style={styles.container}>
+          <MainContainer>
             <Routes>
               <ExpoStatusBar.StatusBar style='auto' />
             </Routes>
-          </View>
+          </MainContainer>
         </SafeAreaProvider>
       </SocketContext.Provider>
     </Provider>

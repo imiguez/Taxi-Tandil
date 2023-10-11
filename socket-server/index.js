@@ -14,7 +14,6 @@ let taxisLocation = new Map();
 let taxisLocationLastUpdate = new Date();
 const frequencyToCheckLastUpdate = 5;
 
-
 const onJoinRoom = (room, id) => {
   console.log(`${id} has joined to the room: ${room}`);
   io.sockets.sockets.get(id).join(room);
@@ -84,22 +83,35 @@ const resolveNewRideRequest = (userId) => {
     onJoinRoom("being-requested", nearestTaxi.id);
     console.log("ride-request emitted to "+nearestTaxi.id+" !");
   } else {
-    console.log("Error: nearestTaxi.id is null.");
+    console.log("Error: nearestTaxi.id is null. Or none of all taxis accept the request.");
+    io.to(userId).emit("all-taxis-reject");
   }
+}
+
+const getRoomSize = (room) => {
+  let r = io.sockets.adapter.rooms.get(room);
+  if (r == undefined)
+    return 0;
+  return r.size;
 }
 
 
 io.on("connection", (socket) => {
+  console.log(`Se conecto: ${socket.id}`);
+  
   socket.on("join-room", (room) => onJoinRoom(room, socket.id));
   socket.on("leave-room", (room) => onLeaveRoom(room, socket.id));
 
   socket.on("new-ride", (ride) => {
     console.log("new-ride received from: "+socket.id);
-    activeRides.set(socket.id, {
-      ride: ride,
-      alreadyRequesteds: [],
-    });
-    checkLastLocationUpdate(socket.id);
+    if (getRoomSize("taxis-available") > 0) {
+      activeRides.set(socket.id, {
+        ride: ride,
+        alreadyRequesteds: [],
+      });
+      checkLastLocationUpdate(socket.id);
+    } else 
+      io.to(socket.id).emit("no-taxis-available");
   });
   
   socket.on("taxis-location-updated", (location, userId = null) => {
@@ -108,7 +120,7 @@ io.on("connection", (socket) => {
       location: location,
       lastUpdate: new Date(),
     });
-    if (userId != null && taxisLocation.size == io.sockets.adapter.rooms.get("taxis-available").size) {
+    if (userId != null && taxisLocation.size == getRoomSize("taxis-available")) {
       taxisLocationLastUpdate = new Date();
       resolveNewRideRequest(userId);
     }
@@ -126,5 +138,13 @@ io.on("connection", (socket) => {
       console.log("searching new taxi, taxis availables: "+taxisLocation.size);
       checkLastLocationUpdate(userId);
     }
+  });
+
+  socket.on("location-update-for-user", (location, userId) => {
+    io.to(userId).emit("location-update-from-taxi", location, socket.id);
+  });
+
+  socket.on("check-taxi-has-location-activated", () => {
+    io.to(socket.id).emit("taxi-has-location-activated");
   });
 });
