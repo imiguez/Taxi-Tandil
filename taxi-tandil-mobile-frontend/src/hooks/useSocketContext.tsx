@@ -1,10 +1,9 @@
 //@ts-nocheck
-import { FC, createContext, useMemo } from "react";
+import { createContext } from "react";
 import { Socket, io } from "socket.io-client";
 import * as TaskManager from "expo-task-manager";
 import constants from "../constants";
 import * as ExpoLocation from 'expo-location';
-import { useTaxiDispatchActions } from "./useTaxiDispatchActions";
 
 
 let id = null;
@@ -18,6 +17,7 @@ const socket = io('http://192.168.0.187:3001');
 
 TaskManager.defineTask(constants.CHECK_LOCATION_ACTIVE, async ({ data, error }) => {
     try {
+        if (error) new Error(error);
         const { locations } = data;
         const location = locations[0];
         if (location) {
@@ -33,7 +33,7 @@ TaskManager.defineTask(constants.CHECK_LOCATION_ACTIVE, async ({ data, error }) 
 
 TaskManager.defineTask(constants.BACKGROUND_LOCATION_TASK_NAME, async ({ data, error }) => {
     try {
-        console.log("Task BACKGROUND_LOCATION_TASK_NAME executed!");
+        if (error) new Error(error);
         const { locations } = data;
         const {latitude, longitude} = locations[0].coords;
         const location = {
@@ -51,7 +51,4 @@ TaskManager.defineTask(constants.BACKGROUND_LOCATION_TASK_NAME, async ({ data, e
     }
 });
 
-
-
-// Para android usar direccion ip
 export const SocketContext = createContext<Socket>(socket);

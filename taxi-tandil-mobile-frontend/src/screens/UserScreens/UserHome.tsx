@@ -1,7 +1,6 @@
 import { FC, PropsWithChildren } from "react";
-import { StyleSheet, Text, View } from "react-native";
+import { StyleSheet, Text, TouchableHighlight, View } from "react-native";
 import { useNavigation } from "@react-navigation/native";
-import { TouchableHighlight } from "react-native-gesture-handler";
 
 
 export const UserHome: FC<PropsWithChildren> = () => {

@@ -1,6 +1,6 @@
 import { FC, useContext, useEffect, useRef, useState } from "react";
 import { StyleSheet, View } from "react-native";
-import MapView, { MapMarker, Marker } from "react-native-maps";
+import MapView, { Marker } from "react-native-maps";
 import { useCoords } from "../../hooks/useCoords";
 import { useMapDispatchActions } from "../../hooks/useMapDispatchActions";
 import { SocketContext } from "../../hooks/useSocketContext";
@@ -41,18 +41,17 @@ export const ConfirmedRideMap: FC = () => {
     let middleCoord = calculateIntermediateCoord(originCoord, destinationCoord);
 
     let initialRegion = {
-        latitude: middleCoord.latitudIntermedia,
-        longitude: middleCoord.longitudIntermedia,
-        latitudeDelta: middleCoord.latDelta,
-        longitudeDelta: middleCoord.lonDelta,
+        latitude: middleCoord.latitude,
+        longitude: middleCoord.longitude,
+        latitudeDelta: middleCoord.latitudeDelta,
+        longitudeDelta: middleCoord.longitudeDelta,
     }
 
     return (
         <View style={styles.mapContainer}>
-            <MapView //ref={mapRef} 
+            <MapView
                 style={styles.map} provider="google" 
-                mapType="mutedStandard" 
-                toolbarEnabled={false} //region={mapCoords}
+                toolbarEnabled={false}
                 initialRegion={initialRegion} 
                 loadingEnabled={true}
                 >

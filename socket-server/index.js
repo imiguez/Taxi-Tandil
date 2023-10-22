@@ -80,11 +80,13 @@ const resolveNewRideRequest = (userId) => {
   let nearestTaxi = getNearestTaxi(activeRides.get(userId).alreadyRequesteds, activeRides.get(userId).ride);
   if (nearestTaxi.id) {
     io.to(nearestTaxi.id).emit("ride-request", activeRides.get(userId).ride, userId); // Sends the user id
+    activeRides.get(userId).currentRequested = nearestTaxi.id;
     onJoinRoom("being-requested", nearestTaxi.id);
     console.log("ride-request emitted to "+nearestTaxi.id+" !");
   } else {
-    console.log("Error: nearestTaxi.id is null. Or none of all taxis accept the request.");
+    console.log("None of all taxis accept the request.");
     io.to(userId).emit("all-taxis-reject");
+    activeRides.delete(userId);
   }
 }
 
@@ -108,6 +110,8 @@ io.on("connection", (socket) => {
       activeRides.set(socket.id, {
         ride: ride,
         alreadyRequesteds: [],
+        currentRequested: null,
+        taxi: null,
       });
       checkLastLocationUpdate(socket.id);
     } else 
@@ -129,7 +133,7 @@ io.on("connection", (socket) => {
   socket.on("ride-response", (accepted, userId) => {
     onLeaveRoom("being-requested", socket.id);
     if (accepted) {
-      activeRides.delete(userId);
+      activeRides.get(userId).taxi = socket.id;
       io.to(userId).emit("taxi-confirmed-ride", taxisLocation.get(socket.id).location, socket.id);
       onLeaveRoom("taxis-available", socket.id);
       taxisLocation.delete(socket.id);
@@ -138,13 +142,43 @@ io.on("connection", (socket) => {
       console.log("searching new taxi, taxis availables: "+taxisLocation.size);
       checkLastLocationUpdate(userId);
     }
+    activeRides.get(userId).currentRequested = null;
   });
 
   socket.on("location-update-for-user", (location, userId) => {
+    // const distanceLeft = calculateDistances(location, activeRides.get(userId).ride.origin);
+    // console.log(`distanceLeft: ${distanceLeft}`);
+    // if (distanceLeft < 0.05){
+    //   io.to(userId).emit("taxi-arrived", location, socket.id);
+    //   io.to(socket.id).emit("taxi-arrived");
+    //   activeRides.delete(userId);
+    // }
     io.to(userId).emit("location-update-from-taxi", location, socket.id);
+  });
+
+  socket.on("taxi-arrived", (location, userId) => {
+    io.to(userId).emit("taxi-arrived", location, socket.id);
   });
 
   socket.on("check-taxi-has-location-activated", () => {
     io.to(socket.id).emit("taxi-has-location-activated");
+  });
+
+  socket.on("cancel-ride", () => {
+    // If the ride doesnt exists in activeRides
+    if (activeRides.get(socket.id) == undefined) return;
+    // In case taxi've not accepted the ride yet
+    let taxiBeingRequested = activeRides.get(socket.id).currentRequested;
+    if (taxiBeingRequested) {
+      io.to(taxiBeingRequested).emit("user-cancel-ride");
+      onLeaveRoom('being-requested', taxiBeingRequested);
+    }
+    // In case taxi've already accepted the ride
+    let taxiWhoAccepted = activeRides.get(socket.id).taxi;
+    if (taxiWhoAccepted) {
+      io.to(taxiWhoAccepted).emit("user-cancel-ride");
+      onJoinRoom('taxis-available', taxiWhoAccepted);
+    }
+    activeRides.delete(socket.id);
   });
 });

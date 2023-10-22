@@ -5,7 +5,6 @@ import { useMapDispatchActions } from "../../hooks/useMapDispatchActions";
 import { useNavigation } from "@react-navigation/native";
 import { LatLng } from "../../types/Location";
 import { SocketContext } from "../../hooks/useSocketContext";
-import { io } from "socket.io-client";
 
 
 export const ConfirmedRideCard: FC = () => {
@@ -19,6 +18,9 @@ export const ConfirmedRideCard: FC = () => {
     } | null>(null);
 
     const onCancel = () => {
+        if (msg != 'Ningun taxi disponible tomo el viaje.') {
+            socket.emit('cancel-ride');
+        }
         navigation.goBack();
     }
 
@@ -38,8 +40,15 @@ export const ConfirmedRideCard: FC = () => {
         setMsg(`Ningun taxi disponible tomo el viaje.`);
     }
 
+    const onTaxiArrived = (location: LatLng, taxiId: string) => {
+        setTaxiResponse({
+            taxi: taxiId,
+            taxiLocation: location,
+        });
+        setMsg(`${taxiId} ya llegó!`);
+    }
+
     useEffect(() => {
-        console.log("mounted ConfirmedRideCard");
         const ride = {
             origin: {
                 latitude: origin?.location.latitude!,
@@ -50,16 +59,16 @@ export const ConfirmedRideCard: FC = () => {
                 longitude: destination?.location.longitude!,
             }
         };
-        // const s2 = io('http://192.168.0.187:3001');
-        // s2.emit('new-ride', ride);
         socket.emit('new-ride', ride);
         socket.on('taxi-confirmed-ride', onTaxiConfirmedRide);
         socket.on('no-taxis-available', onNoTaxisAvailable);
         socket.on('all-taxis-reject', onAllTaxisReject);
+        socket.on('taxi-arrived', onTaxiArrived);
         return () => {
             socket.off('taxi-confirmed-ride', onTaxiConfirmedRide);
             socket.off('no-taxis-available', onNoTaxisAvailable);
             socket.off('all-taxis-reject', onAllTaxisReject);
+            socket.off('taxi-arrived', onTaxiArrived);
         }
     }, []);
 

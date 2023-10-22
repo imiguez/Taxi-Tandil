@@ -6,6 +6,7 @@ export type HomeStackParamList = {
   NewRide: undefined,
   ConfirmedRide: undefined,
   Settings: undefined,
+  AcceptedRide: undefined,
 }
 
 export type RootStackParamList = {
@@ -15,9 +16,9 @@ export type RootStackParamList = {
 }
 
 declare global {
-    namespace ReactNavigation {
-      interface RootParamList extends RootStackParamList {}
-    }
+  namespace ReactNavigation {
+    interface RootParamList extends RootStackParamList {}
+  }
 }
 
 export default RootStackParamList;

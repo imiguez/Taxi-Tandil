@@ -1,28 +1,26 @@
 import { FC, useContext, useEffect, useMemo, useState } from "react";
 import { Button, StyleSheet, Text, View } from "react-native";
-import { TouchableHighlight } from "react-native-gesture-handler";
-import constants from "../../constants";
-import { LatLng, Ride } from "../../types/Location";
+import { Ride } from "../../types/Location";
 import { SocketContext } from "../../hooks/useSocketContext";
 import { useTaxiDispatchActions } from "../../hooks/useTaxiDispatchActions";
 import { AvailableBtn } from "../../components/Taxi/AvailableBtn";
+import { useNavigation } from "@react-navigation/native";
+import { useCoords } from "../../hooks/useCoords";
 import { useExpoTaskManager } from "../../hooks/useExpoTaskManager";
-
 
 export const TaxiHome: FC = () => {
     const socket = useContext(SocketContext);
-    const {setRide, userId} = useTaxiDispatchActions();
-    const {startBackgroundUpdate, stopBackgroundUpdate} = useExpoTaskManager()
-    
-    const [rideRequest, setRideRequest] = useState<{ride: Ride | null, userId: string} | null>(null);
-    const [taxiCoords, setTaxiCoords] = useState<LatLng>(constants.rndLocation1.location);
+    const {setRide, ride} = useTaxiDispatchActions();
+    const {stopBackgroundUpdate, startForegroundUpdate, stopForegroundUpdate} = useExpoTaskManager();
+    const {getLatLngCurrentPosition} = useCoords();
+    const navigation = useNavigation();
     const [userRequestLocation, setUserRequestLocation] = useState<{
         userId: string,
         refresher: number, // Trigger the useMemo which has the taxis-location-updated event that will send the current location.
     }>();
+    const [userCancel, setUserCancel] = useState<boolean>(false);
 
     useEffect(() => {
-        // console.log("mounted TaxiHome");
         const onUpdateTaxisLocation = (userId: string) => {
             setUserRequestLocation({
                 userId: userId,
@@ -30,63 +28,49 @@ export const TaxiHome: FC = () => {
             });
         };
         const onRideRequest = (ride: Ride, userId: string) => {
-            // console.log(`ride-request from: ${userId}.`);
-            setRideRequest({
-                ride: ride,
-                userId: userId,
-            });
             setRide(ride, userId);
         };
+        const onUserCancelRide = async () => {
+            await stopBackgroundUpdate();
+            await stopForegroundUpdate();
+            setRide(null, null);
+            setUserCancel(true);
+            setTimeout(() => {
+                setUserCancel(false);
+            }, 5000);
+        }
         socket.on('update-taxis-location', onUpdateTaxisLocation);
         socket.on('ride-request', onRideRequest);
+        socket.on('user-cancel-ride', onUserCancelRide);
         return () => {
             socket.off('update-taxis-location', onUpdateTaxisLocation);
             socket.off('ride-request', onRideRequest);
+            socket.off('user-cancel-ride', onUserCancelRide);
         }
     }, []);
 
     useMemo(() => {
-        // console.log(`update-taxis-location taxiCoords: ${taxiCoords.latitude}, ${taxiCoords.longitude}`);
+        const taxiCoords = getLatLngCurrentPosition();
         socket.volatile.emit('taxis-location-updated', taxiCoords, userRequestLocation?.userId);
     }, [userRequestLocation]);
-
-    const handleNewRideRequest = async (accepted: boolean) => {
-        if (rideRequest) {
-            socket.emit('ride-response', accepted, rideRequest.userId);
-            if (accepted) {
-                socket.emit('leave-room', 'taxis-available');
-                await startBackgroundUpdate(userId!);
-                setTimeout(async () => {
-                    await stopBackgroundUpdate();
-                }, 20000);
-            } else {
-                setRideRequest(null);
-            }
-        }
-    }
 
     return (
         <View style={styles.mainContainer}>
             <AvailableBtn />
 
-            <Button title="Change location" onPress={() => {
-                setTaxiCoords(constants.rndLocation3.location);
-                console.log(constants.rndLocation3.location);
-            }}/>
+            {ride && 
+                <Button title="Viaje solicitado!" 
+                onPress={async () => {
+                    await startForegroundUpdate();
+                    navigation.navigate('HomeStack', {screen: 'AcceptedRide'});
+                }}/>
+            }
 
-            {rideRequest?.ride &&
-            <>
-                <Text>Ride from: {rideRequest.userId}</Text>
-                <TouchableHighlight style={styles.touch} 
-                    onPress={() => handleNewRideRequest(true)}>
-                    <Text>Aceptar</Text>
-                </TouchableHighlight>
-
-                <TouchableHighlight style={styles.touch} 
-                    onPress={() => handleNewRideRequest(false)}>
-                    <Text>No Aceptar</Text>
-                </TouchableHighlight>
-            </>}
+            {userCancel &&
+                <View>
+                    <Text>El usuario cancelo el viaje.</Text>
+                </View>
+            }
         </View>
     );
 }

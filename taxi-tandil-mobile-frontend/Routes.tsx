@@ -9,6 +9,7 @@ import { Button, StyleSheet } from "react-native";
 import { Settings } from "./src/screens/Settings";
 import { ConfirmedRide } from "./src/screens/UserScreens/ConfirmedRide";
 import { TaxiHome } from "./src/screens/TaxiScreens/TaxiHome";
+import { AcceptedRide } from "./src/screens/TaxiScreens/AcceptedRide";
 
 
 const HomeStack = createStackNavigator<HomeStackParamList>();
@@ -42,6 +43,9 @@ const HomeScreenStack: FC = () => {
             <HomeStack.Screen name="Settings" component={Settings} options={{
                 title: 'Configuraciones',
                 headerRight: () => (<></>),
+            }}/>
+            <HomeStack.Screen name="AcceptedRide" component={AcceptedRide} options={{
+                headerShown: false,
             }}/>
         </HomeStack.Navigator>
     );

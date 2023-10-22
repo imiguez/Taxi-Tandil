@@ -1,7 +1,6 @@
 import React, { FC, useMemo, useRef, useState } from "react";
 import { SafeAreaView, StyleSheet } from "react-native";
 import MapView, { Details, LatLng, MapMarker, Marker, MarkerDragStartEndEvent, Region } from "react-native-maps";
-import * as ExpoLocation from 'expo-location';
 import { SelectInMapOptions } from "./SelectInMapOptions";
 import constants from "../../constants";
 import { useMapDispatchActions } from "../../hooks/useMapDispatchActions";
@@ -84,7 +83,8 @@ export const RideMap: FC = () => {
 
     const onCancel = () => {
         setSelectInMap(false);
-        let p = {
+        // Sets the new map region, in other words, where the map should tarjet
+        let newMapRegion = {
             latitude: mapCoords.latitude,
             longitude: mapCoords.longitude,
             latitudeDelta: mapCoords.latitudeDelta,
@@ -92,23 +92,23 @@ export const RideMap: FC = () => {
         }
         if (focusInput == 'origin') {
             if (origin?.location) {
-                p.latitude = origin.location.latitude;
-                p.longitude = origin.location.longitude;
+                newMapRegion.latitude = origin.location.latitude;
+                newMapRegion.longitude = origin.location.longitude;
             } else if (destination?.location) {
-                p.latitude = destination.location.latitude;
-                p.longitude = destination.location.longitude;
+                newMapRegion.latitude = destination.location.latitude;
+                newMapRegion.longitude = destination.location.longitude;
             }
         }
         if (focusInput == 'destination'){
             if (destination?.location) {
-                p.latitude = destination.location.latitude;
-                p.longitude = destination.location.longitude;
+                newMapRegion.latitude = destination.location.latitude;
+                newMapRegion.longitude = destination.location.longitude;
             } else if (origin?.location) {
-                p.latitude = origin.location.latitude;
-                p.longitude = origin.location.longitude;
+                newMapRegion.latitude = origin.location.latitude;
+                newMapRegion.longitude = origin.location.longitude;
             }
         }
-        setMapCoords(p);
+        setMapCoords(newMapRegion);
     }
 
     const onConfirm = async () => {
@@ -130,7 +130,6 @@ export const RideMap: FC = () => {
     return (
         <SafeAreaView style={styles.mapContainer}>
             <MapView ref={mapRef} style={styles.map} provider="google" 
-                mapType="mutedStandard" 
                 toolbarEnabled={false} region={mapCoords}
                 initialRegion={coords} loadingEnabled={true}
                 onRegionChangeComplete={handleRegionChangeComplete} >
@@ -167,7 +166,7 @@ const styles = StyleSheet.create({
         position:'absolute',
         top: 110,
         width: constants.screenWidth,
-        height: (constants.windowHeight*.9)-110,
+        height: (constants.windowHeight)-110,
         borderWidth: 0,
         borderColor: 'red',
         borderStyle: 'solid',
@@ -179,13 +178,4 @@ const styles = StyleSheet.create({
         width: '100%',
         height: '100%',
     },
-    selectInMapContainer: {
-        zIndex: 1,
-        backgroundColor: 'grey',
-        width: '100%',
-        height: 50,
-        borderWidth: 1,
-        borderColor: 'red',
-        borderStyle: 'solid',
-    }
 });

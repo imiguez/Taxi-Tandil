@@ -1,10 +1,12 @@
 import * as TaskManager from "expo-task-manager";
 import * as ExpoLocation from "expo-location";
 import constants from "../constants";
+import { useTaxiDispatchActions } from "./useTaxiDispatchActions";
+
 
 export const useExpoTaskManager = () => {
   let foregroundSubscription: ExpoLocation.LocationSubscription | null = null;
-  let userId: string | null = null;
+  const {setCurrentLocation} = useTaxiDispatchActions();
 
   const checkForegroundPermissions = async () => {
     try {
@@ -26,6 +28,24 @@ export const useExpoTaskManager = () => {
     }
   };
 
+  const requestForegroundPermissions = async () => {
+    try {
+      const fgPermissions = await ExpoLocation.requestForegroundPermissionsAsync();
+      return fgPermissions;
+    } catch (e) {
+      console.log("requestForegroundPermissions " + e);
+    }
+  };
+
+  const requestBackgroundPermissions = async () => {
+    try {
+      const bgPermissions = await ExpoLocation.requestBackgroundPermissionsAsync();
+      return bgPermissions;
+    } catch (e) {
+      console.log("requestBackgroundPermissions " + e);
+    }
+  };
+
   const startForegroundUpdate = async () => {
     // Check if foreground permission is granted
     const granted = await checkForegroundPermissions();
@@ -41,9 +61,16 @@ export const useExpoTaskManager = () => {
       {
         // For better logs, we set the accuracy to the most sensitive option
         accuracy: ExpoLocation.Accuracy.BestForNavigation,
+        distanceInterval: 100,
+        // timeInterval: 4000,
       },
       (location) => {
-        console.log(`watchPositionAsync: ${location.coords}`);
+        console.log(`watchPositionAsync`);
+        let locationLatLng = {
+          latitude: location.coords.latitude,
+          longitude: location.coords.longitude,
+        };
+        setCurrentLocation(locationLatLng);
       }
     );
   };
@@ -52,8 +79,7 @@ export const useExpoTaskManager = () => {
     foregroundSubscription?.remove();
   };
 
-  const startBackgroundUpdate = async (id: string) => {
-    userId = id;
+  const startBackgroundUpdate = async () => {
     console.log("startBackgroundUpdate executed!");
     // Don't track position if permission is not granted
     const granted = await checkBackgroundPermissions();
@@ -130,8 +156,8 @@ export const useExpoTaskManager = () => {
       constants.CHECK_LOCATION_ACTIVE
     );
     if (hasStarted) {
-      console.log("Task CHECK_LOCATION_ACTIVE already started");
-      return true;
+      console.log(`Task ${constants.CHECK_LOCATION_ACTIVE} already started`);
+      await ExpoLocation.stopLocationUpdatesAsync(constants.CHECK_LOCATION_ACTIVE);
     }
 
     try {
@@ -163,12 +189,10 @@ export const useExpoTaskManager = () => {
   };
 
   return {
-    checkForegroundPermissions,
-    checkBackgroundPermissions,
-    startForegroundUpdate,
-    stopForegroundUpdate,
-    startBackgroundUpdate,
-    stopBackgroundUpdate,
+    checkForegroundPermissions, requestForegroundPermissions,
+    checkBackgroundPermissions, requestBackgroundPermissions,
+    startForegroundUpdate, stopForegroundUpdate,
+    startBackgroundUpdate, stopBackgroundUpdate,
     startLocationCheck,
     stopAllTaks,
   };

@@ -4,7 +4,6 @@ import { LatLng } from "../types/Location";
 
 export const useCoords = () => {
 
-
     const reverseGeocode = async (coord: LatLng) => {
         try {
             let value = await ExpoLocation.reverseGeocodeAsync(coord);
@@ -21,8 +20,11 @@ export const useCoords = () => {
 
     const getLatLngCurrentPosition = async () => {
         try {
-            let currentLocation = await ExpoLocation.getCurrentPositionAsync({accuracy: ExpoLocation.Accuracy.Highest});
-            return currentLocation;
+            const {latitude, longitude} = (await ExpoLocation.getCurrentPositionAsync({accuracy: ExpoLocation.Accuracy.Highest})).coords;
+            return {
+                latitude: latitude,
+                longitude: longitude,
+            };
         } catch (e) {
             console.log(`getCurrentPositionLatLng: ${e}`);
         }
@@ -35,8 +37,8 @@ export const useCoords = () => {
             return;
         }
         let param: Pick<ExpoLocation.LocationGeocodedLocation, "latitude" | "longitude"> = {
-            latitude: currentLocation.coords.latitude, 
-            longitude: currentLocation.coords.longitude
+            latitude: currentLocation.latitude, 
+            longitude: currentLocation.longitude
         };
         let location = await reverseGeocode(param);
         if (location == undefined) {
@@ -54,7 +56,7 @@ export const useCoords = () => {
         let lon2 = coord2.longitude;
 
         // Calculate deltas
-        let {latDelta, lonDelta} = calculateDeltas(lat1, lon1, lat2, lon2);
+        let {latitudeDelta, longitudeDelta} = calculateDeltas(lat1, lon1, lat2, lon2);
 
         // Convert degrees to radians
         lat1 = degToRad(lat1);
@@ -82,10 +84,38 @@ export const useCoords = () => {
         const lat3 = Math.atan2(z3, hip);
       
         // Convert radians to degrees
-        const latitudIntermedia = radToDeg(lat3);
-        const longitudIntermedia = radToDeg(lon3);
+        const latitude = radToDeg(lat3);
+        const longitude = radToDeg(lon3);
       
-        return {latitudIntermedia, longitudIntermedia, latDelta, lonDelta};
+        return {latitude, longitude, latitudeDelta, longitudeDelta};
+    }
+
+
+    const calculateDistances = (location1: LatLng, location2: LatLng) => {
+        const lat1 = location1.latitude;
+        const lon1 = location1.longitude;
+        const lat2 = location2.latitude;
+        const lon2 = location2.longitude;
+        // Earth radius in km
+        const earthRad = 6371;
+    
+        const latitud1Rad = degToRad(lat1);
+        const longitud1Rad = degToRad(lon1);
+        const latitud2Rad = degToRad(lat2);
+        const longitud2Rad = degToRad(lon2);
+    
+        const difLatitud = latitud2Rad - latitud1Rad;
+        const difLongitud = longitud2Rad - longitud1Rad;
+    
+        // Haversine formula
+        const a =
+        Math.sin(difLatitud / 2) ** 2 +
+        Math.cos(latitud1Rad) * Math.cos(latitud2Rad) * Math.sin(difLongitud / 2) ** 2;
+        const c = 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1 - a));
+    
+        const distance = earthRad * c;
+    
+        return distance;
     }
 
     const calculateDeltas = (lat1: number, lon1: number, lat2: number, lon2: number, margen = 0.01) => {
@@ -98,10 +128,10 @@ export const useCoords = () => {
         const maxLon = Math.max(lon1, lon2);
       
         // Calculate the diff with an additional margin
-        const latDelta = maxLat - minLat + margen;
-        const lonDelta = maxLon - minLon + margen;
+        const latitudeDelta = maxLat - minLat + margen;
+        const longitudeDelta = maxLon - minLon + margen;
       
-        return { latDelta, lonDelta };
+        return { latitudeDelta, longitudeDelta };
       }
       
     const degToRad = (degrees: number) => {
@@ -113,6 +143,7 @@ export const useCoords = () => {
     }
 
     return {
-        calculateIntermediateCoord, reverseGeocode, getLatLngCurrentPosition, getFullCurrentPosition
+        calculateIntermediateCoord, reverseGeocode, calculateDistances,
+        getLatLngCurrentPosition, getFullCurrentPosition
     };
 };
