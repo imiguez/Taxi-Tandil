@@ -1,4 +1,4 @@
-import { FC, useContext, useEffect, useRef, useState } from "react";
+import { FC, useContext, useEffect, useState } from "react";
 import { StyleSheet, View } from "react-native";
 import MapView, { Marker } from "react-native-maps";
 import { useCoords } from "../../hooks/useCoords";
@@ -28,6 +28,12 @@ export const ConfirmedRideMap: FC = () => {
             socket.off('location-update-from-taxi', onTaxiUpdate);
         }
     }, []);
+
+    if (origin == null || destination == null) {
+        // It should only occur when the app is in the background, 
+        // then the ride is completed and the user re-open the app
+        return(<></>);
+    }
 
     let originCoord = {
         latitude: origin?.location.latitude!,

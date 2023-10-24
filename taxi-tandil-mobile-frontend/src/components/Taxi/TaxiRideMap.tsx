@@ -12,7 +12,7 @@ export const TaxiRideMap: FC = () => {
     // When the user cancel the ride, the ride from useTaxiDispatchActions will be null
     // and this component will still be mounted for milliseconds, so there are ride checks.
     if (ride) {
-        initialRegion = calculateIntermediateCoord(ride?.origin.location!, ride?.destination.location!);
+        initialRegion = calculateIntermediateCoord(ride?.origin?.location!, ride?.destination?.location!);
     }
 
     return (
@@ -26,13 +26,13 @@ export const TaxiRideMap: FC = () => {
                 >
 
                 <Marker coordinate={{
-                    latitude: ride?.origin.location.latitude!,
-                    longitude: ride?.origin.location.longitude!,
+                    latitude: ride?.origin?.location.latitude!,
+                    longitude: ride?.origin?.location.longitude!,
                 }} />
 
                 <Marker coordinate={{
-                    latitude: ride?.destination.location.latitude!,
-                    longitude: ride?.destination.location.longitude!,
+                    latitude: ride?.destination?.location.latitude!,
+                    longitude: ride?.destination?.location.longitude!,
                 }} />
 
                 <Marker coordinate={{

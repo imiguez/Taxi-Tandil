@@ -32,8 +32,8 @@ export const AcceptedRide: FC = () => {
         }
         socket.on('user-cancel-ride', onUserCancelRide);
         const rideReverseGeocoding = async () => {
-            setOrigin(await reverseGeocode(ride?.origin.location!));
-            setDestination(await reverseGeocode(ride?.destination.location!));
+            setOrigin(await reverseGeocode(ride?.origin?.location!));
+            setDestination(await reverseGeocode(ride?.destination?.location!));
         }
         rideReverseGeocoding();
         return () => {

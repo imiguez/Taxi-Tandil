@@ -1,11 +1,14 @@
 import { useDispatch, useSelector } from "react-redux";
 import { selectDestination, selectOrigin, selectLastModified, selectSelectInMap,
-    selectFocusInput, selectRideConfirmed, setDestination, setOrigin, setLastModified, 
+    selectFocusInput, selectRideStatus, setDestination, setOrigin, setLastModified, 
     setFocusInput as setFocusInputFromRideSlice, 
     setSelectInMap as setSelectInMapFromRideSlice, 
-    setRideConfirmed as setRideConfirmedFromRideSlice
-    } from "../../slices/rideSlice";
+    setRideStatus as setRideStatusFromRideSlice,
+    selectTaxi,
+    setTaxi
+    } from "../../slices/userRideSlice";
 import { LocationWithName } from "../types/Location";
+import { initialUserRideSliceStateType } from "../types/slices/userRideSliceTypes";
 
 export const useMapDispatchActions = () => {
     const dispatch = useDispatch();
@@ -14,9 +17,10 @@ export const useMapDispatchActions = () => {
     const lastModified = useSelector(selectLastModified);
     const selectInMap = useSelector(selectSelectInMap);
     const focusInput = useSelector(selectFocusInput);
-    const rideConfirmed = useSelector(selectRideConfirmed);
+    const rideStatus = useSelector(selectRideStatus);
+    const taxi = useSelector(selectTaxi);
 
-    const setLocation = (location: LocationWithName | null, set: 'origin' | 'destination') => {
+    const setLocation = (location: LocationWithName | null, set: initialUserRideSliceStateType['focusInput']) => {
         if (set == 'origin') {
             dispatch(setOrigin(location));
         }
@@ -38,16 +42,31 @@ export const useMapDispatchActions = () => {
         dispatch(setSelectInMapFromRideSlice(param));
     }
 
-    const setFocusInput = (input: 'origin' | 'destination') => {
+    const setFocusInput = (input: initialUserRideSliceStateType['focusInput']) => {
         dispatch(setFocusInputFromRideSlice(input));
     }
 
-    const setRideConfirmed = (param: boolean) => {
-        dispatch(setRideConfirmedFromRideSlice(param));
+    const setRideStatus = (param: initialUserRideSliceStateType['rideStatus']) => {
+        dispatch(setRideStatusFromRideSlice(param));
+    }
+
+    const setTaxiInfo = (taxi: initialUserRideSliceStateType['taxi']) => {
+        dispatch(setTaxi(taxi));
+    }
+
+    const updateToInitialState = () => {
+        dispatch(setOrigin(null));
+        dispatch(setDestination(null));
+        dispatch(setLastModified(null));
+        dispatch(setSelectInMapFromRideSlice(false));
+        dispatch(setFocusInputFromRideSlice('origin'));
+        dispatch(setRideStatusFromRideSlice('completed'));
+        dispatch(setTaxi(null));
     }
 
     return {
-        setLocation, invertLocations, setSelectInMap, setFocusInput, setRideConfirmed,
-        origin, destination, lastModified, selectInMap, focusInput, rideConfirmed
+        setLocation, invertLocations, setSelectInMap, setFocusInput, setRideStatus, setTaxiInfo,
+        origin, destination, lastModified, selectInMap, focusInput, rideStatus, taxi,
+        updateToInitialState
     }
 }

@@ -7,6 +7,7 @@ import { selectCurrentLocation, selectRide, selectUserId, setUserId, selectAvail
     setAvailable as setAvailableFromTaxiRideSlice, 
     setRideStatus as setRideStatusFromTaxiRideSlice, 
     selectRideStatus} from "../../slices/taxiRideSlice";
+import { initialTaxiRideSliceStateType } from "../types/slices/taxiRideSliceTypes";
 
 export const useTaxiDispatchActions = () => {
     const {reverseGeocode} = useCoords();
@@ -40,13 +41,14 @@ export const useTaxiDispatchActions = () => {
         dispatch(setCurrentLocationFromTaxiRideSlice(location));
     }
     
-    const setRideStatus = (status: 'accepted' | 'arrived' | null) => {
+    const setRideStatus = (status: initialTaxiRideSliceStateType['rideStatus']) => {
         dispatch(setRideStatusFromTaxiRideSlice(status));
     }
 
     const cleanUp = () => {
         dispatch(setRideFromTaxiRideSlice(null));
         dispatch(setUserId(null));
+        dispatch(setRideStatusFromTaxiRideSlice(null));
     }
     
     return {

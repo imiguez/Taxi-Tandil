@@ -106,6 +106,14 @@ io.on("connection", (socket) => {
 
   socket.on("new-ride", (ride) => {
     console.log("new-ride received from: "+socket.id);
+    if (!(ride && ride.origin && ride.origin.latitude && ride.origin.longitude && 
+      ride.destination && ride.destination.latitude && ride.destination.longitude)) {
+      console.log('The received ride from the server is undefined or has undefined attributes.');
+      // TODO: handle the following event in the user frontend side.
+      io.to(socket.id).emit("notify-error-msg", 
+      "The received ride from the server is undefined or has undefined attributes.");
+      return;
+    }
     if (getRoomSize("taxis-available") > 0) {
       activeRides.set(socket.id, {
         ride: ride,
@@ -180,5 +188,9 @@ io.on("connection", (socket) => {
       onJoinRoom('taxis-available', taxiWhoAccepted);
     }
     activeRides.delete(socket.id);
+  });
+
+  socket.on("ride-completed", (userId) => {
+    io.to(userId).emit("ride-completed");
   });
 });

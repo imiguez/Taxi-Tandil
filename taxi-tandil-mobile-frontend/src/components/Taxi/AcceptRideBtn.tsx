@@ -39,8 +39,9 @@ export const AcceptRideBtn: FC<Props> = ({canGoBack}) => {
         setRideStatus('arrived');
     }
 
-    const handleRideFinish = () => {
+    const handleRideCompleted = () => {
         socket.emit('join-room', 'taxis-available');
+        socket.emit('ride-completed', userId);
         setRideStatus(null);
         setRide(null, null);
         navigation.goBack();
@@ -68,7 +69,7 @@ export const AcceptRideBtn: FC<Props> = ({canGoBack}) => {
             }
             {rideStatus == 'arrived' &&
             <TouchableHighlight style={styles.touch} 
-                onPress={() => handleRideFinish()}>
+                onPress={() => handleRideCompleted()}>
                 <Text>Llegué al destino</Text>
             </TouchableHighlight>
             }

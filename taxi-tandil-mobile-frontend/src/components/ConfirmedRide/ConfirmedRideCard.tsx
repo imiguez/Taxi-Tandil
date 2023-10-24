@@ -1,76 +1,44 @@
-import { FC, useContext, useEffect, useState } from "react";
+import { FC, useContext, useMemo, useState } from "react";
 import { StyleSheet, Text, TouchableHighlight, View } from "react-native";
 import constants from "../../constants";
 import { useMapDispatchActions } from "../../hooks/useMapDispatchActions";
 import { useNavigation } from "@react-navigation/native";
-import { LatLng } from "../../types/Location";
 import { SocketContext } from "../../hooks/useSocketContext";
 
 
 export const ConfirmedRideCard: FC = () => {
     const socket = useContext(SocketContext);
-    const {origin, destination, setRideConfirmed} = useMapDispatchActions();
+    const {origin, destination, setRideStatus, rideStatus, taxi} = useMapDispatchActions();
     const navigation = useNavigation();
     const [msg, setMsg] = useState<string>("Esperando taxi...");
-    const [taxiResponse, setTaxiResponse] = useState<{
-        taxi: string,
-        taxiLocation: LatLng,
-    } | null>(null);
 
     const onCancel = () => {
-        if (msg != 'Ningun taxi disponible tomo el viaje.') {
-            socket.emit('cancel-ride');
-        }
+        socket.emit('cancel-ride');
+        setRideStatus('canceled');
         navigation.goBack();
     }
 
-    const onTaxiConfirmedRide = (location: LatLng, taxiId: string) => {
-        setTaxiResponse({
-            taxi: taxiId,
-            taxiLocation: location,
-        });
-        setMsg(`${taxiId} acepto tu viaje!`);
-    };
-
-    const onNoTaxisAvailable = () => {
-        setMsg(`Actualmente no hay taxis disponibles.`);
-    }
-
-    const onAllTaxisReject = () => {
-        setMsg(`Ningun taxi disponible tomo el viaje.`);
-    }
-
-    const onTaxiArrived = (location: LatLng, taxiId: string) => {
-        setTaxiResponse({
-            taxi: taxiId,
-            taxiLocation: location,
-        });
-        setMsg(`${taxiId} ya llegó!`);
-    }
-
-    useEffect(() => {
-        const ride = {
-            origin: {
-                latitude: origin?.location.latitude!,
-                longitude: origin?.location.longitude!,
-            },
-            destination: {
-                latitude: destination?.location.latitude!,
-                longitude: destination?.location.longitude!,
-            }
-        };
-        socket.emit('new-ride', ride);
-        socket.on('taxi-confirmed-ride', onTaxiConfirmedRide);
-        socket.on('no-taxis-available', onNoTaxisAvailable);
-        socket.on('all-taxis-reject', onAllTaxisReject);
-        socket.on('taxi-arrived', onTaxiArrived);
-        return () => {
-            socket.off('taxi-confirmed-ride', onTaxiConfirmedRide);
-            socket.off('no-taxis-available', onNoTaxisAvailable);
-            socket.off('all-taxis-reject', onAllTaxisReject);
-            socket.off('taxi-arrived', onTaxiArrived);
+    useMemo(() => {
+        let newMsg = '';
+        switch (rideStatus) {
+            case 'accepted':
+                newMsg = `${taxi?.id} acepto tu viaje!`;
+            break;
+            case 'no-taxis-available':
+                newMsg = 'Actualmente no hay taxis disponibles.';
+            break;
+            case 'all-taxis-reject':
+                newMsg = 'Ningun taxi disponible tomo el viaje.';
+            break;
+            case 'arrived':
+                newMsg = `${taxi?.id} ya llegó!`;
+            break;
+            default:
+                newMsg = 'Esperando taxi...';
+            break;
         }
-    }, []);
+        setMsg(newMsg);
+    }, [rideStatus]);
 
     return (
         <View style={styles.cardContainer}>
@@ -83,9 +51,16 @@ export const ConfirmedRideCard: FC = () => {
                 <Text>{msg}</Text>
             </View>
 
-            <TouchableHighlight style={styles.button} onPress={onCancel} >
-                <Text style={styles.btnText}>Cancelar viaje</Text>
-            </TouchableHighlight>
+            {rideStatus && (rideStatus == 'emmited' || rideStatus == 'accepted') &&
+                <TouchableHighlight style={styles.button} onPress={onCancel} >
+                    <Text style={styles.btnText}>Cancelar viaje</Text>
+                </TouchableHighlight>
+            }
+            {!(rideStatus == 'emmited' || rideStatus == 'accepted') &&
+                <TouchableHighlight style={styles.button} onPress={() => navigation.goBack()} >
+                    <Text style={styles.btnText}>Volver atras</Text>
+                </TouchableHighlight>
+            }
         </View>
     );
 };

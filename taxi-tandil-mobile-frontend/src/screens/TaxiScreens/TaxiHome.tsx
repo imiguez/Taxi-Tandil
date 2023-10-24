@@ -10,7 +10,7 @@ import { useExpoTaskManager } from "../../hooks/useExpoTaskManager";
 
 export const TaxiHome: FC = () => {
     const socket = useContext(SocketContext);
-    const {setRide, ride} = useTaxiDispatchActions();
+    const {setRide, ride, cleanUp} = useTaxiDispatchActions();
     const {stopBackgroundUpdate, startForegroundUpdate, stopForegroundUpdate} = useExpoTaskManager();
     const {getLatLngCurrentPosition} = useCoords();
     const navigation = useNavigation();
@@ -33,7 +33,7 @@ export const TaxiHome: FC = () => {
         const onUserCancelRide = async () => {
             await stopBackgroundUpdate();
             await stopForegroundUpdate();
-            setRide(null, null);
+            cleanUp();
             setUserCancel(true);
             setTimeout(() => {
                 setUserCancel(false);

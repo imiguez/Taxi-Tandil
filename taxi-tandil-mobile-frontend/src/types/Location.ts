@@ -22,6 +22,6 @@ export type Ride = {
 };
 
 export type RideWithAddress = {
-    origin: LocationWithName,
-    destination: LocationWithName,
+    origin: LocationWithName | null,
+    destination: LocationWithName | null,
 };
