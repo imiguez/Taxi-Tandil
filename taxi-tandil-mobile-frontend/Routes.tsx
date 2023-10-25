@@ -2,12 +2,14 @@ import { NavigationContainer } from "@react-navigation/native";
 import { CardStyleInterpolators, createStackNavigator } from "@react-navigation/stack";
 import { FC, PropsWithChildren } from "react";
 import { Login } from "./src/screens/Login";
-import { Home } from "./src/screens/Home";
-import { NewRide } from "./src/screens/NewRide";
+import { UserHome } from "./src/screens/UserScreens/UserHome";
+import { NewRide } from "./src/screens/UserScreens/NewRide";
 import RootStackParamList, { HomeStackParamList } from "./src/types/RootStackParamList";
 import { Button, StyleSheet } from "react-native";
 import { Settings } from "./src/screens/Settings";
-import { ConfirmedRide } from "./src/screens/ConfirmedRide";
+import { ConfirmedRide } from "./src/screens/UserScreens/ConfirmedRide";
+import { TaxiHome } from "./src/screens/TaxiScreens/TaxiHome";
+import { AcceptedRide } from "./src/screens/TaxiScreens/AcceptedRide";
 
 
 const HomeStack = createStackNavigator<HomeStackParamList>();
@@ -18,7 +20,7 @@ const RootStack = createStackNavigator<RootStackParamList>();
 const HomeScreenStack: FC = () => {
 
     return (
-        <HomeStack.Navigator initialRouteName="Home" screenOptions={({ navigation }) => ({
+        <HomeStack.Navigator screenOptions={({ navigation }) => ({
             headerShown: true,
             headerTitleAlign: 'center',
             cardStyleInterpolator: CardStyleInterpolators.forHorizontalIOS,
@@ -26,10 +28,12 @@ const HomeScreenStack: FC = () => {
                 navigation.navigate('Settings');
             }}/>),
         })}>
-            <HomeStack.Screen name="Home" component={Home} options={{
+            <HomeStack.Screen name="UserHome" component={UserHome} options={{
                 headerLeft: () => (<></>),
             }}/>
-
+            <HomeStack.Screen name="TaxiHome" component={TaxiHome} options={{
+                headerLeft: () => (<></>),
+            }}/>
             <HomeStack.Screen name="NewRide" component={NewRide} options={{
                 headerTitle: ''
             }}/>
@@ -39,6 +43,9 @@ const HomeScreenStack: FC = () => {
             <HomeStack.Screen name="Settings" component={Settings} options={{
                 title: 'Configuraciones',
                 headerRight: () => (<></>),
+            }}/>
+            <HomeStack.Screen name="AcceptedRide" component={AcceptedRide} options={{
+                headerShown: false,
             }}/>
         </HomeStack.Navigator>
     );

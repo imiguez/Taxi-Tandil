@@ -34,3 +34,6 @@ taxi-tandil-mobile-frontend/.env
 
 # typescript
 *.tsbuildinfo
+
+# android folder
+taxi-tandil-mobile-frontend/android/*

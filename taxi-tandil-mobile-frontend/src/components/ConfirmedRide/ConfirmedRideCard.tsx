@@ -1,18 +1,44 @@
-import { FC, useState } from "react";
+import { FC, useContext, useMemo, useState } from "react";
 import { StyleSheet, Text, TouchableHighlight, View } from "react-native";
 import constants from "../../constants";
 import { useMapDispatchActions } from "../../hooks/useMapDispatchActions";
 import { useNavigation } from "@react-navigation/native";
+import { SocketContext } from "../../hooks/useSocketContext";
 
 
 export const ConfirmedRideCard: FC = () => {
-    const {origin, destination, setRideConfirmed} = useMapDispatchActions();
+    const socket = useContext(SocketContext);
+    const {origin, destination, setRideStatus, rideStatus, taxi} = useMapDispatchActions();
     const navigation = useNavigation();
-    const [searchingTaxi, setSearchingTaxi] = useState(true);
+    const [msg, setMsg] = useState<string>("Esperando taxi...");
 
     const onCancel = () => {
+        socket.emit('cancel-ride');
+        setRideStatus('canceled');
         navigation.goBack();
     }
+
+    useMemo(() => {
+        let newMsg = '';
+        switch (rideStatus) {
+            case 'accepted':
+                newMsg = `${taxi?.id} acepto tu viaje!`;
+            break;
+            case 'no-taxis-available':
+                newMsg = 'Actualmente no hay taxis disponibles.';
+            break;
+            case 'all-taxis-reject':
+                newMsg = 'Ningun taxi disponible tomo el viaje.';
+            break;
+            case 'arrived':
+                newMsg = `${taxi?.id} ya llegó!`;
+            break;
+            default:
+                newMsg = 'Esperando taxi...';
+            break;
+        }
+        setMsg(newMsg);
+    }, [rideStatus]);
 
     return (
         <View style={styles.cardContainer}>
@@ -22,13 +48,19 @@ export const ConfirmedRideCard: FC = () => {
             </View>
 
             <View >
-
-                {searchingTaxi && <Text>Esperando taxi...</Text>}
+                <Text>{msg}</Text>
             </View>
 
-            <TouchableHighlight style={styles.button} onPress={onCancel} >
-                <Text style={styles.btnText}>Cancelar viaje</Text>
-            </TouchableHighlight>
+            {rideStatus && (rideStatus == 'emmited' || rideStatus == 'accepted') &&
+                <TouchableHighlight style={styles.button} onPress={onCancel} >
+                    <Text style={styles.btnText}>Cancelar viaje</Text>
+                </TouchableHighlight>
+            }
+            {!(rideStatus == 'emmited' || rideStatus == 'accepted') &&
+                <TouchableHighlight style={styles.button} onPress={() => navigation.goBack()} >
+                    <Text style={styles.btnText}>Volver atras</Text>
+                </TouchableHighlight>
+            }
         </View>
     );
 };

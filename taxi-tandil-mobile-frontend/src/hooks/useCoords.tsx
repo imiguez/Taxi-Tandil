@@ -1,20 +1,62 @@
+import * as ExpoLocation from 'expo-location';
+import { LatLng } from "../types/Location";
 
 
 export const useCoords = () => {
 
-    type coord = {
-        latitude: number,
-        longitude: number,
+    const reverseGeocode = async (coord: LatLng) => {
+        try {
+            let value = await ExpoLocation.reverseGeocodeAsync(coord);
+            let longStringLocationValue = `${value[0].street} ${value[0].streetNumber}, ${value[0].city}, ${value[0].region}, ${value[0].country}`;
+            return {
+                location: coord,
+                longStringLocation: longStringLocationValue,
+                shortStringLocation: `${value[0].street} ${value[0].streetNumber}`,
+            }
+        } catch (e) {
+            console.log("reverseGeocodeAsync: "+e);
+        }
     }
 
-    const calculateIntermediateCoord = (coord1: coord, coord2: coord) => {
+    const getLatLngCurrentPosition = async () => {
+        try {
+            const {latitude, longitude} = (await ExpoLocation.getCurrentPositionAsync({accuracy: ExpoLocation.Accuracy.Highest})).coords;
+            return {
+                latitude: latitude,
+                longitude: longitude,
+            };
+        } catch (e) {
+            console.log(`getCurrentPositionLatLng: ${e}`);
+        }
+    }
+
+    const getFullCurrentPosition = async () => {
+        let currentLocation = await getLatLngCurrentPosition();
+        if (currentLocation == undefined) {
+            console.log(`getFullCurrentPosition: currentLocation is undefined`);
+            return;
+        }
+        let param: Pick<ExpoLocation.LocationGeocodedLocation, "latitude" | "longitude"> = {
+            latitude: currentLocation.latitude, 
+            longitude: currentLocation.longitude
+        };
+        let location = await reverseGeocode(param);
+        if (location == undefined) {
+            console.log(`getFullCurrentPosition: reverse geocode return undefined`);
+            return;
+        }
+        location.shortStringLocation = "Ubicación actual";
+        return location;
+    }
+
+    const calculateIntermediateCoord = (coord1: LatLng, coord2: LatLng) => {
         let lat1 = coord1.latitude;
         let lon1 = coord1.longitude;
         let lat2 = coord2.latitude;
         let lon2 = coord2.longitude;
 
         // Calculate deltas
-        let {latDelta, lonDelta} = calculateDeltas(lat1, lon1, lat2, lon2);
+        let {latitudeDelta, longitudeDelta} = calculateDeltas(lat1, lon1, lat2, lon2);
 
         // Convert degrees to radians
         lat1 = degToRad(lat1);
@@ -42,10 +84,38 @@ export const useCoords = () => {
         const lat3 = Math.atan2(z3, hip);
       
         // Convert radians to degrees
-        const latitudIntermedia = radToDeg(lat3);
-        const longitudIntermedia = radToDeg(lon3);
+        const latitude = radToDeg(lat3);
+        const longitude = radToDeg(lon3);
       
-        return {latitudIntermedia, longitudIntermedia, latDelta, lonDelta};
+        return {latitude, longitude, latitudeDelta, longitudeDelta};
+    }
+
+
+    const calculateDistances = (location1: LatLng, location2: LatLng) => {
+        const lat1 = location1.latitude;
+        const lon1 = location1.longitude;
+        const lat2 = location2.latitude;
+        const lon2 = location2.longitude;
+        // Earth radius in km
+        const earthRad = 6371;
+    
+        const latitud1Rad = degToRad(lat1);
+        const longitud1Rad = degToRad(lon1);
+        const latitud2Rad = degToRad(lat2);
+        const longitud2Rad = degToRad(lon2);
+    
+        const difLatitud = latitud2Rad - latitud1Rad;
+        const difLongitud = longitud2Rad - longitud1Rad;
+    
+        // Haversine formula
+        const a =
+        Math.sin(difLatitud / 2) ** 2 +
+        Math.cos(latitud1Rad) * Math.cos(latitud2Rad) * Math.sin(difLongitud / 2) ** 2;
+        const c = 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1 - a));
+    
+        const distance = earthRad * c;
+    
+        return distance;
     }
 
     const calculateDeltas = (lat1: number, lon1: number, lat2: number, lon2: number, margen = 0.01) => {
@@ -58,10 +128,10 @@ export const useCoords = () => {
         const maxLon = Math.max(lon1, lon2);
       
         // Calculate the diff with an additional margin
-        const latDelta = maxLat - minLat + margen;
-        const lonDelta = maxLon - minLon + margen;
+        const latitudeDelta = maxLat - minLat + margen;
+        const longitudeDelta = maxLon - minLon + margen;
       
-        return { latDelta, lonDelta };
+        return { latitudeDelta, longitudeDelta };
       }
       
     const degToRad = (degrees: number) => {
@@ -73,6 +143,7 @@ export const useCoords = () => {
     }
 
     return {
-        calculateIntermediateCoord,
+        calculateIntermediateCoord, reverseGeocode, calculateDistances,
+        getLatLngCurrentPosition, getFullCurrentPosition
     };
 };

@@ -1,13 +1,14 @@
 import React, { FC, useMemo, useRef, useState } from "react";
 import { SafeAreaView, StyleSheet } from "react-native";
-import MapView, { Details, MapMarker, Marker, MarkerDragStartEndEvent, Region } from "react-native-maps";
-import * as ExpoLocation from 'expo-location';
+import MapView, { Details, LatLng, MapMarker, Marker, MarkerDragStartEndEvent, Region } from "react-native-maps";
 import { SelectInMapOptions } from "./SelectInMapOptions";
 import constants from "../../constants";
 import { useMapDispatchActions } from "../../hooks/useMapDispatchActions";
+import { useCoords } from "../../hooks/useCoords";
 
 export const RideMap: FC = () => {
 
+    const {reverseGeocode} = useCoords();
     const {origin, destination, lastModified, selectInMap, setLocation, focusInput, setSelectInMap} = useMapDispatchActions();
     let coords = {
         latitude: constants.tandilLocation.latitude,
@@ -20,7 +21,7 @@ export const RideMap: FC = () => {
     const markerRef = useRef<MapMarker>(null);
     
     const [mapCoords, setMapCoords] = useState(coords);
-    const [markerCoords, setMarkerCoords] = useState<{latitude: number, longitude: number}>({
+    const [markerCoords, setMarkerCoords] = useState<LatLng>({
         latitude: 0,
         longitude: 0,
     });
@@ -30,12 +31,12 @@ export const RideMap: FC = () => {
             let lat = mapRef.current.props.region.latitude;
             let lng = mapRef.current.props.region.longitude;
             if (focusInput == 'origin' && origin?.location) {
-                lat = origin.location.lat;
-                lng = origin.location.lng;
+                lat = origin.location.latitude;
+                lng = origin.location.longitude;
             }
             if (focusInput == 'destination' && destination?.location) {
-                lat = destination.location.lat;
-                lng = destination.location.lng;
+                lat = destination.location.latitude;
+                lng = destination.location.longitude;
             }
             setMarkerCoords({
                 latitude: lat,
@@ -52,12 +53,12 @@ export const RideMap: FC = () => {
             longitudeDelta: 0.0421,
         };
         if (lastModified == 'origin' && origin) {
-            region.latitude = origin.location.lat;
-            region.longitude = origin.location.lng;
+            region.latitude = origin.location.latitude;
+            region.longitude = origin.location.longitude;
         }
         if (lastModified == 'destination' && destination) {
-            region.latitude = destination.location.lat;
-            region.longitude = destination.location.lng;
+            region.latitude = destination.location.latitude;
+            region.longitude = destination.location.longitude;
         }
         mapRef.current?.animateToRegion(region);
     }, [lastModified]);
@@ -82,7 +83,8 @@ export const RideMap: FC = () => {
 
     const onCancel = () => {
         setSelectInMap(false);
-        let p = {
+        // Sets the new map region, in other words, where the map should tarjet
+        let newMapRegion = {
             latitude: mapCoords.latitude,
             longitude: mapCoords.longitude,
             latitudeDelta: mapCoords.latitudeDelta,
@@ -90,72 +92,59 @@ export const RideMap: FC = () => {
         }
         if (focusInput == 'origin') {
             if (origin?.location) {
-                p.latitude = origin.location.lat;
-                p.longitude = origin.location.lng;
+                newMapRegion.latitude = origin.location.latitude;
+                newMapRegion.longitude = origin.location.longitude;
             } else if (destination?.location) {
-                p.latitude = destination.location.lat;
-                p.longitude = destination.location.lng;
+                newMapRegion.latitude = destination.location.latitude;
+                newMapRegion.longitude = destination.location.longitude;
             }
         }
         if (focusInput == 'destination'){
             if (destination?.location) {
-                p.latitude = destination.location.lat;
-                p.longitude = destination.location.lng;
+                newMapRegion.latitude = destination.location.latitude;
+                newMapRegion.longitude = destination.location.longitude;
             } else if (origin?.location) {
-                p.latitude = origin.location.lat;
-                p.longitude = origin.location.lng;
+                newMapRegion.latitude = origin.location.latitude;
+                newMapRegion.longitude = origin.location.longitude;
             }
         }
-        setMapCoords(p);
+        setMapCoords(newMapRegion);
     }
 
     const onConfirm = async () => {
-        let result = false;
-        try {
-            let value = await ExpoLocation.reverseGeocodeAsync(markerCoords);
-            let longStringLocationValue = `${value[0].street} ${value[0].streetNumber}, ${value[0].city}, ${value[0].region}, ${value[0].country}`;
-            let location = {
-                location: {
-                    lat: markerCoords.latitude,
-                    lng: markerCoords.longitude,
-                },
-                longStringLocation: longStringLocationValue,
-                shortStringLocation: `${value[0].street} ${value[0].streetNumber}`,
-            }
-            setLocation(location, focusInput);
-            setSelectInMap(false);
-            setMapCoords({
-                latitude: markerCoords.latitude,
-                longitude: markerCoords.longitude,
-                latitudeDelta: mapCoords.latitudeDelta,
-                longitudeDelta: mapCoords.longitudeDelta
-            });
-            result = true;
-        } catch (e) {
-            console.log("reverseGeocodeAsync: "+e);
-        }
-        return result;
+        let location = await reverseGeocode(markerCoords);
+        if (location == null)
+            return false;
+        
+        setLocation(location, focusInput);
+        setSelectInMap(false);
+        setMapCoords({
+            latitude: markerCoords.latitude,
+            longitude: markerCoords.longitude,
+            latitudeDelta: mapCoords.latitudeDelta,
+            longitudeDelta: mapCoords.longitudeDelta
+        });
+        return true;
     }
 
     return (
         <SafeAreaView style={styles.mapContainer}>
             <MapView ref={mapRef} style={styles.map} provider="google" 
-                mapType="mutedStandard" 
                 toolbarEnabled={false} region={mapCoords}
                 initialRegion={coords} loadingEnabled={true}
                 onRegionChangeComplete={handleRegionChangeComplete} >
 
                 {origin?.location && !selectInMap && 
                     <Marker coordinate={{
-                        latitude: origin.location.lat,
-                        longitude: origin.location.lng,
+                        latitude: origin.location.latitude,
+                        longitude: origin.location.longitude,
                     }} title={origin.shortStringLocation}/>
                 }
 
                 {destination?.location && !selectInMap &&
                     <Marker coordinate={{
-                        latitude: destination.location.lat,
-                        longitude: destination.location.lng,
+                        latitude: destination.location.latitude,
+                        longitude: destination.location.longitude,
                     }} title={destination.shortStringLocation}/>
                 }
 
@@ -177,7 +166,7 @@ const styles = StyleSheet.create({
         position:'absolute',
         top: 110,
         width: constants.screenWidth,
-        height: (constants.windowHeight*.9)-110,
+        height: (constants.windowHeight)-110,
         borderWidth: 0,
         borderColor: 'red',
         borderStyle: 'solid',
@@ -189,13 +178,4 @@ const styles = StyleSheet.create({
         width: '100%',
         height: '100%',
     },
-    selectInMapContainer: {
-        zIndex: 1,
-        backgroundColor: 'grey',
-        width: '100%',
-        height: 50,
-        borderWidth: 1,
-        borderColor: 'red',
-        borderStyle: 'solid',
-    }
 });

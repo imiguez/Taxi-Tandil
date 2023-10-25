@@ -2,6 +2,7 @@ import { FC } from "react";
 import { Keyboard, Linking, StyleSheet, Text, TouchableHighlight } from "react-native";
 import { useMapDispatchActions } from "../../hooks/useMapDispatchActions";
 import * as ExpoLocation from 'expo-location';
+import { useCoords } from "../../hooks/useCoords";
 
 type CurrentLocationInBetweenCompoProps = {
     set: 'origin' | 'destination',
@@ -13,6 +14,7 @@ export const CurrentLocationInBetweenCompo: FC<CurrentLocationInBetweenCompoProp
 
     const {setLocation} = useMapDispatchActions();
     const [status, requestPermission, getForegroundPermissions] = ExpoLocation.useForegroundPermissions();
+    const {getFullCurrentPosition} = useCoords();
 
     const onPressedBtn = async () => {
         Keyboard.dismiss();
@@ -23,34 +25,21 @@ export const CurrentLocationInBetweenCompo: FC<CurrentLocationInBetweenCompoProp
             return;
         }
 
-        requestPermission().then((permissionsResponse) => {
+        try {
+            let permissionsResponse = await requestPermission();
             if (permissionsResponse.status !== 'granted') {
-              console.log('Permission to access location was denied');
-              return;
+            console.log('Permission to access location was denied');
+            return;
             }
-            ExpoLocation.getCurrentPositionAsync({accuracy: ExpoLocation.Accuracy.Highest}).then((currentLocation) => {
-                let param: Pick<ExpoLocation.LocationGeocodedLocation, "latitude" | "longitude"> = {
-                    latitude: currentLocation.coords.latitude, 
-                    longitude: currentLocation.coords.longitude
-                };
-
-                ExpoLocation.reverseGeocodeAsync(param).then((value) => {
-                    let longStringLocationValue = `${value[0].street} ${value[0].streetNumber}, ${value[0].city}, ${value[0].region}, ${value[0].country}`;
-                    console.log(longStringLocationValue);
-                    console.log(currentLocation.coords.latitude +", "+currentLocation.coords.longitude);
-                    let location = {
-                        location: {
-                            lat: currentLocation.coords.latitude,
-                            lng: currentLocation.coords.longitude,
-                        },
-                        longStringLocation: longStringLocationValue,
-                        shortStringLocation: "Ubicación actual",
-                    }
-
-                    setLocation(location, set);
-                }).catch((e) => console.log("reverseGeocodeAsync: "+e));
-            }).catch((e) => console.log("getCurrentPositionAsync: "+e));
-        }).catch((e) => console.log("RequestPermissions: "+e));
+            let location = await getFullCurrentPosition();
+            if (location == null) {
+                console.log(`Error: Current Location is null`);
+                return;
+            }
+            setLocation(location, set);
+        } catch (e) {
+            console.log("RequestPermissions: "+e);
+        };
     }
 
     return (

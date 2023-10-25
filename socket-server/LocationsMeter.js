@@ -1,8 +1,8 @@
 export const calculateDistances = (location1, location2) => {
-    const lat1 = location1.lat;
-    const lon1 = location1.lon;
-    const lat2 = location2.lat;
-    const lon2 = location2.lon;
+    const lat1 = location1.latitude;
+    const lon1 = location1.longitude;
+    const lat2 = location2.latitude;
+    const lon2 = location2.longitude;
     // Earth radius in km
     const earthRad = 6371;
 
@@ -25,7 +25,7 @@ export const calculateDistances = (location1, location2) => {
     return distance;
 }
 
-// Convertir grados a radianes
+// Convert degrees to radians
 const degToRad = (degrees) => {
     return (degrees * Math.PI) / 180;
 }

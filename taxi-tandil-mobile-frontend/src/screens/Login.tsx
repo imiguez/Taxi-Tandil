@@ -1,34 +1,27 @@
-import { FC, PropsWithChildren, useState } from "react";
+import { FC, useContext } from "react";
 import { Button, StyleSheet, Text, View } from "react-native";
-import { TaxiPage } from "./TaxiPage";
-import { joinRoom } from "../client-sockets/UserClientSocket";
 import { useNavigation } from "@react-navigation/native";
-import { SafeAreaView } from "react-native-safe-area-context";
-import RootStackParamList from "../types/RootStackParamList";
-
+import { SocketContext } from "../hooks/useSocketContext";
 
 export const Login: FC = () => {
-    
     const navigation = useNavigation();
-    const [rol, setRol] = useState<"user"|"taxi">();
+    const socket = useContext(SocketContext);
 
     return (
         <View style={styles.homeContainer}>
-            {
-            //rol == undefined &&
             <View style={styles.rolsContainer}>
                 <Text>Seleccione su rol!</Text>
                 <View>
                     <Button title="User" onPress={() => {
-                        setRol("user");
-                        navigation.navigate('HomeStack', {screen: 'Home'});
+                        socket.emit('join-room', 'user');
+                        navigation.navigate('HomeStack', {screen: 'UserHome'});
                     }}/>
                     <Button title="Taxi" onPress={() => {
-                        setRol("taxi");
-                        joinRoom('taxi');
+                        socket.emit('join-room', 'taxi');
+                        navigation.navigate('HomeStack', {screen: 'TaxiHome'});
                     }}/>
                 </View>
-            </View>}
+            </View>
         </View>
     );
 }
