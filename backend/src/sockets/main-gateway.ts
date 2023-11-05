@@ -11,11 +11,12 @@ import {
   import { map } from 'rxjs/operators';
   import { Server, Socket } from 'socket.io';
 import { UseGuards } from '@nestjs/common';
-import { JwtAuthGuard } from 'src/auth/jwt-auth.guard';
 import { SocketAuthMiddleWare } from './middlewares/jwt-auth-middleware';
+import { JwtAuthGuard } from 'src/auth/guards/jwt-auth.guard';
   
+// On ubuntu the port should be higher than 1024 or the user who runs the app must be root priviliged
 @UseGuards(JwtAuthGuard)
-@WebSocketGateway(80, {
+@WebSocketGateway(2000, {
   cors: {
     origin: '*',
   },

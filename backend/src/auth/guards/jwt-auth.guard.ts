@@ -4,7 +4,6 @@ import { AuthGuard } from '@nestjs/passport';
 import { Observable } from 'rxjs';
 import { IS_PUBLIC_KEY } from 'src/custom-decorators';
 import { verify } from 'jsonwebtoken';
-import { jwtConstants } from './constants';
 import { Request } from 'express';
 import { WebSocketServer } from '@nestjs/websockets';
 import { Server, Socket } from 'socket.io';
@@ -67,7 +66,7 @@ export class JwtAuthGuard extends AuthGuard('jwt') {
       if (authorization == undefined) throw new Error('Empty Authorization!');
       const [type, token] = authorization.split(' ');
       if (type != 'Bearer') throw new Error('Wrong Authorization type!');
-      const payload = verify(token, jwtConstants.secret); // Change to a dotenv variable
+      const payload = verify(token, `${process.env.JWT_SECRET}`);
       return payload;
     } catch (error) {
       throw new UnauthorizedException();

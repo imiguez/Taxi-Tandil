@@ -41,38 +41,38 @@ taxi-tandil-mobile-frontend/.env
 # Learn more https://docs.github.com/en/get-started/getting-started-with-git/ignoring-files
 
 # dependencies
-node_modules/
+taxi-tandil-mobile-frontend/node_modules/
 
 # Expo
-.expo/
-dist/
-web-build/
+taxi-tandil-mobile-frontend/.expo/
+taxi-tandil-mobile-frontend/dist/
+taxi-tandil-mobile-frontend/web-build/
 
 # Native
-*.orig.*
-*.jks
-*.p8
-*.p12
-*.key
-*.mobileprovision
+taxi-tandil-mobile-frontend/*.orig.*
+taxi-tandil-mobile-frontend/*.jks
+taxi-tandil-mobile-frontend/*.p8
+taxi-tandil-mobile-frontend/*.p12
+taxi-tandil-mobile-frontend/*.key
+taxi-tandil-mobile-frontend/*.mobileprovision
 
 # Metro
-.metro-health-check*
+taxi-tandil-mobile-frontend/.metro-health-check*
 
 # debug
-npm-debug.*
-yarn-debug.*
-yarn-error.*
+taxi-tandil-mobile-frontend/npm-debug.*
+taxi-tandil-mobile-frontend/yarn-debug.*
+taxi-tandil-mobile-frontend/yarn-error.*
 
 # macOS
-.DS_Store
-*.pem
+taxi-tandil-mobile-frontend/.DS_Store
+taxi-tandil-mobile-frontend/*.pem
 
 # local env files
-.env*.local
+taxi-tandil-mobile-frontend/.env*.local
 
 # typescript
-*.tsbuildinfo
+taxi-tandil-mobile-frontend/*.tsbuildinfo
 
 # android folder
 taxi-tandil-mobile-frontend/android/*
@@ -114,3 +114,6 @@ backend/!.vscode/settings.json
 backend/!.vscode/tasks.json
 backend/!.vscode/launch.json
 backend/!.vscode/extensions.json
+
+# Environment variables
+backend/.env
