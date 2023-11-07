@@ -11,7 +11,6 @@ export class LocalStrategy extends PassportStrategy(Strategy) {
   
   // builds the req.user field for our controllers
   async validate(email: string, password: string) { // Can be change to an AuthLoginDto
-    console.log(email);
     const user = await this.authService.validateUser(email, password);
     if (!user) {
       throw new UnauthorizedException();

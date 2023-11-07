@@ -1,19 +1,24 @@
-import { Controller, Post, UseGuards, Request } from '@nestjs/common';
+import { Controller, Post, UseGuards, Get, Body, Req } from '@nestjs/common';
 import { Public } from 'src/custom-decorators';
 import { LocalAuthGuard } from './guards/local-auth.guard';
 import { AuthService } from './auth.service';
-
+import { JwtService } from '@nestjs/jwt';
+import { Request as RequestExpress } from 'express';
 @Controller('auth')
 export class AuthController {
-    constructor(
-        private authService: AuthService,
-        //private gateway: EventsGateway
-    ) {}
+  constructor(private authService: AuthService, private jwtService: JwtService) //private gateway: EventsGateway
+  {}
 
-    @Public()
-    @UseGuards(LocalAuthGuard)
-    @Post('login')
-    async login(@Request() req: any) {
-      return this.authService.login(req.user);
-    }
+  @Public()
+  @UseGuards(LocalAuthGuard)
+  @Post('login')
+  async login(@Req() req: RequestExpress) {
+    // Pass the ip from the request (req.hostname) to the login method in order to combine with the jwt secret var
+    return this.authService.login(req.user);
+  }
+
+  @Post('refresh-jwt-token')
+  async refreshJwtToken(@Req() req: RequestExpress) {
+    return this.authService.refreshJwtToken(req.user);
+  }
 }

@@ -1,12 +1,12 @@
 import { Socket } from 'socket.io';
-import { JwtAuthGuard } from 'src/auth/guards/jwt-auth.guard';
+import { JwtUtils } from 'src/auth/utils/jwt.util';
 
 type SocketAuthMiddleWareReturnType = (client: Socket, next: (err?: Error) => void) => any;
 
 export const SocketAuthMiddleWare = (): SocketAuthMiddleWareReturnType => {
     return (client, next) => {
         try {
-            JwtAuthGuard.validateTokenBySocket(client);
+            JwtUtils.validateTokenBySocket(client);
             next();
         } catch (error) {
             next(error);
