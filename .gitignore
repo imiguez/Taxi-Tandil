@@ -35,5 +35,85 @@ taxi-tandil-mobile-frontend/.env
 # typescript
 *.tsbuildinfo
 
+
+# ----------------------------------------------- FRONTEND FOLDER ------------------------------------------------------
+
+# Learn more https://docs.github.com/en/get-started/getting-started-with-git/ignoring-files
+
+# dependencies
+taxi-tandil-mobile-frontend/node_modules/
+
+# Expo
+taxi-tandil-mobile-frontend/.expo/
+taxi-tandil-mobile-frontend/dist/
+taxi-tandil-mobile-frontend/web-build/
+
+# Native
+taxi-tandil-mobile-frontend/*.orig.*
+taxi-tandil-mobile-frontend/*.jks
+taxi-tandil-mobile-frontend/*.p8
+taxi-tandil-mobile-frontend/*.p12
+taxi-tandil-mobile-frontend/*.key
+taxi-tandil-mobile-frontend/*.mobileprovision
+
+# Metro
+taxi-tandil-mobile-frontend/.metro-health-check*
+
+# debug
+taxi-tandil-mobile-frontend/npm-debug.*
+taxi-tandil-mobile-frontend/yarn-debug.*
+taxi-tandil-mobile-frontend/yarn-error.*
+
+# macOS
+taxi-tandil-mobile-frontend/.DS_Store
+taxi-tandil-mobile-frontend/*.pem
+
+# local env files
+taxi-tandil-mobile-frontend/.env*.local
+
+# typescript
+taxi-tandil-mobile-frontend/*.tsbuildinfo
+
 # android folder
 taxi-tandil-mobile-frontend/android/*
+
+# ----------------------------------------------- BACKEND FOLDER ------------------------------------------------------
+
+# compiled output
+backend//dist
+backend//node_modules
+
+# Logs
+backend/logs
+backend/*.log
+backend/npm-debug.log*
+backend/pnpm-debug.log*
+backend/yarn-debug.log*
+backend/yarn-error.log*
+backend/lerna-debug.log*
+
+# OS
+backend/.DS_Store
+
+# Tests
+backend//coverage
+backend//.nyc_output
+
+# IDEs and editors
+backend//.idea
+backend/.project
+backend/.classpath
+backend/.c9/
+backend/*.launch
+backend/.settings/
+backend/*.sublime-workspace
+
+# IDE - VSCode
+backend/.vscode/*
+backend/!.vscode/settings.json
+backend/!.vscode/tasks.json
+backend/!.vscode/launch.json
+backend/!.vscode/extensions.json
+
+# Environment variables
+backend/.env
