@@ -1,7 +1,7 @@
 export enum Roles {
-    User,
-    Taxi,
-    Admin,
+    User = 'user',
+    Taxi = 'taxi',
+    Admin = 'admin',
 }
 
 export type initialAuthSliceStateType = {

@@ -37,4 +37,6 @@ const constants = {
     CHECK_LOCATION_ACTIVE: "CHECK_LOCATION_ACTIVE",
 };
 
+export const API_BASE_URL = "http://192.168.0.187:3000";
+
 export default constants;
