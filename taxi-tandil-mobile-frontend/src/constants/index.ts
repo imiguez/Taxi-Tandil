@@ -38,5 +38,6 @@ const constants = {
 };
 
 export const API_BASE_URL = "http://192.168.0.187:3000";
+export const WS_URL = "http://192.168.0.187:2000";
 
 export default constants;

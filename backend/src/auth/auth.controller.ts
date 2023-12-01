@@ -13,7 +13,6 @@ export class AuthController {
   @UseGuards(LocalAuthGuard)
   @Post('login')
   async login(@Req() req: RequestExpress) {
-    // Pass the ip from the request (req.hostname) to the login method in order to combine with the jwt secret var
     return this.authService.login(req.user);
   }
 

@@ -1,19 +1,21 @@
 import { FC, useContext, useState } from "react";
-import { Button, StyleSheet, Text, TextInput, View } from "react-native";
+import { Button, StyleSheet, TextInput, View } from "react-native";
 import { useNavigation } from "@react-navigation/native";
 import { SocketContext } from "../hooks/useSocketContext";
 import { useHttpRequest } from "../hooks/useHttpRequest";
 import { useAuthDispatchActions } from "../hooks/useAuthDispatchActions";
 import { Roles } from "../types/slices/authSliceTypes";
 import { LoginResponseType } from "../types/HttpRequests/Auth";
+import { io } from "socket.io-client";
+import { WS_URL } from "../constants";
 
 export const Login: FC = () => {
     const navigation = useNavigation();
-    const socket = useContext(SocketContext);
     const [loginEmail, setLoginEmail] = useState<String>('');
     const [password, setPassword] = useState<String>('');
-    const {username, email, roles, accessToken, refreshToken, setUserAuthData} = useAuthDispatchActions();
+    const {setUserAuthData} = useAuthDispatchActions();
     const {postRequest} = useHttpRequest();
+    const {setSocket} = useContext(SocketContext);
     
     const onSubmitLogin = async () => {
         /**
@@ -35,12 +37,25 @@ export const Login: FC = () => {
                 refresh_token: response.refresh_token,
             }
             setUserAuthData(data);
-            if (response.payload.roles.includes(Roles.Taxi))
-                navigation.navigate('HomeStack', {screen: 'TaxiHome'});
-            else
-                navigation.navigate('HomeStack', {screen: 'UserHome'});
+            const socket = io(WS_URL, {
+                auth: {
+                    token: `Bearer ${response.access_token}`,
+                }
+            });
+            socket.on('connect_error', (error) => {
+                throw error;
+            });
+            socket.on('connect', () => {
+                // Socket connection established, update socket context 
+                // and then redirect to home screen.
+                setSocket(socket);
+                if (response.payload.roles.includes(Roles.Taxi))
+                    navigation.navigate('HomeStack', {screen: 'TaxiHome'});
+                else
+                    navigation.navigate('HomeStack', {screen: 'UserHome'});
+            });
         } catch (error) {
-
+            console.log(`error from catch: ${error}`);
         }
     }
 

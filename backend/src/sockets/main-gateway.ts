@@ -5,7 +5,7 @@ import {
     WebSocketServer,
     WsResponse,
     OnGatewayInit,
-    ConnectedSocket
+    ConnectedSocket,
   } from '@nestjs/websockets';
   import { from, Observable } from 'rxjs';
   import { map } from 'rxjs/operators';
@@ -24,13 +24,9 @@ import { JwtAuthGuard } from 'src/auth/guards/jwt-auth.guard';
 export class MainGateway implements OnGatewayInit {
   @WebSocketServer()
   server: Server;
-
+  
   afterInit(client: Socket) {
     client.use(SocketAuthMiddleWare() as any);
-
-    // setInterval(() => {
-    //   this.server.emit('prueba', 'prueba de server socket!');
-    // }, 5000);
   }
 
   prueba() {

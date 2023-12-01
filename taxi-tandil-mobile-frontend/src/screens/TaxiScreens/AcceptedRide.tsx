@@ -11,7 +11,7 @@ import { SocketContext } from "../../hooks/useSocketContext";
 import { useNavigation } from "@react-navigation/native";
 
 export const AcceptedRide: FC = () => {
-    const socket = useContext(SocketContext);
+    const {socket} = useContext(SocketContext);
     const {reverseGeocode} = useCoords();
     const [origin, setOrigin] = useState<LocationWithName | null>();
     const [destination, setDestination] = useState<LocationWithName | null>();
@@ -30,14 +30,14 @@ export const AcceptedRide: FC = () => {
             canGoBack.current = true;
             navigation.goBack();
         }
-        socket.on('user-cancel-ride', onUserCancelRide);
+        socket!.on('user-cancel-ride', onUserCancelRide);
         const rideReverseGeocoding = async () => {
             setOrigin(await reverseGeocode(ride?.origin?.location!));
             setDestination(await reverseGeocode(ride?.destination?.location!));
         }
         rideReverseGeocoding();
         return () => {
-            socket.off('user-cancel-ride', onUserCancelRide);
+            socket!.off('user-cancel-ride', onUserCancelRide);
         }
     }, []);
 

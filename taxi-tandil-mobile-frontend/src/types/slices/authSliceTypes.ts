@@ -5,11 +5,11 @@ export enum Roles {
 }
 
 export type initialAuthSliceStateType = {
-    username: string | null,
-    email: string | null,
+    username: string | undefined,
+    email: string | undefined,
     roles: Roles[],
-    access_token: string | null,
-    refresh_token: string | null,
+    access_token: string | undefined,
+    refresh_token: string | undefined,
 }
 
 export type authData = {

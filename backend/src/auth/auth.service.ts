@@ -31,7 +31,7 @@ export class AuthService {
     return {
       payload,
       // TODO: change the issuear to an actual id of the user
-      access_token: this.jwtService.sign({payload, isRefreshToken: false}, {issuer: '1', subject: user.email}), 
+      access_token: this.jwtService.sign({payload, isRefreshToken: false}, {expiresIn: '30s', issuer: '1', subject: user.email}), 
       refresh_token: this.jwtService.sign({payload, isRefreshToken: true}, {expiresIn: '7d', issuer: '1', subject: user.email}),
     };
   }
@@ -47,7 +47,7 @@ export class AuthService {
 
     const {payload} = user;
     return {
-      access_token: this.jwtService.sign(payload),
+      access_token: this.jwtService.sign(payload, {expiresIn: '30s'}),
     };
   }
 }

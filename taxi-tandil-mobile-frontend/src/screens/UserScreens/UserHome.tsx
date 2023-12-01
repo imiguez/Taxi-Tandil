@@ -10,7 +10,7 @@ import RootStackParamList from "../../types/RootStackParamList";
 
 export const UserHome: FC<PropsWithChildren> = () => {
     const navigation = useNavigation<StackNavigationProp<RootStackParamList>>();
-    const socket = useContext(SocketContext);
+    const {socket} = useContext(SocketContext);
     const {setRideStatus, rideStatus, setTaxiInfo, updateToInitialState} = useMapDispatchActions();
 
     const onTaxiConfirmedRide = (location: LatLng, taxiId: string) => {
@@ -40,17 +40,17 @@ export const UserHome: FC<PropsWithChildren> = () => {
     }
 
     useEffect(() => {
-        socket.on('taxi-confirmed-ride', onTaxiConfirmedRide);
-        socket.on('no-taxis-available', onNoTaxisAvailable);
-        socket.on('all-taxis-reject', onAllTaxisReject);
-        socket.on('taxi-arrived', onTaxiArrived);
-        socket.on('ride-completed', onRideCompleted);
+        socket!.on('taxi-confirmed-ride', onTaxiConfirmedRide);
+        socket!.on('no-taxis-available', onNoTaxisAvailable);
+        socket!.on('all-taxis-reject', onAllTaxisReject);
+        socket!.on('taxi-arrived', onTaxiArrived);
+        socket!.on('ride-completed', onRideCompleted);
         return () => {
-            socket.off('taxi-confirmed-ride', onTaxiConfirmedRide);
-            socket.off('no-taxis-available', onNoTaxisAvailable);
-            socket.off('all-taxis-reject', onAllTaxisReject);
-            socket.off('taxi-arrived', onTaxiArrived);
-            socket.off('ride-completed', onRideCompleted);
+            socket!.off('taxi-confirmed-ride', onTaxiConfirmedRide);
+            socket!.off('no-taxis-available', onNoTaxisAvailable);
+            socket!.off('all-taxis-reject', onAllTaxisReject);
+            socket!.off('taxi-arrived', onTaxiArrived);
+            socket!.off('ride-completed', onRideCompleted);
         }
     }, []);
 

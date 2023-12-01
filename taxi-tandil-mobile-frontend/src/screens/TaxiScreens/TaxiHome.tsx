@@ -9,7 +9,7 @@ import { useCoords } from "../../hooks/useCoords";
 import { useExpoTaskManager } from "../../hooks/useExpoTaskManager";
 
 export const TaxiHome: FC = () => {
-    const socket = useContext(SocketContext);
+    const {socket} = useContext(SocketContext);
     const {setRide, ride, cleanUp} = useTaxiDispatchActions();
     const {stopBackgroundUpdate, startForegroundUpdate, stopForegroundUpdate} = useExpoTaskManager();
     const {getLatLngCurrentPosition} = useCoords();
@@ -39,19 +39,19 @@ export const TaxiHome: FC = () => {
                 setUserCancel(false);
             }, 5000);
         }
-        socket.on('update-taxis-location', onUpdateTaxisLocation);
-        socket.on('ride-request', onRideRequest);
-        socket.on('user-cancel-ride', onUserCancelRide);
+        socket!.on('update-taxis-location', onUpdateTaxisLocation);
+        socket!.on('ride-request', onRideRequest);
+        socket!.on('user-cancel-ride', onUserCancelRide);
         return () => {
-            socket.off('update-taxis-location', onUpdateTaxisLocation);
-            socket.off('ride-request', onRideRequest);
-            socket.off('user-cancel-ride', onUserCancelRide);
+            socket!.off('update-taxis-location', onUpdateTaxisLocation);
+            socket!.off('ride-request', onRideRequest);
+            socket!.off('user-cancel-ride', onUserCancelRide);
         }
     }, []);
 
     useMemo(() => {
         const taxiCoords = getLatLngCurrentPosition();
-        socket.volatile.emit('taxis-location-updated', taxiCoords, userRequestLocation?.userId);
+        socket!.volatile.emit('taxis-location-updated', taxiCoords, userRequestLocation?.userId);
     }, [userRequestLocation]);
 
     return (

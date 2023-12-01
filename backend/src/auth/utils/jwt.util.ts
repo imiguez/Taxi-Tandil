@@ -1,4 +1,4 @@
-import { UnauthorizedException } from '@nestjs/common';
+import { HttpException, HttpStatus, UnauthorizedException } from '@nestjs/common';
 import { Request } from 'express';
 import { JwtPayload, verify } from 'jsonwebtoken';
 import { Socket } from 'socket.io';
@@ -15,7 +15,7 @@ export class JwtUtils {
   }
 
   public static validateTokenBySocket(client: Socket) {
-    const { authorization } = client.handshake.headers; // Change headers to auth
+    const authorization = client.handshake.auth.token;
     try {
       const payload = this.validateToken(authorization);
       return payload;
@@ -31,11 +31,8 @@ export class JwtUtils {
       if (type != 'Bearer') throw new Error('Wrong Authorization type!');
       const payload = verify(token, `${process.env.JWT_SECRET}`);
       return payload as CustomJwtPayload;
-      if (typeof payload != 'string') {
-      }
-      throw new Error('The payload is an string.');
     } catch (error) {
-      throw new UnauthorizedException(error);
+      throw new HttpException('Validation Token Exception', HttpStatus.UNAUTHORIZED, {cause: error});
     }
   }
 }
