@@ -1,6 +1,7 @@
 import { useDispatch, useSelector } from "react-redux";
-import { selectAccessToken, selectEmail, selectRefreshToken, selectRoles, selectUsername, setAccessToken, setEmail, setRefreshToken, setRoles, setUsername } from "../../slices/authSlice";
-import { authData } from "../types/slices/authSliceTypes";
+import { initialState, selectAccessToken, selectEmail, selectRefreshToken, selectRoles, selectUsername, 
+    setAccessToken, setEmail, setRefreshToken, setRoles, setUsername } from "../../slices/authSlice";
+import { initialAuthSliceStateType } from "../types/slices/authSliceTypes";
 
 
 export const useAuthDispatchActions = () => {
@@ -11,7 +12,7 @@ export const useAuthDispatchActions = () => {
     const accessToken = useSelector(selectAccessToken);
     const refreshToken = useSelector(selectRefreshToken);
 
-    const setUserAuthData = (data: authData) => {
+    const setUserAuthData = (data: initialAuthSliceStateType) => {
         dispatch(setUsername(data.username));
         dispatch(setEmail(data.email));
         dispatch(setRoles(data.roles));
@@ -19,8 +20,16 @@ export const useAuthDispatchActions = () => {
         dispatch(setRefreshToken(data.refresh_token));
     }
 
+    const setNewAccessToken = (token: string) => {
+        dispatch(setAccessToken(token));
+    }
+
+    const cleanUp = () => {
+        setUserAuthData(initialState);
+    }
+
     return {
         username, email, roles, accessToken, refreshToken,
-        setUserAuthData,
+        setUserAuthData, setNewAccessToken, cleanUp
     }
 }

@@ -13,11 +13,17 @@ export class AuthController {
   @UseGuards(LocalAuthGuard)
   @Post('login')
   async login(@Req() req: RequestExpress) {
-    return this.authService.login(req.user);
+    return await this.authService.login(req.user);
   }
 
   @Post('refresh-jwt-token')
-  async refreshJwtToken(@Req() req: RequestExpress) {
-    return this.authService.refreshJwtToken(req.user);
+  async refreshJwtToken(@Req() req: RequestExpress, @Body('refreshToken') refreshToken: string) {
+    return await this.authService.refreshJwtToken(refreshToken, req.user);
+  }
+
+  // Only for dev purposes
+  @Get('prueba')
+  async prueba(@Req() req: RequestExpress) {
+    return {message:'paso prueba'};
   }
 }

@@ -11,11 +11,3 @@ export type initialAuthSliceStateType = {
     access_token: string | undefined,
     refresh_token: string | undefined,
 }
-
-export type authData = {
-    username: string,
-    email: string,
-    roles: Roles[],
-    access_token: string,
-    refresh_token: string,
-}

@@ -1,7 +1,7 @@
 import { createSlice } from "@reduxjs/toolkit";
 import { initialAuthSliceStateType } from "../src/types/slices/authSliceTypes";
 
-const initialState: initialAuthSliceStateType = {
+export const initialState: initialAuthSliceStateType = {
   username: undefined,
   email: undefined,
   roles: [],

@@ -5,14 +5,13 @@ import { SocketContext } from "../hooks/useSocketContext";
 import { useHttpRequest } from "../hooks/useHttpRequest";
 import { useAuthDispatchActions } from "../hooks/useAuthDispatchActions";
 import { Roles } from "../types/slices/authSliceTypes";
-import { LoginResponseType } from "../types/HttpRequests/Auth";
 import { io } from "socket.io-client";
 import { WS_URL } from "../constants";
 
 export const Login: FC = () => {
     const navigation = useNavigation();
-    const [loginEmail, setLoginEmail] = useState<String>('');
-    const [password, setPassword] = useState<String>('');
+    const [loginEmail, setLoginEmail] = useState<string>('');
+    const [password, setPassword] = useState<string>('');
     const {setUserAuthData} = useAuthDispatchActions();
     const {postRequest} = useHttpRequest();
     const {setSocket} = useContext(SocketContext);
@@ -28,7 +27,7 @@ export const Login: FC = () => {
             password: password
         };
         try {
-            const response: LoginResponseType = await postRequest('auth/login', body);
+            const response = await postRequest('auth/login', body);
             let data = {
                 username: response.payload.username,
                 email: response.payload.email,
@@ -43,12 +42,16 @@ export const Login: FC = () => {
                 }
             });
             socket.on('connect_error', (error) => {
+                console.log('Error from socket.');
                 throw error;
             });
             socket.on('connect', () => {
-                // Socket connection established, update socket context 
-                // and then redirect to home screen.
+                // Socket connection established, update socket context.
                 setSocket(socket);
+                // Empty the email and password useStates.
+                setLoginEmail('');
+                setPassword('');
+                // And then redirect to the respective home screen.
                 if (response.payload.roles.includes(Roles.Taxi))
                     navigation.navigate('HomeStack', {screen: 'TaxiHome'});
                 else
@@ -62,8 +65,8 @@ export const Login: FC = () => {
     return (
         <View style={styles.homeContainer}>
             <View style={styles.rolsContainer}>
-                <TextInput onChangeText={text => setLoginEmail(text)} style={styles.textInput}/>
-                <TextInput secureTextEntry onChangeText={text => setPassword(text)} style={styles.textInput}/>
+                <TextInput value={loginEmail} onChangeText={text => setLoginEmail(text)} style={styles.textInput}/>
+                <TextInput secureTextEntry value={password} onChangeText={text => setPassword(text)} style={styles.textInput}/>
                 <Button title="Login" onPress={onSubmitLogin}/>
             </View>
         </View>
