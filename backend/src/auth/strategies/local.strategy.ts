@@ -2,6 +2,9 @@ import { Injectable, NotFoundException } from "@nestjs/common";
 import { PassportStrategy } from "@nestjs/passport";
 import { Strategy } from "passport-local";
 import { AuthService } from "../auth.service";
+import { LoginDto } from "../dtos/login.dto";
+import { UserDto } from "../dtos/user.dto";
+import { User } from "src/users/user.entity";
 
 @Injectable()
 export class LocalStrategy extends PassportStrategy(Strategy) {
@@ -10,11 +13,8 @@ export class LocalStrategy extends PassportStrategy(Strategy) {
   }
   
   // builds the req.user field for our controllers
-  async validate(email: string, password: string) { // Can be change to an AuthLoginDto
-    const user = await this.authService.validateUser(email, password);
-    if (!user) {
-      throw new NotFoundException();
-    }
-    return { username: user.username, email: email, roles: user.roles };
+  async validate(loginDto: LoginDto): Promise<User> { // Can be change to an AuthLoginDto
+    const user = await this.authService.validateUser(loginDto);
+    return user; // { username: user.username, email: loginDto.email, roles: user.roles };
   }
 }
