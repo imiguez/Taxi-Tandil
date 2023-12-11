@@ -1,10 +1,13 @@
-import { Injectable, UnauthorizedException } from '@nestjs/common';
+import { HttpException, HttpStatus, Injectable, UnauthorizedException } from '@nestjs/common';
 import { JwtService } from '@nestjs/jwt';
 import { UsersService } from 'src/users/users.service';
+import { JwtUtils } from './utils/jwt.util';
 
-//useguard
 @Injectable()
 export class AuthService {
+  private accessTokenTime: string = '2s';
+  private refreshTokenTime: string = '2s';
+
   constructor(
     private usersService: UsersService,
     private jwtService: JwtService,
@@ -25,28 +28,36 @@ export class AuthService {
   async login(user: any) { // TODO: use a DTO
     const payload = { 
       email: user.email,
-      //username: user.username
+      username: user.username,
+      roles: user.roles,
     }; //, sub: user.userId };
     return {
       payload,
       // TODO: change the issuear to an actual id of the user
-      access_token: this.jwtService.sign({payload, isRefreshToken: false}, {issuer: '1', subject: user.email}), 
-      refresh_token: this.jwtService.sign({payload, isRefreshToken: true}, {expiresIn: '7d', issuer: '1', subject: user.email}),
+      access_token: this.jwtService.sign({payload, isRefreshToken: false}, {expiresIn: this.accessTokenTime, issuer: '1', subject: user.email}), 
+      refresh_token: this.jwtService.sign({payload, isRefreshToken: true}, {expiresIn: this.refreshTokenTime, issuer: '1', subject: user.email}),
     };
   }
 
-  async refreshJwtToken(user: any) { // TODO: use a DTO
-    if (!user.isRefreshToken) {
-      throw new UnauthorizedException({
-        message: 'Not a refresh token',
-        error: 'JsonWebTokenError',
-        statusCode: 401
-      });
+  async refreshJwtToken(token: string, user: any) { // TODO: use a DTO
+    try {
+      let refreshPayload = await JwtUtils.validateToken(token, false);
+      if (!refreshPayload.isRefreshToken) {
+        throw new UnauthorizedException({
+          message: 'Not a refresh token',
+          error: 'JsonWebTokenError',
+          statusCode: 403
+        });
+      }
+    } catch (error) {
+      // To differentiate between expired access token and expired refresh token.
+      if (error.message == 'jwt expired')
+        throw new HttpException('refresh jwt expired', HttpStatus.UNAUTHORIZED);
+      throw error;
     }
-
     const {payload} = user;
     return {
-      access_token: this.jwtService.sign(payload),
+      access_token: this.jwtService.sign({payload, isRefreshToken: false}, {expiresIn: this.accessTokenTime}),
     };
   }
 }

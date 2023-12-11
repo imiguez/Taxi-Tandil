@@ -8,7 +8,7 @@ import { useTaxiDispatchActions } from "../../hooks/useTaxiDispatchActions";
 export const AvailableBtn: FC = () => {
     
     const [needPermissions, setNeedPermissions] = useState<boolean>(false);
-    const socket = useContext(SocketContext);
+    const {socket} = useContext(SocketContext);
     const {requestForegroundPermissions, requestBackgroundPermissions,
         stopBackgroundUpdate, startLocationCheck} = useExpoTaskManager();
     const {available, setAvailable} = useTaxiDispatchActions();
@@ -17,11 +17,11 @@ export const AvailableBtn: FC = () => {
         const onTaxiLocationChecked = async () => {
             setNeedPermissions(false);
             setAvailable(true);
-            socket.emit('join-room', 'taxis-available');
+            socket!.emit('join-room', 'taxis-available');
         }
-        socket.on('taxi-has-location-activated', onTaxiLocationChecked);
+        socket!.on('taxi-has-location-activated', onTaxiLocationChecked);
         return () => {
-            socket.off('taxi-has-location-activated', onTaxiLocationChecked);
+            socket!.off('taxi-has-location-activated', onTaxiLocationChecked);
         }
     }, []);
 

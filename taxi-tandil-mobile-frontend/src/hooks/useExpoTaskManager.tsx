@@ -1,6 +1,6 @@
 import * as TaskManager from "expo-task-manager";
 import * as ExpoLocation from "expo-location";
-import constants from "../constants";
+import { BACKGROUND_LOCATION_TASK_NAME, CHECK_LOCATION_ACTIVE } from "../constants";
 import { useTaxiDispatchActions } from "./useTaxiDispatchActions";
 
 
@@ -90,7 +90,7 @@ export const useExpoTaskManager = () => {
 
     // Make sure the task is defined otherwise do not start tracking
     const isTaskDefined = await TaskManager.isTaskDefined(
-      constants.BACKGROUND_LOCATION_TASK_NAME
+      BACKGROUND_LOCATION_TASK_NAME
     );
     if (!isTaskDefined) {
       console.log("Tasks werent defined");
@@ -99,7 +99,7 @@ export const useExpoTaskManager = () => {
 
     // Don't track if it is already running in background
     const hasStarted = await ExpoLocation.hasStartedLocationUpdatesAsync(
-      constants.BACKGROUND_LOCATION_TASK_NAME
+      BACKGROUND_LOCATION_TASK_NAME
     );
     if (hasStarted) {
       console.log("Task BACKGROUND_LOCATION_TASK_NAME already started");
@@ -109,7 +109,7 @@ export const useExpoTaskManager = () => {
 
     try {
       await ExpoLocation.startLocationUpdatesAsync(
-        constants.BACKGROUND_LOCATION_TASK_NAME,
+        BACKGROUND_LOCATION_TASK_NAME,
         {
           accuracy: ExpoLocation.Accuracy.BestForNavigation,
           deferredUpdatesInterval: 10000,
@@ -130,11 +130,11 @@ export const useExpoTaskManager = () => {
 
   const stopBackgroundUpdate = async () => {
     const hasStarted = await ExpoLocation.hasStartedLocationUpdatesAsync(
-      constants.BACKGROUND_LOCATION_TASK_NAME
+      BACKGROUND_LOCATION_TASK_NAME
     );
     if (hasStarted) {
       await ExpoLocation.stopLocationUpdatesAsync(
-        constants.BACKGROUND_LOCATION_TASK_NAME
+        BACKGROUND_LOCATION_TASK_NAME
       );
       console.log("Location tracking stopped");
     }
@@ -144,7 +144,7 @@ export const useExpoTaskManager = () => {
   const startLocationCheck = async () => {
     console.log("startLocationCheck executed!");
     const isTaskDefined = await TaskManager.isTaskDefined(
-      constants.CHECK_LOCATION_ACTIVE
+      CHECK_LOCATION_ACTIVE
     );
     if (!isTaskDefined) {
       console.log("Tasks werent defined");
@@ -153,16 +153,16 @@ export const useExpoTaskManager = () => {
 
     // Don't track if it is already running in background
     const hasStarted = await ExpoLocation.hasStartedLocationUpdatesAsync(
-      constants.CHECK_LOCATION_ACTIVE
+      CHECK_LOCATION_ACTIVE
     );
     if (hasStarted) {
-      console.log(`Task ${constants.CHECK_LOCATION_ACTIVE} already started`);
-      await ExpoLocation.stopLocationUpdatesAsync(constants.CHECK_LOCATION_ACTIVE);
+      console.log(`Task ${CHECK_LOCATION_ACTIVE} already started`);
+      await ExpoLocation.stopLocationUpdatesAsync(CHECK_LOCATION_ACTIVE);
     }
 
     try {
       await ExpoLocation.startLocationUpdatesAsync(
-        constants.CHECK_LOCATION_ACTIVE,
+        CHECK_LOCATION_ACTIVE,
         {
           accuracy: ExpoLocation.Accuracy.Balanced,
           showsBackgroundLocationIndicator: true,

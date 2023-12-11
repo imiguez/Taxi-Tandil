@@ -6,8 +6,9 @@ import 'react-native-gesture-handler';
 import Routes from './Routes';
 import { StyleSheet, View } from 'react-native';
 import { SocketContext, idSetter } from './src/hooks/useSocketContext';
-import { FC, PropsWithChildren, useContext, useMemo } from 'react';
+import { FC, PropsWithChildren, useContext, useMemo, useState } from 'react';
 import { useTaxiDispatchActions } from './src/hooks/useTaxiDispatchActions';
+import { Socket } from 'socket.io-client';
 
 const MainContainer: FC<PropsWithChildren> = ({children}) => {
   const { userId } = useTaxiDispatchActions();
@@ -23,11 +24,11 @@ const MainContainer: FC<PropsWithChildren> = ({children}) => {
 
 export default function App() {
 
-  const socket = useContext(SocketContext);
+  let [socket, setSocket] = useState<Socket>();
 
   return (
     <Provider store={store}>
-      <SocketContext.Provider value={socket}>
+      <SocketContext.Provider value={{socket, setSocket}}>
         <SafeAreaProvider>
           <MainContainer>
             <Routes>

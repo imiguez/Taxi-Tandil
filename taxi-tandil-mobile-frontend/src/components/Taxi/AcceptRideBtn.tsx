@@ -11,7 +11,7 @@ type Props = {
 }
 
 export const AcceptRideBtn: FC<Props> = ({canGoBack}) => {
-    const socket = useContext(SocketContext);
+    const {socket} = useContext(SocketContext);
     const {startBackgroundUpdate, stopBackgroundUpdate} = useExpoTaskManager();
     const navigation = useNavigation();
     const {userId, setRide, setRideStatus, rideStatus, cleanUp} = useTaxiDispatchActions();
@@ -21,13 +21,13 @@ export const AcceptRideBtn: FC<Props> = ({canGoBack}) => {
         canGoBack.current = true;
         if (accepted) {
             setRideStatus('accepted');
-            socket.emit('ride-response', true, userId);
+            socket!.emit('ride-response', {accepted: true, userId: userId});
             const location = await getLatLngCurrentPosition();
-            socket.emit('location-update-for-user', location, userId);
+            socket!.emit('location-update-for-user', {location: location, userId: userId});
             await startBackgroundUpdate();
         } else {
             cleanUp(); // Delete the ride and userId from the redux state
-            socket.emit('ride-response', false, userId);
+            socket!.emit('ride-response', {accepted: false, userId: userId});
             navigation.goBack();
         }
     }
@@ -35,13 +35,13 @@ export const AcceptRideBtn: FC<Props> = ({canGoBack}) => {
     const handleTaxiArrive = async () => {
         await stopBackgroundUpdate();
         const location = await getLatLngCurrentPosition();
-        socket.emit("taxi-arrived", location, userId);
+        socket!.emit("taxi-arrived", {location: location, userId: userId});
         setRideStatus('arrived');
     }
 
     const handleRideCompleted = () => {
-        socket.emit('join-room', 'taxis-available');
-        socket.emit('ride-completed', userId);
+        socket!.emit('join-room', 'taxis-available');
+        socket!.emit('ride-completed', userId);
         setRideStatus(null);
         setRide(null, null);
         navigation.goBack();

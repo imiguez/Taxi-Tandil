@@ -7,13 +7,13 @@ import { SocketContext } from "../../hooks/useSocketContext";
 
 
 export const ConfirmedRideCard: FC = () => {
-    const socket = useContext(SocketContext);
+    const {socket} = useContext(SocketContext);
     const {origin, destination, setRideStatus, rideStatus, taxi} = useMapDispatchActions();
     const navigation = useNavigation();
     const [msg, setMsg] = useState<string>("Esperando taxi...");
 
     const onCancel = () => {
-        socket.emit('cancel-ride');
+        socket!.emit('cancel-ride');
         setRideStatus('canceled');
         navigation.goBack();
     }
