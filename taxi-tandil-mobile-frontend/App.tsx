@@ -4,23 +4,10 @@ import { Provider } from 'react-redux';
 import { store } from './store';
 import 'react-native-gesture-handler';
 import Routes from './Routes';
-import { StyleSheet, View } from 'react-native';
-import { SocketContext, idSetter } from './src/hooks/useSocketContext';
-import { FC, PropsWithChildren, useContext, useMemo, useState } from 'react';
-import { useTaxiDispatchActions } from './src/hooks/useTaxiDispatchActions';
+import { StyleSheet } from 'react-native';
+import { SocketContext  } from './src/hooks/useSocketContext';
+import { useState } from 'react';
 import { Socket } from 'socket.io-client';
-
-const MainContainer: FC<PropsWithChildren> = ({children}) => {
-  const { userId } = useTaxiDispatchActions();
-  useMemo(() => {
-    idSetter(userId!);
-  }, [userId]);
-  return (
-    <View style={styles.container}>
-      {children}
-    </View>
-  )
-}
 
 export default function App() {
 
@@ -30,11 +17,9 @@ export default function App() {
     <Provider store={store}>
       <SocketContext.Provider value={{socket, setSocket}}>
         <SafeAreaProvider>
-          <MainContainer>
-            <Routes>
-              <ExpoStatusBar.StatusBar style='auto' />
-            </Routes>
-          </MainContainer>
+          <Routes>
+            <ExpoStatusBar.StatusBar style='auto' />
+          </Routes>
         </SafeAreaProvider>
       </SocketContext.Provider>
     </Provider>
