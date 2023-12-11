@@ -12,7 +12,7 @@ import { SocketContext } from "../../hooks/useSocketContext";
 export const NewRide: FC = () => {
 
     const {origin, destination, selectInMap, setRideStatus, rideStatus} = useMapDispatchActions();
-    const socket = useContext(SocketContext);
+    const {socket} = useContext(SocketContext);
     const navigation = useNavigation();
 
     const onConfirmRide = () => {
@@ -30,7 +30,7 @@ export const NewRide: FC = () => {
                 longitude: destination.location.longitude,
             }
         };
-        socket.emit('new-ride', ride);
+        socket!.emit('new-ride', ride);
         setRideStatus('emmited');
         navigation.navigate('HomeStack', {screen: 'ConfirmedRide'});
     }

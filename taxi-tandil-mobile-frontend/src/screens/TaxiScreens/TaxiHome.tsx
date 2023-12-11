@@ -7,10 +7,13 @@ import { AvailableBtn } from "../../components/Taxi/AvailableBtn";
 import { useNavigation } from "@react-navigation/native";
 import { useCoords } from "../../hooks/useCoords";
 import { useExpoTaskManager } from "../../hooks/useExpoTaskManager";
+import * as TaskManager from "expo-task-manager";
+import * as ExpoLocation from 'expo-location';
+import { BACKGROUND_LOCATION_TASK_NAME, CHECK_LOCATION_ACTIVE } from "../../constants";
 
 export const TaxiHome: FC = () => {
     const {socket} = useContext(SocketContext);
-    const {setRide, ride, cleanUp} = useTaxiDispatchActions();
+    const {setRide, ride, userId, cleanUp} = useTaxiDispatchActions();
     const {stopBackgroundUpdate, startForegroundUpdate, stopForegroundUpdate} = useExpoTaskManager();
     const {getLatLngCurrentPosition} = useCoords();
     const navigation = useNavigation();
@@ -51,8 +54,46 @@ export const TaxiHome: FC = () => {
 
     useMemo(() => {
         const taxiCoords = getLatLngCurrentPosition();
-        socket!.volatile.emit('taxis-location-updated', taxiCoords, userRequestLocation?.userId);
+        if (userRequestLocation == undefined)
+            socket!.volatile.emit('taxis-location-updated', {location: taxiCoords});
+        else    
+            socket!.volatile.emit('taxis-location-updated', {location: taxiCoords, userId: userRequestLocation.userId});
     }, [userRequestLocation]);
+
+
+    TaskManager.defineTask(CHECK_LOCATION_ACTIVE, async ({ data, error }) => {
+    try {
+        if (error) throw error;
+        const { locations } = (data as any);
+        const location = locations[0];
+        if (location) {
+            socket!.emit('check-taxi-has-location-activated');
+            console.log('taxi-has-location-activated send');
+        }
+        await ExpoLocation.stopLocationUpdatesAsync(CHECK_LOCATION_ACTIVE);
+        console.log(`Task ${CHECK_LOCATION_ACTIVE} stopped.`);
+    } catch (error) {
+      console.error(`TaskManager: ${error}`);
+    }
+});
+
+    TaskManager.defineTask(BACKGROUND_LOCATION_TASK_NAME, async ({ data, error }) => {
+        try {
+            if (error) throw error;
+            const { locations } = (data as any);
+            const {latitude, longitude} = locations[0].coords;
+            const location = {
+            latitude: latitude,
+            longitude: longitude,
+            };
+            if (location && userId != null) {
+                console.log('location-update-for-user to: '+userId);
+                socket!.emit('location-update-for-user', {location: location, userId: userId});
+            }
+        } catch (error) {
+        console.error(`TaskManager: ${error}`);
+        }
+    });
 
     return (
         <View style={styles.mainContainer}>
