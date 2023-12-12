@@ -4,9 +4,9 @@ import { useNavigation } from "@react-navigation/native";
 import { SocketContext } from "../hooks/useSocketContext";
 import { useHttpRequest } from "../hooks/useHttpRequest";
 import { useAuthDispatchActions } from "../hooks/useAuthDispatchActions";
-import { Roles } from "../types/slices/authSliceTypes";
 import { io } from "socket.io-client";
 import { WS_URL } from "../constants";
+import { Roles, RolesType } from "../types/slices/authSliceTypes";
 
 export const Login: FC = () => {
     const navigation = useNavigation();
@@ -14,7 +14,7 @@ export const Login: FC = () => {
     const [password, setPassword] = useState<string>('');
     const {setUserAuthData} = useAuthDispatchActions();
     const {postRequest} = useHttpRequest();
-    const {setSocket} = useContext(SocketContext);
+    const {setSocket} = useContext(SocketContext)!;
     
     const onSubmitLogin = async () => {
         /**
@@ -23,15 +23,16 @@ export const Login: FC = () => {
          *  -Handle the errors
         */
         let body = {
-            username: loginEmail,
+            email: loginEmail,
             password: password
         };
         try {
             const response = await postRequest('auth/login', body);
             let data = {
-                username: response.payload.username,
-                email: response.payload.email,
-                roles: response.payload.roles,
+                firstName: response.user.firstName,
+                lastName: response.user.lastName,
+                email: response.user.email,
+                roles: response.user.roles,
                 access_token: response.access_token,
                 refresh_token: response.refresh_token,
             }
@@ -52,7 +53,7 @@ export const Login: FC = () => {
                 setLoginEmail('');
                 setPassword('');
                 // And then redirect to the respective home screen.
-                if (response.payload.roles.includes(Roles.Taxi))
+                if (response.user.roles.find((role: RolesType) => role.name == 'taxi') != undefined)
                     navigation.navigate('HomeStack', {screen: 'TaxiHome'});
                 else
                     navigation.navigate('HomeStack', {screen: 'UserHome'});

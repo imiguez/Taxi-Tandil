@@ -1,13 +1,12 @@
 import { Controller, Post, Get, Body, Req } from '@nestjs/common';
 import { Public } from 'src/custom-decorators';
 import { AuthService } from './auth.service';
-import { JwtService } from '@nestjs/jwt';
 import { Request as RequestExpress } from 'express';
 import { SignUpDto } from './dto/sign-up.dto';
 import { LoginDto } from './dto/login.dto';
 @Controller('auth')
 export class AuthController {
-  constructor(private authService: AuthService, private jwtService: JwtService) //private gateway: EventsGateway
+  constructor(private authService: AuthService) //private gateway: EventsGateway
   {}
 
   @Public()
@@ -19,8 +18,9 @@ export class AuthController {
   @Public()
   @Post('login')
   async login(@Body() loginDto: LoginDto) {
-    const user = await this.authService.validateUser(loginDto);
-    return await this.authService.login(user);
+    let user = await this.authService.validateUser(loginDto);
+    let {password, rides, ...cleanedUser} = user;
+    return await this.authService.login(cleanedUser);
   }
 
   @Post('refresh-jwt-token')
