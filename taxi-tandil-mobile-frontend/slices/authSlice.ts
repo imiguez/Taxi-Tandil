@@ -2,7 +2,8 @@ import { createSlice } from "@reduxjs/toolkit";
 import { initialAuthSliceStateType } from "../src/types/slices/authSliceTypes";
 
 export const initialState: initialAuthSliceStateType = {
-  username: undefined,
+  firstName: undefined,
+  lastName: undefined,
   email: undefined,
   roles: [],
   access_token: undefined,
@@ -13,8 +14,11 @@ export const authSlice = createSlice({
   name: "auth",
   initialState,
   reducers: {
-    setUsername: (state, action) => {
-      state.username = action.payload;
+    setFirstName: (state, action) => {
+      state.firstName = action.payload;
+    },
+    setLastName: (state, action) => {
+      state.lastName = action.payload;
     },
     setEmail: (state, action) => {
       state.email = action.payload;
@@ -31,13 +35,17 @@ export const authSlice = createSlice({
   },
 });
 
-export const { setUsername, setEmail, setRoles, setAccessToken, setRefreshToken } =
+export const { setFirstName, setLastName, setEmail, setRoles, setAccessToken, setRefreshToken } =
   authSlice.actions;
 
-export const selectUsername: (
+export const selectFirstName: (
   state: any
-) => initialAuthSliceStateType["username"] = (state: any) =>
-  state.auth.username;
+) => initialAuthSliceStateType["firstName"] = (state: any) =>
+  state.auth.firstName;
+export const selectLastName: (
+  state: any
+) => initialAuthSliceStateType["lastName"] = (state: any) =>
+  state.auth.lastName;
 export const selectEmail: (state: any) => initialAuthSliceStateType["email"] = (
   state: any
 ) => state.auth.email;

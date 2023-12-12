@@ -17,7 +17,7 @@ export class User {
     email: string;
 
     @Column()
-    password?: string;
+    password: string;
 
     @ManyToMany(() => Role, (role) => role.users, {eager: true})
     @JoinTable({name: 'users_roles'})
