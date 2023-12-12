@@ -1,9 +1,11 @@
 import { BadRequestException, HttpException, HttpStatus, Injectable, NotFoundException, UnauthorizedException } from '@nestjs/common';
 import { JwtService } from '@nestjs/jwt';
-import { UsersService } from 'src/users/users.service';
 import { JwtUtils } from './utils/jwt.util';
-import { LoginDto } from './dtos/login.dto';
-import { User } from 'src/users/user.entity';
+import { LoginDto } from './dto/login.dto';
+import { User } from 'src/users/entities/user.entity';
+import { SignUpDto } from './dto/sign-up.dto';
+import { InjectRepository } from '@nestjs/typeorm';
+import { Repository } from 'typeorm';
 
 @Injectable()
 export class AuthService {
@@ -12,13 +14,18 @@ export class AuthService {
   private iss = ''; // TODO: set to backend url.
 
   constructor(
-    private usersService: UsersService,
+    @InjectRepository(User)
+    private usersRepository: Repository<User>,
     private jwtService: JwtService,
   ) {}
 
+  async signUp(signUpDto: SignUpDto) {
+    return await this.usersRepository.save(signUpDto);
+  }
+
   async validateUser(loginDto: LoginDto): Promise<User> {
     // TODO: verify if the email var its actually a valid email
-    const user = await this.usersService.findByEmail(loginDto.email); // TODO: query to a db
+    const user = await this.usersRepository.findOneBy({'email': loginDto.email}); // TODO: query to a db
     // TODO: compare the password with the encrypted in the db
     if (user == null) throw new NotFoundException();
     if (user.password !== loginDto.password) throw new BadRequestException();

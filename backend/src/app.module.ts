@@ -8,8 +8,10 @@ import { JwtAuthGuard } from './auth/guards/jwt-auth.guard';
 import { MainGatewayModule } from './sockets/main-gateway.module';
 import { TypeOrmModule } from '@nestjs/typeorm';
 import { ConfigModule } from '@nestjs/config';
-import { User } from './users/user.entity';
-import { Role } from './users/role.entity';
+import { User } from './users/entities/user.entity';
+import { Role } from './users/entities/role.entity';
+import { RidesModule } from './rides/rides.module';
+import { Ride } from './rides/entities/ride.entity';
 
 @Module({
   imports: [
@@ -22,10 +24,10 @@ import { Role } from './users/role.entity';
       password: process.env.POSTGRES_PASSWORD,
       database: process.env.POSTGRES_DB,
       autoLoadEntities: true,
-      entities: [User, Role],
+      entities: [User, Role, Ride], // Once the entity is already created, can comment it.
       synchronize: true, // Set to false in production env.
     }),
-    UsersModule, AuthModule, MainGatewayModule],
+    UsersModule, AuthModule, MainGatewayModule, RidesModule],
   controllers: [AppController],
   providers: [AppService, 
     {
