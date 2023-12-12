@@ -6,9 +6,28 @@ import { AuthModule } from './auth/auth.module';
 import { APP_GUARD } from '@nestjs/core';
 import { JwtAuthGuard } from './auth/guards/jwt-auth.guard';
 import { MainGatewayModule } from './sockets/main-gateway.module';
+import { TypeOrmModule } from '@nestjs/typeorm';
+import { ConfigModule } from '@nestjs/config';
+import { User } from './users/entities/user.entity';
+import { Role } from './users/entities/role.entity';
+import { RidesModule } from './rides/rides.module';
+import { Ride } from './rides/entities/ride.entity';
 
 @Module({
-  imports: [UsersModule, AuthModule, MainGatewayModule],
+  imports: [
+    ConfigModule.forRoot(), // This module permit using .env variables in the TypeOrmModule.
+    TypeOrmModule.forRoot({
+      type: 'postgres',
+      host: process.env.DB_HOST,
+      port: parseInt(process.env.DB_PORT!),
+      username: process.env.POSTGRES_USER,
+      password: process.env.POSTGRES_PASSWORD,
+      database: process.env.POSTGRES_DB,
+      autoLoadEntities: true,
+      entities: [User, Role, Ride], // Once the entity is already created, can comment it.
+      synchronize: true, // Set to false in production env.
+    }),
+    UsersModule, AuthModule, MainGatewayModule, RidesModule],
   controllers: [AppController],
   providers: [AppService, 
     {

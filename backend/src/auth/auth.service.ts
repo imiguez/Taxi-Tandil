@@ -1,45 +1,53 @@
-import { HttpException, HttpStatus, Injectable, UnauthorizedException } from '@nestjs/common';
+import { BadRequestException, HttpException, HttpStatus, Injectable, NotFoundException, UnauthorizedException } from '@nestjs/common';
 import { JwtService } from '@nestjs/jwt';
-import { UsersService } from 'src/users/users.service';
 import { JwtUtils } from './utils/jwt.util';
+import { LoginDto } from './dto/login.dto';
+import { User } from 'src/users/entities/user.entity';
+import { SignUpDto } from './dto/sign-up.dto';
+import { InjectRepository } from '@nestjs/typeorm';
+import { Repository } from 'typeorm';
 
 @Injectable()
 export class AuthService {
   private accessTokenTime: string = '2s';
   private refreshTokenTime: string = '2s';
+  private iss = ''; // TODO: set to backend url.
 
   constructor(
-    private usersService: UsersService,
+    @InjectRepository(User)
+    private usersRepository: Repository<User>,
     private jwtService: JwtService,
   ) {}
 
-  // TODO: receive a DTO as a parameter
-  async validateUser(email: string, password: string): Promise<any> {
-    // TODO: verify if the email var its actually a valid email
-    const user = await this.usersService.findByEmail(email); // TODO: query to a db
-    // TODO: compare the password with the encrypted in the db
-    if (user && user.password === password) {
-      const { password, ...result } = user;
-      return result;
-    }
-    return null;
+  async signUp(signUpDto: SignUpDto) {
+    return await this.usersRepository.save(signUpDto);
   }
 
-  async login(user: any) { // TODO: use a DTO
+  async validateUser(loginDto: LoginDto): Promise<User> {
+    // TODO: verify if the email var its actually a valid email
+    const user = await this.usersRepository.findOneBy({'email': loginDto.email}); // TODO: query to a db
+    // TODO: compare the password with the encrypted in the db
+    if (user == null) throw new NotFoundException();
+    if (user.password !== loginDto.password) throw new BadRequestException();
+    user.password = undefined; // Check if this update user password in db.
+    return user;
+  }
+
+  async login(user: any) {
     const payload = { 
       email: user.email,
-      username: user.username,
+      firstName: user.firstName,
+      lastName: user.lastName,
       roles: user.roles,
-    }; //, sub: user.userId };
+    };
     return {
       payload,
-      // TODO: change the issuear to an actual id of the user
-      access_token: this.jwtService.sign({payload, isRefreshToken: false}, {expiresIn: this.accessTokenTime, issuer: '1', subject: user.email}), 
-      refresh_token: this.jwtService.sign({payload, isRefreshToken: true}, {expiresIn: this.refreshTokenTime, issuer: '1', subject: user.email}),
+      access_token: this.jwtService.sign({payload, isRefreshToken: false}, {expiresIn: this.accessTokenTime, issuer: this.iss, subject: user.id+''}), 
+      refresh_token: this.jwtService.sign({payload, isRefreshToken: true}, {expiresIn: this.refreshTokenTime, issuer: this.iss, subject: user.id+''}),
     };
   }
 
-  async refreshJwtToken(token: string, user: any) { // TODO: use a DTO
+  async refreshJwtToken(token: string, user: any) {
     try {
       let refreshPayload = await JwtUtils.validateToken(token, false);
       if (!refreshPayload.isRefreshToken) {
@@ -57,7 +65,7 @@ export class AuthService {
     }
     const {payload} = user;
     return {
-      access_token: this.jwtService.sign({payload, isRefreshToken: false}, {expiresIn: this.accessTokenTime}),
+      access_token: this.jwtService.sign({payload, isRefreshToken: false}, {expiresIn: this.accessTokenTime, issuer: this.iss}),
     };
   }
 }

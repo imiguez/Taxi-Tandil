@@ -1,19 +1,26 @@
-import { Controller, Post, UseGuards, Get, Body, Req } from '@nestjs/common';
+import { Controller, Post, Get, Body, Req } from '@nestjs/common';
 import { Public } from 'src/custom-decorators';
-import { LocalAuthGuard } from './guards/local-auth.guard';
 import { AuthService } from './auth.service';
 import { JwtService } from '@nestjs/jwt';
 import { Request as RequestExpress } from 'express';
+import { SignUpDto } from './dto/sign-up.dto';
+import { LoginDto } from './dto/login.dto';
 @Controller('auth')
 export class AuthController {
   constructor(private authService: AuthService, private jwtService: JwtService) //private gateway: EventsGateway
   {}
 
   @Public()
-  @UseGuards(LocalAuthGuard)
+  @Post('sign-up')
+  async signUp(@Body() signUpDto: SignUpDto) {
+    return await this.authService.signUp(signUpDto);
+  }
+
+  @Public()
   @Post('login')
-  async login(@Req() req: RequestExpress) {
-    return await this.authService.login(req.user);
+  async login(@Body() loginDto: LoginDto) {
+    const user = await this.authService.validateUser(loginDto);
+    return await this.authService.login(user);
   }
 
   @Post('refresh-jwt-token')
