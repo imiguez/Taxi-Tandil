@@ -10,11 +10,11 @@ import RootStackParamList from "../../types/RootStackParamList";
 
 export const UserHome: FC<PropsWithChildren> = () => {
     const navigation = useNavigation<StackNavigationProp<RootStackParamList>>();
-    const {socket} = useContext(SocketContext);
+    const {socket} = useContext(SocketContext)!;
     const {setRideStatus, rideStatus, setTaxiInfo, updateToInitialState} = useMapDispatchActions();
 
-    const onTaxiConfirmedRide = (location: LatLng, taxiId: string) => {
-        setTaxiInfo({id: taxiId});
+    const onTaxiConfirmedRide = async (taxiId: string, taxiName: string) => {
+        setTaxiInfo({id: taxiId, username: taxiName});
         setRideStatus('accepted');
         navigation.navigate('HomeStack', {screen: 'ConfirmedRide'});
     };
@@ -28,7 +28,7 @@ export const UserHome: FC<PropsWithChildren> = () => {
         navigation.navigate('HomeStack', {screen: 'ConfirmedRide'});
     }
 
-    const onTaxiArrived = (location: LatLng, taxiId: string) => {
+    const onTaxiArrived = () => {
         setRideStatus('arrived');
         navigation.navigate('HomeStack', {screen: 'ConfirmedRide'});
     }

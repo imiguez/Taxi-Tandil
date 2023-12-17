@@ -5,45 +5,55 @@ import { StyleSheet, Text, TouchableHighlight } from "react-native";
 import { useNavigation } from "@react-navigation/native";
 import { useTaxiDispatchActions } from "../../hooks/useTaxiDispatchActions";
 import { useCoords } from "../../hooks/useCoords";
+import { useAuthDispatchActions } from "../../hooks/useAuthDispatchActions";
 
 type Props = {
     canGoBack: MutableRefObject<boolean>
 }
 
 export const AcceptRideBtn: FC<Props> = ({canGoBack}) => {
-    const {socket} = useContext(SocketContext);
+    const {socket} = useContext(SocketContext)!;
     const {startBackgroundUpdate, stopBackgroundUpdate} = useExpoTaskManager();
     const navigation = useNavigation();
-    const {userId, setRide, setRideStatus, rideStatus, cleanUp} = useTaxiDispatchActions();
+    const {userId, username, setRide, setRideStatus, rideStatus, cleanUp} = useTaxiDispatchActions();
     const {getLatLngCurrentPosition} = useCoords();
+    const {firstName, lastName} = useAuthDispatchActions();
 
     const handleNewRideRequest = async (accepted: boolean) => {
         canGoBack.current = true;
         if (accepted) {
             setRideStatus('accepted');
-            socket!.emit('ride-response', {accepted: true, userId: userId});
+            console.log(userId);
+            socket!.emit('ride-response', {
+                accepted: true, 
+                userId: userId, 
+                username: username, 
+                taxiName: `${firstName} ${lastName}`,
+            });
             const location = await getLatLngCurrentPosition();
             socket!.emit('location-update-for-user', {location: location, userId: userId});
             await startBackgroundUpdate();
         } else {
             cleanUp(); // Delete the ride and userId from the redux state
-            socket!.emit('ride-response', {accepted: false, userId: userId});
+            socket!.emit('ride-response', {accepted: false, userId: userId, username: username});
             navigation.goBack();
         }
     }
 
     const handleTaxiArrive = async () => {
-        await stopBackgroundUpdate();
-        const location = await getLatLngCurrentPosition();
-        socket!.emit("taxi-arrived", {location: location, userId: userId});
+        socket!.emit("taxi-arrived", {userId: userId});
         setRideStatus('arrived');
+        // Wait 10s until stop the location update to the user.
+        setTimeout(async () => {
+            await stopBackgroundUpdate();
+        }, 10000);
     }
 
     const handleRideCompleted = () => {
         socket!.emit('join-room', 'taxis-available');
         socket!.emit('ride-completed', userId);
         setRideStatus(null);
-        setRide(null, null);
+        setRide(null, null, null);
         navigation.goBack();
     }
 

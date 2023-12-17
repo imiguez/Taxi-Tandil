@@ -5,6 +5,8 @@ import {
     WebSocketServer,
     OnGatewayInit,
     ConnectedSocket,
+    OnGatewayConnection,
+    OnGatewayDisconnect,
   } from '@nestjs/websockets';
   import { Server, Socket } from 'socket.io';
 import { UseGuards } from '@nestjs/common';
@@ -33,17 +35,28 @@ type taxiLocationType = {
     origin: '*',
   },
 })
-export class MainGateway implements OnGatewayInit {
+export class MainGateway implements OnGatewayInit, OnGatewayConnection, OnGatewayDisconnect {
   private activeRides = new Map<string, activeRideType>();
   private taxisLocation = new Map<string, taxiLocationType>();
   private taxisLocationLastUpdate = new Date();
   private frequencyToCheckLastUpdate = 5;
+
+  private connections: Map<string, string> = new Map();
 
   @WebSocketServer()
   server: Server;
   
   afterInit(client: Socket) {
     client.use(SocketAuthMiddleWare() as any);
+  }
+
+  handleConnection(client: Socket) {
+    console.log(client.id);
+    this.connections.set(client.data.customId, client.id); // Example: ['2', 'SGS345rGDS$w']
+  }
+
+  handleDisconnect(client: Socket) {
+    this.connections.delete(client.data.customId);
   }
 
   getRoomSize(room: string) {
@@ -69,15 +82,16 @@ export class MainGateway implements OnGatewayInit {
   }
 
   @SubscribeMessage('taxis-location-updated')
-  taxisLocationUpdated(@MessageBody() data: {location: LatLng, userId?: string}, @ConnectedSocket() client: Socket) {
-    let {location, userId} = data;
-    this.taxisLocation.set(client.id, {
+  taxisLocationUpdated(@MessageBody() data: {location: LatLng, userId?: string, username?: string}, @ConnectedSocket() client: Socket) {
+    let {location, userId, username} = data;
+    let taxiId = client.data.customId;
+    this.taxisLocation.set(taxiId, {
       location: location,
       lastUpdate: new Date(),
     });
-    if (userId != undefined && this.taxisLocation.size == this.getRoomSize('taxis-available')) {
+    if (userId != undefined && username != undefined && this.taxisLocation.size == this.getRoomSize('taxis-available')) {
       this.taxisLocationLastUpdate = new Date();
-      this.resolveNewRideRequest(userId);
+      this.resolveNewRideRequest(userId, username);
     }
     // this.server.to(userId).emit('location-update-from-taxi', location, client.id);
   }
@@ -85,11 +99,14 @@ export class MainGateway implements OnGatewayInit {
   @SubscribeMessage('location-update-for-user')
   locationUpdateForUser(@MessageBody() data: {location: LatLng, userId: string}, @ConnectedSocket() client: Socket) {
     let {location, userId} = data;
+    userId = this.connections.get(userId)!;
     this.server.to(userId).emit('location-update-from-taxi', location, client.id);
   }
 
   @SubscribeMessage('new-ride')
-  newRide(@MessageBody() ride: Ride, @ConnectedSocket() client: Socket) {
+  newRide(@MessageBody() data: {ride: Ride, username: string}, @ConnectedSocket() client: Socket) {
+    let {ride, username} = data;
+    let userId = client.data.customId; // Gets the custom id.
     if (!(ride && ride.origin && ride.origin.latitude && ride.origin.longitude && 
       ride.destination && ride.destination.latitude && ride.destination.longitude)) {
       console.log('The received ride from the server is undefined or has undefined attributes.');
@@ -99,20 +116,26 @@ export class MainGateway implements OnGatewayInit {
       return;
     }
     if (this.getRoomSize('taxis-available') > 0) {
-      this.activeRides.set(client.id, {
+      this.activeRides.set(userId, {
         ride: ride,
         alreadyRequesteds: [],
         currentRequested: '',
         taxi: '',
       });
-      this.checkLastLocationUpdate(client.id);
+      this.checkLastLocationUpdate(userId, username);
     } else 
       this.server.to(client.id).emit('no-taxis-available');
   }
 
   @SubscribeMessage('ride-response')
-  rideResponse(@MessageBody() data: {accepted: boolean, userId: string}, @ConnectedSocket() client: Socket) {
-    let {accepted, userId} = data;
+  rideResponse(@MessageBody() data: {
+    accepted: boolean, 
+    userId: string, 
+    username: string, 
+    taxiName?: string
+  }, @ConnectedSocket() client: Socket) {
+    let {accepted, userId, username, taxiName} = data;
+    let taxiId = client.data.customId;
     this.server.to(client.id).socketsLeave('being-requested');
     let activeRide = this.activeRides.get(userId);
     if (activeRide == undefined) {
@@ -121,63 +144,66 @@ export class MainGateway implements OnGatewayInit {
       return;
     }
     if (accepted) {
-      activeRide.taxi = client.id;
-      let taxiLocation = this.taxisLocation.get(client.id);
-      if (taxiLocation == undefined) {
-        console.log(`The location from taxi ${client.id} its undefined.`);
-        return;
-      }
-      this.server.to(userId).emit('taxi-confirmed-ride', taxiLocation.location, client.id);
+      activeRide.taxi = taxiId;
+      // let taxiLocation = this.taxisLocation.get(taxiId);
+      // if (taxiLocation == undefined) {
+      //   console.log(`The location from taxi ${client.id} its undefined.`);
+      //   return;
+      // }
+      this.server.to(this.connections.get(userId)!).emit('taxi-confirmed-ride', taxiId, taxiName);
       this.server.to(client.id).socketsLeave('taxis-available');
-      this.taxisLocation.delete(client.id);
+      this.taxisLocation.delete(taxiId);
     } else {
-      activeRide.alreadyRequesteds.push(client.id);
+      activeRide.alreadyRequesteds.push(taxiId);
       console.log(`searching new taxi, taxis availables: ${this.taxisLocation.size}`);
-      this.checkLastLocationUpdate(userId);
+      this.checkLastLocationUpdate(userId, username);
     }
     activeRide.currentRequested = '';
   }
 
   @SubscribeMessage('taxi-arrived')
-  taxiArrived(@MessageBody() data: {location: LatLng, userId: string}, @ConnectedSocket() client: Socket) {
-    let {location, userId} = data;
-    this.server.to(userId).emit('taxi-arrived', location, client.id);
+  taxiArrived(@MessageBody() data: {userId: string}, @ConnectedSocket() client: Socket) {
+    let {userId} = data;
+    userId = this.connections.get(userId)!;
+    this.server.to(userId).emit('taxi-arrived');
   }
 
   @SubscribeMessage('cancel-ride')
   cancelRide(@ConnectedSocket() client: Socket) {
+    let userId = client.data.customId;
     // If the ride doesnt exists in activeRides
-    let activeRide = this.activeRides.get(client.id);
+    let activeRide = this.activeRides.get(userId);
     if (activeRide == undefined) return;
     // In case taxi've not accepted the ride yet
-    let taxiBeingRequested = activeRide.currentRequested;
+    let taxiBeingRequested = this.connections.get(activeRide.currentRequested);
     if (taxiBeingRequested) {
       this.server.to(taxiBeingRequested).emit('user-cancel-ride');
       this.server.to(taxiBeingRequested).socketsLeave('being-requested');
     }
     // In case taxi've already accepted the ride
-    let taxiWhoAccepted = activeRide.taxi;
+    let taxiWhoAccepted = this.connections.get(activeRide.taxi);
     if (taxiWhoAccepted) {
       this.server.to(taxiWhoAccepted).emit('user-cancel-ride');
       this.server.to(taxiWhoAccepted).socketsJoin('taxis-available');
     }
-    this.activeRides.delete(client.id);
+    this.activeRides.delete(userId);
   }
 
   @SubscribeMessage('ride-completed')
   rideCompleted(@MessageBody() data: {userId: string}) {
     let {userId} = data;
+    userId = this.connections.get(userId)!;
     this.server.to(userId).emit('ride-completed');
   }
 
-  checkLastLocationUpdate(userId: string) {
+  checkLastLocationUpdate(userId: string, username: string) {
     // console.log(`Update location executed? ${taxisLocationLastUpdate < new Date().setSeconds(-frequencyToCheckLastUpdate)}`);
     // if (taxisLocationLastUpdate < new Date().setSeconds(frequencyToCheckLastUpdate*-1)) {
     if (true) {
       this.taxisLocation = new Map();
-      this.server.to('taxis-available').emit('update-taxis-location', userId);
+      this.server.to('taxis-available').emit('update-taxis-location', userId, username);
     } else {
-      this.resolveNewRideRequest(userId);
+      this.resolveNewRideRequest(userId, username);
     }
   }
 
@@ -221,7 +247,7 @@ export class MainGateway implements OnGatewayInit {
     return nearestTaxi;
   }
 
-  resolveNewRideRequest(userId: string) {
+  resolveNewRideRequest(userId: string, username: string) {
     let activeRide = this.activeRides.get(userId);
     if (activeRide == undefined) {
       console.log('activeRides.get('+userId+') is undefined.');
@@ -229,13 +255,13 @@ export class MainGateway implements OnGatewayInit {
     }
     let nearestTaxi = this.getNearestTaxi(activeRide.alreadyRequesteds, activeRide.ride);
     if (nearestTaxi.id) {
-      this.server.to(nearestTaxi.id).emit('ride-request', activeRide.ride, userId); // Sends the user id
+      this.server.to(this.connections.get(nearestTaxi.id)!).emit('ride-request', activeRide.ride, userId, username);
       activeRide.currentRequested = nearestTaxi.id;
-      this.server.to(nearestTaxi.id).socketsJoin('being-requested');
+      this.server.to(this.connections.get(nearestTaxi.id)!).socketsJoin('being-requested');
       console.log('ride-request emitted to '+nearestTaxi.id+' !');
     } else {
       console.log('None of all taxis accept the request.');
-      this.server.to(userId).emit('all-taxis-reject');
+      this.server.to(this.connections.get(userId)!).emit('all-taxis-reject');
       this.activeRides.delete(userId);
     }
   }

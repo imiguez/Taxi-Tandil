@@ -6,7 +6,7 @@ import { useHttpRequest } from "../hooks/useHttpRequest";
 import { useAuthDispatchActions } from "../hooks/useAuthDispatchActions";
 import { io } from "socket.io-client";
 import { WS_URL } from "../constants";
-import { Roles, RolesType } from "../types/slices/authSliceTypes";
+import { RolesType } from "../types/slices/authSliceTypes";
 
 export const Login: FC = () => {
     const navigation = useNavigation();
@@ -29,6 +29,7 @@ export const Login: FC = () => {
         try {
             const response = await postRequest('auth/login', body);
             let data = {
+                id: response.user.id,
                 firstName: response.user.firstName,
                 lastName: response.user.lastName,
                 email: response.user.email,
@@ -40,7 +41,9 @@ export const Login: FC = () => {
             const socket = io(WS_URL, {
                 auth: {
                     token: `Bearer ${response.access_token}`,
-                }
+                    custom_id: response.user.id,
+                },
+                transports: ['websocket'],
             });
             socket.on('connect_error', (error) => {
                 console.log('Error from socket.');

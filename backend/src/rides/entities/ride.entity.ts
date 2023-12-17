@@ -18,19 +18,19 @@ export class Ride {
     @Column({name: 'destination_lng', type: 'float8'})
     destinationLongitude: number;
 
-    @Column({name: 'accepted_timestamp', type: 'timestamp with time zone'})
+    @Column({name: 'accepted_timestamp', type: 'timestamp without time zone'})
     acceptedTimestamp: Date;
     
     // Can be added a timestamp when driver arrives and finishes the ride.
 
-    @ManyToOne(() => User, (user) => user.rides)
-    @JoinColumn({name: 'user_id'})
+    @ManyToOne(() => User, (user) => user.rides, {nullable: false})
+    @JoinColumn({name: 'user_id', referencedColumnName: 'id'})
     user: User;
 
-    @ManyToOne(() => User, (user) => user.rides)
-    @JoinColumn({name: 'driver_id'})
+    @ManyToOne(() => User, (user) => user.rides, {nullable: false})
+    @JoinColumn({name: 'driver_id', referencedColumnName: 'id'})
     driver: User;
 
-    @Column({default: false})
+    @Column({name: 'was_canceled', default: false, nullable: false})
     wasCanceled: boolean;
 }

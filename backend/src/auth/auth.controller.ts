@@ -19,8 +19,7 @@ export class AuthController {
   @Post('login')
   async login(@Body() loginDto: LoginDto) {
     let user = await this.authService.validateUser(loginDto);
-    let {password, rides, ...cleanedUser} = user;
-    return await this.authService.login(cleanedUser);
+    return await this.authService.login(user);
   }
 
   @Post('refresh-jwt-token')

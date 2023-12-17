@@ -7,6 +7,7 @@ export type rideStatusType = {
 export type initialTaxiRideSliceStateType = {
     ride: RideWithAddress | null,
     userId: string | null,
+    username: string | null,
     currentLocation: LatLng | null,
     available: boolean,
 } & rideStatusType

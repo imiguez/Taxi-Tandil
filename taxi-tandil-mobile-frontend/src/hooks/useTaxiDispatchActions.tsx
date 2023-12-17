@@ -6,7 +6,9 @@ import { selectCurrentLocation, selectRide, selectUserId, setUserId, selectAvail
     setCurrentLocation as setCurrentLocationFromTaxiRideSlice, 
     setAvailable as setAvailableFromTaxiRideSlice, 
     setRideStatus as setRideStatusFromTaxiRideSlice, 
-    selectRideStatus} from "../../slices/taxiRideSlice";
+    selectRideStatus,
+    setUsername,
+    selectUsername} from "../../slices/taxiRideSlice";
 import { initialTaxiRideSliceStateType } from "../types/slices/taxiRideSliceTypes";
 
 export const useTaxiDispatchActions = () => {
@@ -14,6 +16,7 @@ export const useTaxiDispatchActions = () => {
     const dispatch = useDispatch();
     const ride = useSelector(selectRide);
     const userId = useSelector(selectUserId);
+    const username = useSelector(selectUsername);
     const currentLocation = useSelector(selectCurrentLocation);
     const available = useSelector(selectAvailable);
     const rideStatus = useSelector(selectRideStatus);
@@ -22,10 +25,11 @@ export const useTaxiDispatchActions = () => {
         dispatch(setAvailableFromTaxiRideSlice(isAvailable));
     }
 
-    const setRide = async (ride: Ride | null, creatorId: string | null) => {
+    const setRide = async (ride: Ride | null, creatorId: string | null, creatorFullName: string | null) => {
         if (!ride) {
             dispatch(setRideFromTaxiRideSlice(null));
             dispatch(setUserId(null));
+            dispatch(setUsername(null));
             return;
         }
         let origin = await reverseGeocode(ride.origin);
@@ -35,6 +39,7 @@ export const useTaxiDispatchActions = () => {
             destination: destination
         }));
         dispatch(setUserId(creatorId));
+        dispatch(setUsername(creatorFullName));
     }
 
     const setCurrentLocation = (location: LatLng) => {
@@ -52,7 +57,7 @@ export const useTaxiDispatchActions = () => {
     }
     
     return {
-        setRide, ride, userId,
+        setRide, ride, userId, username,
         setCurrentLocation, currentLocation,
         setAvailable, available,
         setRideStatus, rideStatus,

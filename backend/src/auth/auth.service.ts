@@ -28,7 +28,7 @@ export class AuthService {
     // TODO: compare the password with the encrypted in the db
     if (user == null) throw new NotFoundException();
     if (user.password !== loginDto.password) throw new BadRequestException('Invalid password.');
-    let {password, ...cleanedUser} = user;
+    let {password, rides, ...cleanedUser} = user;
     return cleanedUser;
   }
 
