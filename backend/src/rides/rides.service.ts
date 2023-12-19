@@ -1,4 +1,4 @@
-import { Injectable, NotFoundException } from '@nestjs/common';
+import { Injectable } from '@nestjs/common';
 import { CreateRideDto } from './dto/create-ride.dto';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Ride } from './entities/ride.entity';
@@ -15,19 +15,20 @@ export class RidesService {
     private usersRepository: Repository<User>,
   ) {}
 
-  async createRide(createRideDto: CreateRideDto) {
-    let ride = {...createRideDto, ...{acceptedTimestamp: new Date()}};
-    let user = await this.usersRepository.findOneBy({id: ride.user_id});
-    if (user == null) throw new NotFoundException(`User with id ${ride.user_id} wasn't found.`)
-    let driver = await this.usersRepository.findOneBy({id: ride.driver_id});
-    if (driver == null) throw new NotFoundException(`User with id ${ride.driver_id} wasn't found.`)
-    let rideCreated = this.ridesRepository.create(ride);
-    rideCreated.user = user;
-    rideCreated.driver = driver;
-    return await this.ridesRepository.save(rideCreated);
+  async createRide(ride: CreateRideDto) {
+    return await this.ridesRepository.query(`INSERT INTO rides (
+      origin_lat, origin_lng, destination_lat, destination_lng, driver_id, user_id, accepted_timestamp
+    ) VALUES ($1, $2, $3, $4, $5, $6, $7)`, [
+      ride.originLatitude, ride.originLongitude, ride.destinationLatitude, ride.destinationLongitude,
+      ride.driver_id, ride.user_id, new Date()
+    ]);
   }
 
   async findAll() {
     return await this.ridesRepository.find();
+  }
+
+  async findById(id: number) {
+    return await this.ridesRepository.findOneBy({id: id});
   }
 }

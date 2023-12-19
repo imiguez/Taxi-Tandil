@@ -23,14 +23,7 @@ export class User {
     @JoinTable({name: 'users_roles'})
     roles: Role[];
 
-    @OneToMany(() => Ride,
-    ride => {
-        inversedBy: [
-            ride.user,
-            ride.driver,
-        ]
-    },
-    // {lazy: true} TODO
-    )
-    rides: Ride[];
+    @OneToMany(() => Ride, ride => ride.user)
+    @OneToMany(() => Ride, ride => ride.driver)
+    rides: Promise<Ride[]>;
 }

@@ -12,10 +12,10 @@ export class UsersService {
   ) {}
 
   async findByEmail(email: string): Promise<User | null> {
-    return this.usersRepository.findOneBy({email});
+    return await this.usersRepository.findOneBy({email});
   }
   
-  async findAll(): Promise<User[] | null> {
-    return this.usersRepository.find();
+  async findAll(): Promise<User[]> {
+    return await this.usersRepository.find();
   }
 }

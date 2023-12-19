@@ -6,10 +6,10 @@ export class Ride {
     @PrimaryGeneratedColumn()
     id: number;
 
-    @Column({name: 'origen_lat', type: 'float8'})
+    @Column({name: 'origin_lat', type: 'float8'})
     originLatitude: number;
 
-    @Column({name: 'origen_lng', type: 'float8'})
+    @Column({name: 'origin_lng', type: 'float8'})
     originLongitude: number;
 
     @Column({name: 'destination_lat', type: 'float8'})
@@ -22,14 +22,14 @@ export class Ride {
     acceptedTimestamp: Date;
     
     // Can be added a timestamp when driver arrives and finishes the ride.
-
+    
     @ManyToOne(() => User, (user) => user.rides, {nullable: false})
     @JoinColumn({name: 'user_id', referencedColumnName: 'id'})
-    user: User;
+    user: Promise<User>;
 
     @ManyToOne(() => User, (user) => user.rides, {nullable: false})
     @JoinColumn({name: 'driver_id', referencedColumnName: 'id'})
-    driver: User;
+    driver: Promise<User>;
 
     @Column({name: 'was_canceled', default: false, nullable: false})
     wasCanceled: boolean;
