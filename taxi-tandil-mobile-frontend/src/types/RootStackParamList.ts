@@ -11,7 +11,7 @@ export type HomeStackParamList = {
 
 export type RootStackParamList = {
   Login: undefined,
-  Register: undefined,
+  SignUp: undefined,
   HomeStack: NavigatorScreenParams<HomeStackParamList>,
 }
 
