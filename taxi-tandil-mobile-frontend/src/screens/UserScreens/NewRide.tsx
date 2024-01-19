@@ -7,13 +7,15 @@ import { useNavigation } from "@react-navigation/native";
 import { RideMap } from "../../components/NewRide/RideMap";
 import { RideSelectLocations } from "../../components/NewRide/RideSelectLocations";
 import { SocketContext } from "../../hooks/useSocketContext";
+import { useAuthDispatchActions } from "../../hooks/useAuthDispatchActions";
 
 
 export const NewRide: FC = () => {
 
     const {origin, destination, selectInMap, setRideStatus, rideStatus} = useMapDispatchActions();
-    const {socket} = useContext(SocketContext);
+    const {socket} = useContext(SocketContext)!;
     const navigation = useNavigation();
+    const {firstName, lastName} = useAuthDispatchActions();
 
     const onConfirmRide = () => {
         if (!(origin && origin.location != null) || !(destination && destination.location != null)) {
@@ -30,7 +32,7 @@ export const NewRide: FC = () => {
                 longitude: destination.location.longitude,
             }
         };
-        socket!.emit('new-ride', ride);
+        socket!.emit('new-ride', {ride: ride, username: `${firstName} ${lastName}`});
         setRideStatus('emmited');
         navigation.navigate('HomeStack', {screen: 'ConfirmedRide'});
     }

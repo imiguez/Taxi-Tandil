@@ -11,11 +11,11 @@ import { SocketContext } from "../../hooks/useSocketContext";
 import { useNavigation } from "@react-navigation/native";
 
 export const AcceptedRide: FC = () => {
-    const {socket} = useContext(SocketContext);
+    const {socket} = useContext(SocketContext)!;
     const {reverseGeocode} = useCoords();
     const [origin, setOrigin] = useState<LocationWithName | null>();
     const [destination, setDestination] = useState<LocationWithName | null>();
-    const {ride, userId, rideStatus} = useTaxiDispatchActions();
+    const {ride, username, rideStatus} = useTaxiDispatchActions();
     const {currentLocation} = useTaxiDispatchActions();
     const navigation = useNavigation();
     const canGoBack = useRef<boolean>(rideStatus!=null);
@@ -59,7 +59,7 @@ export const AcceptedRide: FC = () => {
                     <Text numberOfLines={1} style={styles.addressText}>
                         {destination ? destination.longStringLocation : 'Cargando direccion...'}</Text>
                 </View>
-                <Text>Ride from: {userId}</Text>
+                <Text>Ride from: {username}</Text>
                 <AcceptRideBtn canGoBack={canGoBack}/>
             </View>
         </>

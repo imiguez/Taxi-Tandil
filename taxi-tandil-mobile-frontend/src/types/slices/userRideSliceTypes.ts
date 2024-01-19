@@ -16,6 +16,7 @@ export type rideStatusType = {
 export type taxiInfo = {
     taxi: null | {
         id: string | null,
+        username: string | null,
     }
 }
 

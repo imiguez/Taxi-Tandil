@@ -5,11 +5,12 @@ import { Login } from "./src/screens/Login";
 import { UserHome } from "./src/screens/UserScreens/UserHome";
 import { NewRide } from "./src/screens/UserScreens/NewRide";
 import RootStackParamList, { HomeStackParamList } from "./src/types/RootStackParamList";
-import { Button, StyleSheet } from "react-native";
+import { Button } from "react-native";
 import { Settings } from "./src/screens/Settings";
 import { ConfirmedRide } from "./src/screens/UserScreens/ConfirmedRide";
 import { TaxiHome } from "./src/screens/TaxiScreens/TaxiHome";
 import { AcceptedRide } from "./src/screens/TaxiScreens/AcceptedRide";
+import { SignUp } from "./src/screens/SignUp";
 
 
 const HomeStack = createStackNavigator<HomeStackParamList>();
@@ -60,14 +61,12 @@ const Routes: FC<PropsWithChildren> = () => {
                   cardStyleInterpolator: CardStyleInterpolators.forHorizontalIOS,
                   headerShown: false,
                 }}>
+                <RootStack.Screen name="SignUp" component={SignUp}/>
                 <RootStack.Screen name="Login" component={Login}/>
                 <RootStack.Screen name="HomeStack" component={HomeScreenStack}/>
             </RootStack.Navigator>
         </NavigationContainer>
     );
 };
-
-const styles = StyleSheet.create({
-});
 
 export default Routes;

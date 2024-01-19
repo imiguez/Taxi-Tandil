@@ -12,26 +12,28 @@ import * as ExpoLocation from 'expo-location';
 import { BACKGROUND_LOCATION_TASK_NAME, CHECK_LOCATION_ACTIVE } from "../../constants";
 
 export const TaxiHome: FC = () => {
-    const {socket} = useContext(SocketContext);
+    const {socket} = useContext(SocketContext)!;
     const {setRide, ride, userId, cleanUp} = useTaxiDispatchActions();
     const {stopBackgroundUpdate, startForegroundUpdate, stopForegroundUpdate} = useExpoTaskManager();
     const {getLatLngCurrentPosition} = useCoords();
     const navigation = useNavigation();
     const [userRequestLocation, setUserRequestLocation] = useState<{
         userId: string,
+        username: string,
         refresher: number, // Trigger the useMemo which has the taxis-location-updated event that will send the current location.
     }>();
     const [userCancel, setUserCancel] = useState<boolean>(false);
 
     useEffect(() => {
-        const onUpdateTaxisLocation = (userId: string) => {
+        const onUpdateTaxisLocation = (userId: string, username: string) => {
             setUserRequestLocation({
                 userId: userId,
+                username: username,
                 refresher: userRequestLocation ? userRequestLocation.refresher + 1 : 0,
             });
         };
-        const onRideRequest = (ride: Ride, userId: string) => {
-            setRide(ride, userId);
+        const onRideRequest = (ride: Ride, userId: string, username: string) => {
+            setRide(ride, userId, username);
         };
         const onUserCancelRide = async () => {
             await stopBackgroundUpdate();
@@ -57,7 +59,11 @@ export const TaxiHome: FC = () => {
         if (userRequestLocation == undefined)
             socket!.volatile.emit('taxis-location-updated', {location: taxiCoords});
         else    
-            socket!.volatile.emit('taxis-location-updated', {location: taxiCoords, userId: userRequestLocation.userId});
+            socket!.volatile.emit('taxis-location-updated', {
+                location: taxiCoords, 
+                userId: userRequestLocation.userId, 
+                username: userRequestLocation.username
+            });
     }, [userRequestLocation]);
 
 

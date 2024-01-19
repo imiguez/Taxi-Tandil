@@ -4,13 +4,17 @@ import constants from "../../constants";
 import { useMapDispatchActions } from "../../hooks/useMapDispatchActions";
 import { useNavigation } from "@react-navigation/native";
 import { SocketContext } from "../../hooks/useSocketContext";
+import { useAuthDispatchActions } from "../../hooks/useAuthDispatchActions";
+import { useHttpRequest } from "../../hooks/useHttpRequest";
 
 
 export const ConfirmedRideCard: FC = () => {
-    const {socket} = useContext(SocketContext);
+    const {socket} = useContext(SocketContext)!;
     const {origin, destination, setRideStatus, rideStatus, taxi} = useMapDispatchActions();
     const navigation = useNavigation();
     const [msg, setMsg] = useState<string>("Esperando taxi...");
+    const {id} = useAuthDispatchActions();
+    const {postRequest} = useHttpRequest();
 
     const onCancel = () => {
         socket!.emit('cancel-ride');
@@ -18,11 +22,28 @@ export const ConfirmedRideCard: FC = () => {
         navigation.goBack();
     }
 
+    const createRide = async () => {
+        let body = {
+            originLatitude: origin?.location.latitude,
+            originLongitude: origin?.location.longitude,
+            destinationLatitude: destination?.location.latitude,
+            destinationLongitude: destination?.location.longitude,
+            user_id: id,
+            driver_id: taxi?.id,
+        }
+        try {
+            await postRequest('rides', body);
+        } catch (error) {
+            console.log(error);
+        }
+    }
+
     useMemo(() => {
         let newMsg = '';
         switch (rideStatus) {
             case 'accepted':
-                newMsg = `${taxi?.id} acepto tu viaje!`;
+                newMsg = `${taxi?.username} acepto tu viaje!`;
+                createRide();
             break;
             case 'no-taxis-available':
                 newMsg = 'Actualmente no hay taxis disponibles.';
@@ -31,7 +52,7 @@ export const ConfirmedRideCard: FC = () => {
                 newMsg = 'Ningun taxi disponible tomo el viaje.';
             break;
             case 'arrived':
-                newMsg = `${taxi?.id} ya llegó!`;
+                newMsg = `${taxi?.username} ya llegó!`;
             break;
             default:
                 newMsg = 'Esperando taxi...';

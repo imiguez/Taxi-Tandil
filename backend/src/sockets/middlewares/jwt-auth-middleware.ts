@@ -6,8 +6,9 @@ type SocketAuthMiddleWareReturnType = (client: Socket, next: (err?: Error) => vo
 export const SocketAuthMiddleWare = (): SocketAuthMiddleWareReturnType => {
     return (client, next) => {
         try {
-            JwtUtils.validateTokenBySocket(client);
-            // client. Set the payload in to the client socket so it can be acced from the events
+            client.data.customId = (JwtUtils.validateTokenBySocket(client))?.custom_id;
+            // If its needed in the future it can be added the payload in to the client.data 
+            // so it can be acced from the events in the Gateway.
             next();
         } catch (error) {
             next(error);

@@ -10,13 +10,13 @@ export class UsersController {
   ) {}
 
   @Get('profile')
-  getProfile(@Request() req: any) {
+  async getProfile(@Request() req: any) {
     return req.user;
   }
 
   @Public()
-  @Get('findAll')
-  getAllUsers(@Request() req: any) {
-    return this.usersService.findAll();
+  @Get()
+  async getAllUsers(@Request() req: any) {
+    return await this.usersService.findAll();
   }
 }

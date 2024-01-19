@@ -8,7 +8,7 @@ import { LatLng } from "../../types/Location";
 
 export const ConfirmedRideMap: FC = () => {
     const {origin, destination} = useMapDispatchActions();
-    const {socket} = useContext(SocketContext);
+    const {socket} = useContext(SocketContext)!;
     const {calculateIntermediateCoord} = useCoords();
     const [taxi, setTaxi] = useState<{
         location: LatLng,

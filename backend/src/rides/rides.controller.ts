@@ -1,4 +1,4 @@
-import { Controller, Get, Post, Body } from '@nestjs/common';
+import { Controller, Get, Post, Body, Param } from '@nestjs/common';
 import { RidesService } from './rides.service';
 import { CreateRideDto } from './dto/create-ride.dto';
 
@@ -7,12 +7,17 @@ export class RidesController {
   constructor(private readonly ridesService: RidesService) {}
 
   @Post()
-  createRide(@Body() createRideDto: CreateRideDto) {
-    return this.ridesService.createRide(createRideDto);
+  async createRide(@Body() createRideDto: CreateRideDto) {
+    return await this.ridesService.createRide(createRideDto);
   }
 
   @Get()
-  findAll() {
-    return this.ridesService.findAll();
+  async findAll() {
+    return await this.ridesService.findAll();
+  }
+
+  @Get(':id')
+  async findById(@Param('id') id: number) {
+    return await this.ridesService.findById(id);
   }
 }

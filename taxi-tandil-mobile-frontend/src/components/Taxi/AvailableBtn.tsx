@@ -8,7 +8,7 @@ import { useTaxiDispatchActions } from "../../hooks/useTaxiDispatchActions";
 export const AvailableBtn: FC = () => {
     
     const [needPermissions, setNeedPermissions] = useState<boolean>(false);
-    const {socket} = useContext(SocketContext);
+    const {socket} = useContext(SocketContext)!;
     const {requestForegroundPermissions, requestBackgroundPermissions,
         stopBackgroundUpdate, startLocationCheck} = useExpoTaskManager();
     const {available, setAvailable} = useTaxiDispatchActions();
