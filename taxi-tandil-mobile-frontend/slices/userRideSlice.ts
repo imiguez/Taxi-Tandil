@@ -9,6 +9,7 @@ const initialState: initialUserRideSliceStateType = {
   selectInMap: false,
   rideStatus: null,
   taxi: null,
+  popUp: false,
 }
 
 export const userRideSlice = createSlice({
@@ -36,11 +37,14 @@ export const userRideSlice = createSlice({
       setTaxi: (state, action) => {
         state.taxi = action.payload;
       },
+      setPopUp: (state, action) => {
+        state.popUp = action.payload;
+      },
     }
 })
   
 export const { setOrigin, setDestination, setLastModified, setSelectInMap, 
-  setFocusInput, setRideStatus, setTaxi } = userRideSlice.actions;
+  setFocusInput, setRideStatus, setTaxi, setPopUp } = userRideSlice.actions;
 
 export const selectOrigin: (state: any) => initialUserRideSliceStateType['origin'] = (state: any) => state.userRide.origin;
 export const selectDestination: (state: any) => initialUserRideSliceStateType['destination'] = (state: any) => state.userRide.destination;
@@ -49,5 +53,6 @@ export const selectLastModified: (state: any) => initialUserRideSliceStateType['
 export const selectSelectInMap: (state: any) => boolean = (state: any) => state.userRide.selectInMap;
 export const selectRideStatus: (state: any) => initialUserRideSliceStateType['rideStatus'] = (state: any) => state.userRide.rideStatus;
 export const selectTaxi: (state: any) => initialUserRideSliceStateType['taxi'] = (state: any) => state.userRide.taxi;
+export const selectPopUp: (state: any) => initialUserRideSliceStateType['popUp'] = (state: any) => state.userRide.popUp;
 
 export default userRideSlice.reducer;

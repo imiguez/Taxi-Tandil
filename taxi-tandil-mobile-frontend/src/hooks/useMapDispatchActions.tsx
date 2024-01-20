@@ -4,8 +4,7 @@ import { selectDestination, selectOrigin, selectLastModified, selectSelectInMap,
     setFocusInput as setFocusInputFromRideSlice, 
     setSelectInMap as setSelectInMapFromRideSlice, 
     setRideStatus as setRideStatusFromRideSlice,
-    selectTaxi,
-    setTaxi
+    selectTaxi, setTaxi, selectPopUp, setPopUp as setPopUpFromRideSlice
     } from "../../slices/userRideSlice";
 import { LocationWithName } from "../types/Location";
 import { initialUserRideSliceStateType } from "../types/slices/userRideSliceTypes";
@@ -19,6 +18,11 @@ export const useMapDispatchActions = () => {
     const focusInput = useSelector(selectFocusInput);
     const rideStatus = useSelector(selectRideStatus);
     const taxi = useSelector(selectTaxi);
+    const popUp = useSelector(selectPopUp);
+
+    const setPopUp = (popUp: boolean) => {
+        dispatch(setPopUpFromRideSlice(popUp));
+    }
 
     const setLocation = (location: LocationWithName | null, set: initialUserRideSliceStateType['focusInput']) => {
         if (set == 'origin') {
@@ -65,8 +69,8 @@ export const useMapDispatchActions = () => {
     }
 
     return {
-        setLocation, invertLocations, setSelectInMap, setFocusInput, setRideStatus, setTaxiInfo,
-        origin, destination, lastModified, selectInMap, focusInput, rideStatus, taxi,
+        setLocation, invertLocations, setSelectInMap, setFocusInput, setRideStatus, setTaxiInfo, setPopUp,
+        origin, destination, lastModified, selectInMap, focusInput, rideStatus, taxi, popUp,
         updateToInitialState
     }
 }

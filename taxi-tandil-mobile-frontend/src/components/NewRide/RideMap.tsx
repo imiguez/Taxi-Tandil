@@ -1,15 +1,17 @@
 import React, { FC, useMemo, useRef, useState } from "react";
-import { SafeAreaView, StyleSheet } from "react-native";
+import { Platform, SafeAreaView, StyleSheet } from "react-native";
 import MapView, { Details, LatLng, MapMarker, Marker, MarkerDragStartEndEvent, Region } from "react-native-maps";
 import { SelectInMapOptions } from "./SelectInMapOptions";
 import constants from "../../constants";
 import { useMapDispatchActions } from "../../hooks/useMapDispatchActions";
 import { useCoords } from "../../hooks/useCoords";
+import * as ExpoLocation from 'expo-location';
 
 export const RideMap: FC = () => {
 
     const {reverseGeocode} = useCoords();
-    const {origin, destination, lastModified, selectInMap, setLocation, focusInput, setSelectInMap} = useMapDispatchActions();
+    const {origin, destination, lastModified, selectInMap, setLocation, focusInput, 
+        setSelectInMap, setPopUp} = useMapDispatchActions();
     let coords = {
         latitude: constants.tandilLocation.latitude,
         longitude: constants.tandilLocation.longitude,
@@ -111,10 +113,27 @@ export const RideMap: FC = () => {
         setMapCoords(newMapRegion);
     }
 
+    /**
+     * 
+     * @see link https://docs.expo.dev/versions/latest/sdk/location/#locationreversegeocodeasynclocation-options
+     */
     const onConfirm = async () => {
+        if (Platform.OS === 'android') { // Checks only in android.
+            let fgPermissions = await ExpoLocation.getForegroundPermissionsAsync();
+            if (!fgPermissions.granted) {
+                if (!fgPermissions.canAskAgain) {
+                    setPopUp(true);
+                    return;
+                }
+                
+                let newFgPermissions = await ExpoLocation.requestForegroundPermissionsAsync();
+                if (!newFgPermissions.granted)
+                    return;
+            }
+        }
         let location = await reverseGeocode(markerCoords);
-        if (location == null)
-            return false;
+        if (location == undefined)
+            return;
         
         setLocation(location, focusInput);
         setSelectInMap(false);
@@ -124,7 +143,6 @@ export const RideMap: FC = () => {
             latitudeDelta: mapCoords.latitudeDelta,
             longitudeDelta: mapCoords.longitudeDelta
         });
-        return true;
     }
 
     return (

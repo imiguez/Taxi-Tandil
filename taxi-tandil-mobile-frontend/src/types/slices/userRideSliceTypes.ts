@@ -22,4 +22,5 @@ export type taxiInfo = {
 
 export type initialUserRideSliceStateType = {
     selectInMap: boolean,
+    popUp: boolean,
 } & rideStatusType & lastModified & focusInput & RideWithAddress & taxiInfo

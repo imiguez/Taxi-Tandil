@@ -4,7 +4,7 @@ import { TouchableHighlight } from "react-native-gesture-handler";
 import constants from "../../constants";
 
 type SelectInMapOptionsProps = {
-    onConfirm: () => Promise<boolean>,
+    onConfirm: () => Promise<void>,
     onCancel: () => void,
 }
 
@@ -24,8 +24,8 @@ export const SelectInMapOptions: FC<SelectInMapOptionsProps> = ({onConfirm,onCan
                 </View>
                 <TouchableHighlight style={styles.btns} onPress={async () => {
                     setLoadingReverseGeocoding(true);
-                    let confirmDone = await onConfirm();
-                    setLoadingReverseGeocoding(!confirmDone);
+                    await onConfirm();
+                    setLoadingReverseGeocoding(false);
                 }}>
                     <Text>Confirm</Text>
                 </TouchableHighlight>
