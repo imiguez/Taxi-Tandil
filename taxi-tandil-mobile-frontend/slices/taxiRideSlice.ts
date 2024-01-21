@@ -8,6 +8,7 @@ const initialState: initialTaxiRideSliceStateType = {
   currentLocation: null,
   available: false,
   rideStatus: null,
+  popUp: false,
 }
 
 export const taxiRideSlice = createSlice({
@@ -32,10 +33,13 @@ export const taxiRideSlice = createSlice({
       setRideStatus: (state, action) => {
         state.rideStatus = action.payload;
       },
+      setPopUp: (state, action) => {
+        state.popUp = action.payload;
+      },
     }
 })
   
-export const { setRide, setUserId, setUsername, setCurrentLocation, setAvailable, setRideStatus } = taxiRideSlice.actions;
+export const { setRide, setUserId, setUsername, setCurrentLocation, setAvailable, setRideStatus, setPopUp } = taxiRideSlice.actions;
 
 export const selectRide: (state: any) => initialTaxiRideSliceStateType['ride'] = (state: any) => state.taxiRide.ride;
 export const selectUserId: (state: any) => initialTaxiRideSliceStateType['userId'] = (state: any) => state.taxiRide.userId;
@@ -43,5 +47,6 @@ export const selectUsername: (state: any) => initialTaxiRideSliceStateType['user
 export const selectCurrentLocation: (state: any) => initialTaxiRideSliceStateType['currentLocation'] = (state: any) => state.taxiRide.currentLocation;
 export const selectAvailable: (state: any) => initialTaxiRideSliceStateType['available'] = (state: any) => state.taxiRide.available;
 export const selectRideStatus: (state: any) => initialTaxiRideSliceStateType['rideStatus'] = (state: any) => state.taxiRide.rideStatus;
+export const selectPopUp: (state: any) => initialTaxiRideSliceStateType['popUp'] = (state: any) => state.taxiRide.popUp;
 
 export default taxiRideSlice.reducer;

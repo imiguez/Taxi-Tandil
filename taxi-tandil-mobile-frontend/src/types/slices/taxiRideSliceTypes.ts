@@ -10,4 +10,5 @@ export type initialTaxiRideSliceStateType = {
     username: string | null,
     currentLocation: LatLng | null,
     available: boolean,
+    popUp: boolean,
 } & rideStatusType

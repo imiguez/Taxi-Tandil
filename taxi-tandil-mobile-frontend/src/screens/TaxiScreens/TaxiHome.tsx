@@ -1,5 +1,5 @@
-import { FC, useContext, useEffect, useMemo, useState } from "react";
-import { Button, StyleSheet, Text, View } from "react-native";
+import { FC, useContext, useEffect, useState } from "react";
+import { StyleSheet, View } from "react-native";
 import { Ride } from "../../types/Location";
 import { SocketContext } from "../../hooks/useSocketContext";
 import { useTaxiDispatchActions } from "../../hooks/useTaxiDispatchActions";
@@ -9,40 +9,37 @@ import { useCoords } from "../../hooks/useCoords";
 import { useExpoTaskManager } from "../../hooks/useExpoTaskManager";
 import * as TaskManager from "expo-task-manager";
 import * as ExpoLocation from 'expo-location';
-import { BACKGROUND_LOCATION_TASK_NAME, CHECK_LOCATION_ACTIVE } from "../../constants";
+import { BACKGROUND_LOCATION_TASK_NAME } from "../../constants";
+import LocationPermissionsPopUp from "../../components/Taxi/LocationPermissionsPopUp";
+import RideRequestBtn from "../../components/Taxi/RideRequestBtn";
+import UserCancelNotification from "../../components/Taxi/UserCancelNotification";
 
 export const TaxiHome: FC = () => {
     const {socket} = useContext(SocketContext)!;
-    const {setRide, ride, userId, cleanUp} = useTaxiDispatchActions();
+    const {setRide, ride, userId, cleanUp, popUp} = useTaxiDispatchActions();
     const {stopBackgroundUpdate, startForegroundUpdate, stopForegroundUpdate} = useExpoTaskManager();
     const {getLatLngCurrentPosition} = useCoords();
     const navigation = useNavigation();
-    const [userRequestLocation, setUserRequestLocation] = useState<{
-        userId: string,
-        username: string,
-        refresher: number, // Trigger the useMemo which has the taxis-location-updated event that will send the current location.
-    }>();
     const [userCancel, setUserCancel] = useState<boolean>(false);
 
     useEffect(() => {
-        const onUpdateTaxisLocation = (userId: string, username: string) => {
-            setUserRequestLocation({
-                userId: userId,
-                username: username,
-                refresher: userRequestLocation ? userRequestLocation.refresher + 1 : 0,
+        const onUpdateTaxisLocation = async (userId: string, username: string) => {
+            const taxiCoords = await getLatLngCurrentPosition();
+            socket!.volatile.emit('taxis-location-updated', {
+                location: taxiCoords, 
+                userId: userId, 
+                username: username
             });
         };
         const onRideRequest = (ride: Ride, userId: string, username: string) => {
             setRide(ride, userId, username);
+            setUserCancel(false);
         };
         const onUserCancelRide = async () => {
             await stopBackgroundUpdate();
             await stopForegroundUpdate();
             cleanUp();
             setUserCancel(true);
-            setTimeout(() => {
-                setUserCancel(false);
-            }, 5000);
         }
         socket!.on('update-taxis-location', onUpdateTaxisLocation);
         socket!.on('ride-request', onRideRequest);
@@ -53,35 +50,6 @@ export const TaxiHome: FC = () => {
             socket!.off('user-cancel-ride', onUserCancelRide);
         }
     }, []);
-
-    useMemo(() => {
-        const taxiCoords = getLatLngCurrentPosition();
-        if (userRequestLocation == undefined)
-            socket!.volatile.emit('taxis-location-updated', {location: taxiCoords});
-        else    
-            socket!.volatile.emit('taxis-location-updated', {
-                location: taxiCoords, 
-                userId: userRequestLocation.userId, 
-                username: userRequestLocation.username
-            });
-    }, [userRequestLocation]);
-
-
-    TaskManager.defineTask(CHECK_LOCATION_ACTIVE, async ({ data, error }) => {
-    try {
-        if (error) throw error;
-        const { locations } = (data as any);
-        const location = locations[0];
-        if (location) {
-            socket!.emit('check-taxi-has-location-activated');
-            console.log('taxi-has-location-activated send');
-        }
-        await ExpoLocation.stopLocationUpdatesAsync(CHECK_LOCATION_ACTIVE);
-        console.log(`Task ${CHECK_LOCATION_ACTIVE} stopped.`);
-    } catch (error) {
-      console.error(`TaskManager: ${error}`);
-    }
-});
 
     TaskManager.defineTask(BACKGROUND_LOCATION_TASK_NAME, async ({ data, error }) => {
         try {
@@ -101,23 +69,31 @@ export const TaxiHome: FC = () => {
         }
     });
 
+    const onPressRideRequest = async () => {
+        try {
+            if (!(await ExpoLocation.hasServicesEnabledAsync())) {
+                // Trigger the Android pop up for gps.
+                await ExpoLocation.getCurrentPositionAsync({accuracy: ExpoLocation.Accuracy.Highest});
+                if (!(await ExpoLocation.hasServicesEnabledAsync()))
+                    return;
+            }
+            await startForegroundUpdate();
+            navigation.navigate('HomeStack', {screen: 'AcceptedRide'});
+        } catch (error) {
+            console.log(error)
+        }
+    }
+
     return (
         <View style={styles.mainContainer}>
+
+            {popUp && <LocationPermissionsPopUp />}
+            
+            {ride && <RideRequestBtn onPress={onPressRideRequest}/>}
+
+            {userCancel && <UserCancelNotification closeNotification={() => setUserCancel(false)}/>}
+            
             <AvailableBtn />
-
-            {ride && 
-                <Button title="Viaje solicitado!" 
-                onPress={async () => {
-                    await startForegroundUpdate();
-                    navigation.navigate('HomeStack', {screen: 'AcceptedRide'});
-                }}/>
-            }
-
-            {userCancel &&
-                <View>
-                    <Text>El usuario cancelo el viaje.</Text>
-                </View>
-            }
         </View>
     );
 }
@@ -127,21 +103,6 @@ const styles = StyleSheet.create({
         flex: 1,
         display: 'flex',
         backgroundColor: 'white',
-        borderWidth: 0,
-        borderStyle: 'solid',
-        borderColor: 'red',
         padding: 0,
-    },
-    touch: {
-        width: '70%', 
-        height: 80, 
-        elevation: 5,
-        borderRadius: 5,
-        borderTopWidth: 0,
-        borderStyle: 'solid',
-        borderColor: 'red',
-        marginLeft: '15%',
-        justifyContent: 'center',
-        alignItems: 'center'
     },
 });

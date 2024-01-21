@@ -1,74 +1,120 @@
-import { FC, useContext, useEffect, useState } from "react";
-import { Button, Linking, StyleSheet, Text, View } from "react-native";
+import { FC, useContext, useState } from "react";
+import { Platform, StyleSheet, Text, View } from "react-native";
 import { TouchableHighlight } from "react-native-gesture-handler";
 import { SocketContext } from "../../hooks/useSocketContext";
 import { useExpoTaskManager } from "../../hooks/useExpoTaskManager";
 import { useTaxiDispatchActions } from "../../hooks/useTaxiDispatchActions";
+import * as ExpoLocation from 'expo-location';
 
 export const AvailableBtn: FC = () => {
-    
-    const [needPermissions, setNeedPermissions] = useState<boolean>(false);
+    const [loading, setLoading] = useState<boolean>(false);
     const {socket} = useContext(SocketContext)!;
-    const {requestForegroundPermissions, requestBackgroundPermissions,
-        stopBackgroundUpdate, startLocationCheck} = useExpoTaskManager();
-    const {available, setAvailable} = useTaxiDispatchActions();
+    const {stopBackgroundUpdate} = useExpoTaskManager();
+    const {available, setAvailable, setPopUp} = useTaxiDispatchActions();
 
-    useEffect(() => {
-        const onTaxiLocationChecked = async () => {
-            setNeedPermissions(false);
-            setAvailable(true);
-            socket!.emit('join-room', 'taxis-available');
-        }
-        socket!.on('taxi-has-location-activated', onTaxiLocationChecked);
-        return () => {
-            socket!.off('taxi-has-location-activated', onTaxiLocationChecked);
-        }
-    }, []);
-
+    /**
+     * @see link https://docs.expo.dev/versions/latest/sdk/location/#locationreversegeocodeasynclocation-options
+     */
     const handleDisp = async (available: boolean) => {
+        setLoading(true);
+
         if (!available) {
+            socket!.emit('leave-room', 'taxis-available');
             await stopBackgroundUpdate();
+            setAvailable(false);
+            setLoading(false);
             return;
         }
-        setNeedPermissions(true);
-        const fgPermissions = await requestForegroundPermissions();
-        const bgPermissions = await requestBackgroundPermissions();
-        if (fgPermissions && fgPermissions.granted && 
-            bgPermissions && bgPermissions.granted) {
-            await startLocationCheck();
+        
+        if (Platform.OS === 'android') { // Checks only in android.
+            const fgPermissions = await ExpoLocation.getForegroundPermissionsAsync();
+            if (!fgPermissions.granted) {
+                if (!fgPermissions.canAskAgain) {
+                    setPopUp(true);
+                    setLoading(false);
+                    return;
+                }
+                
+                const newFgPermissions = await ExpoLocation.requestForegroundPermissionsAsync();
+                if (!newFgPermissions.granted) {
+                    setPopUp(true);
+                    setLoading(false);
+                    return;
+                }
+            }
+            const bgPermissions = await ExpoLocation.requestBackgroundPermissionsAsync();
+            if (!bgPermissions.granted) {
+                if (!bgPermissions.canAskAgain) {
+                    setPopUp(true);
+                    setLoading(false);
+                    return;
+                }
+                
+                const newBgPermissions = await ExpoLocation.requestBackgroundPermissionsAsync();
+                if (!newBgPermissions.granted) {
+                    setPopUp(true);
+                    setLoading(false);
+                    return;
+                }
+            }
+            
+        } else { // If Platform.IOS
+            let fgPermissions = await ExpoLocation.requestForegroundPermissionsAsync();
+            let bgPermissions = await ExpoLocation.requestBackgroundPermissionsAsync();
+            if (!fgPermissions.granted || !bgPermissions.granted) {
+                setPopUp(true);
+                setLoading(false);
+                return;
+            }
+        }
+        try {
+            // Check if gps is activated
+            let provider = await ExpoLocation.hasServicesEnabledAsync();
+            if (!provider) {
+                // Trigger the Android pop up for gps.
+                await ExpoLocation.getCurrentPositionAsync({accuracy: ExpoLocation.Accuracy.Highest});
+                provider = await ExpoLocation.hasServicesEnabledAsync();
+                if (!provider) {
+                    setPopUp(true);
+                    setLoading(false);
+                    return;
+                }
+            }
+            setLoading(false);
+            setPopUp(false);
+            setAvailable(true);
+            socket!.emit('join-room', 'taxis-available');
+        } catch (error) {
+            setPopUp(true);
+            setLoading(false);
+            console.log(error);
         }
     }
 
     return (
-        <View>
-            <TouchableHighlight style={[styles.touch, {
-                backgroundColor: available ? '#f95959' :  '#a5a5a5' //: '#42b883',
-            }]} 
-            onPress={() => handleDisp(!available)}
-            >
-                <Text>Disponible</Text>
+        <View style={styles.container}>
+            <TouchableHighlight style={[styles.btn, {
+                backgroundColor: available ? '#f95959' :  '#a5a5a5', //: '#42b883',
+            }]} onPress={() => handleDisp(!available)}>
+                <Text>{loading ? 'Cargando...' : 'Disponible'}</Text>
             </TouchableHighlight>
-            { needPermissions &&
-                <View>
-                    <Text>Para estar disponible debes tener la ubicación activada y haber permitido el permiso 'Allow All the Time'.</Text>
-                    <Button title="Checkear Permisos" onPress={() => Linking.openSettings()}/>
-                </View>
-            }
         </View>
     );
 }
 
 const styles = StyleSheet.create({
-    touch: {
+    container: {
+        position: 'absolute',
+        bottom: 20,
         width: '70%', 
-        height: 80, 
-        elevation: 5,
+        left: '15%',
+    },
+    btn: {
+        width: '100%', 
+        minHeight: 80,
         borderRadius: 5,
-        borderTopWidth: 0,
-        borderStyle: 'solid',
-        borderColor: 'red',
-        marginLeft: '15%',
         justifyContent: 'center',
-        alignItems: 'center'
-    }
+        alignItems: 'center',
+        backgroundColor: 'blue'
+    },
 });
