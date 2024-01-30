@@ -1,15 +1,20 @@
-import { Button, Linking, Platform, StyleSheet, Text, View } from 'react-native'
+import { Button, Linking, Modal, StyleSheet, Text, View } from 'react-native'
 import * as ExpoLocation from 'expo-location';
-import { useMapDispatchActions } from '../../hooks/useMapDispatchActions';
 import { AppState, AppStateStatus } from 'react-native';
-import { useEffect, useMemo, useRef, useState } from 'react';
+import { FC, useEffect, useMemo, useRef, useState } from 'react';
+import GenericCancelBtn from './GenericCancelBtn';
+import PermissionsBtn from './PermissionsBtn';
 
+type PermissionsPopUpProps = {
+    close: () => void,
+    text: string,
+    permissionType: 'foreground' | 'background'
+}
 
 /**
  * @see link https://github.com/expo/expo/issues/16701#issuecomment-1270111253
  */
-const PermissionsPopUp = () => {
-    const {setPopUp} = useMapDispatchActions();
+const PermissionsPopUp: FC<PermissionsPopUpProps> = ({close, text, permissionType}) => {
     const appState = useRef(AppState.currentState);
     const [locationStatus, setLocationStatus] = useState<ExpoLocation.LocationPermissionResponse>();
 
@@ -28,16 +33,37 @@ const PermissionsPopUp = () => {
     };
 
     useMemo(async () => {
+        let gpsActivated = await ExpoLocation.hasServicesEnabledAsync();
+        if (!gpsActivated)
+            return;
         let fgPermissions = await ExpoLocation.getForegroundPermissionsAsync();
-        if (fgPermissions.granted) 
-            setPopUp(false);
+        if (fgPermissions.granted && permissionType == 'foreground')
+            close();
+        if (fgPermissions.granted && permissionType == 'background') {
+            let bgPermissions = await ExpoLocation.getBackgroundPermissionsAsync();
+            if (bgPermissions.granted)
+                close();
+        }
     }, [locationStatus]);
 
   return (
-    <View style={styles.cardContainer}>
-        <Text style={styles.text}>Se requiere permiso a la locación para esta funcionalidad.</Text>
-        <Button title='Ir a permisos' onPress={async () => await Linking.openSettings()}></Button>
-    </View>
+    <Modal animationType='slide' transparent onRequestClose={close}>
+        <View style={styles.cardContainer}>
+            <Text style={styles.text}>{text}</Text>
+            <View style={styles.btnsContainer}>
+                <GenericCancelBtn onPress={close}/>
+                <PermissionsBtn onPress={async () => {
+                    try {
+                        let gpsActivated = await ExpoLocation.hasServicesEnabledAsync();
+                        if (gpsActivated)
+                            await Linking.openSettings()
+                        else
+                            await ExpoLocation.getCurrentPositionAsync().catch();
+                    } catch(e) {}
+                }} text='Activar permisos'/>
+            </View>
+        </View>
+    </Modal>
   )
 }
 
@@ -48,15 +74,27 @@ const styles = StyleSheet.create({
         width: '80%',
         height: '50%',
         position: 'absolute',
-        top: '20%',
+        top: '25%',
         left: '10%',
         backgroundColor: 'white',
-        borderRadius: 5,
+        borderRadius: 25,
         alignItems: 'center',
-        justifyContent: 'space-around'
+        justifyContent: 'space-between',
+        borderColor: 'gray',
+        borderStyle: 'solid',
+        borderWidth: 1,
+        padding: 10,
     },
     text: {
-        fontSize: 18,
-        padding: 20,
+        fontSize: 16,
+        paddingHorizontal: 10,
+        paddingTop: 40
     },
+    btnsContainer: {
+        width: '90%',
+        display: 'flex',
+        flexDirection: 'row',
+        justifyContent: 'space-between',
+        paddingBottom: 20,
+    }
 });

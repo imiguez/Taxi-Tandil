@@ -48,10 +48,8 @@ export const AcceptedRide: FC = () => {
                 <TaxiRideMap />
             }
             <LinearGradient style={styles.shadow}
-                end={{ x: 0.0, y: 0 }}
-                start={{ x: 0, y: 1 }}
                 locations={[0, 1]}
-                colors={['#0000006b', 'transparent']}
+                colors={['transparent', '#0000006b']}
             />
             <View style={styles.cardContainer}>
                 <View>

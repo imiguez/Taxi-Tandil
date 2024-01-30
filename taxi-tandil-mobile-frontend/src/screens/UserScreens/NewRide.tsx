@@ -8,13 +8,10 @@ import { RideMap } from "../../components/NewRide/RideMap";
 import { RideSelectLocations } from "../../components/NewRide/RideSelectLocations";
 import { SocketContext } from "../../hooks/useSocketContext";
 import { useAuthDispatchActions } from "../../hooks/useAuthDispatchActions";
-import PermissionsPopUp from "../../components/Common/PermissionsPopUp";
-
 
 export const NewRide: FC = () => {
 
-    const {origin, destination, selectInMap, setSelectInMap, setRideStatus, rideStatus,
-        popUp, setPopUp} = useMapDispatchActions();
+    const {origin, destination, selectInMap, setSelectInMap, setRideStatus, rideStatus} = useMapDispatchActions();
     const {socket} = useContext(SocketContext)!;
     const navigation = useNavigation();
     const {firstName, lastName} = useAuthDispatchActions();
@@ -22,7 +19,6 @@ export const NewRide: FC = () => {
     useEffect(() => {
         return () => {
             setSelectInMap(false);
-            setPopUp(false);
         }
     }, []);
 
@@ -48,14 +44,9 @@ export const NewRide: FC = () => {
     
     return (
         <>
-            <View style={{
-                opacity: popUp ? .65 : 1,
-                pointerEvents: popUp ? 'none' : 'auto',
-            }}>
+            <View>
                 <RideSelectLocations />
                 <LinearGradient style={{width: '100%', height: 15, marginTop: 110, position: "absolute", zIndex: 2}}
-                    start={{ x: 0.0, y: 0 }}
-                    end={{ x: 0, y: 1 }}
                     locations={[0, 0.6]}
                     colors={['#0000004b', 'transparent']}
                 />
@@ -72,7 +63,6 @@ export const NewRide: FC = () => {
                 </TouchableHighlight>}
             </View>
             
-            {popUp && <PermissionsPopUp />}
         </>
     );
 };

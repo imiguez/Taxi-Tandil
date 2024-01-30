@@ -10,26 +10,27 @@ import { useExpoTaskManager } from "../../hooks/useExpoTaskManager";
 import * as TaskManager from "expo-task-manager";
 import * as ExpoLocation from 'expo-location';
 import { BACKGROUND_LOCATION_TASK_NAME } from "../../constants";
-import LocationPermissionsPopUp from "../../components/Taxi/LocationPermissionsPopUp";
 import RideRequestBtn from "../../components/Taxi/RideRequestBtn";
 import UserCancelNotification from "../../components/Taxi/UserCancelNotification";
+import PermissionsPopUp from "../../components/Common/PermissionsPopUp";
 
 export const TaxiHome: FC = () => {
     const {socket} = useContext(SocketContext)!;
-    const {setRide, ride, userId, cleanUp, popUp, setPopUp} = useTaxiDispatchActions();
+    const {setRide, ride, userId, cleanUp, popUp} = useTaxiDispatchActions();
     const {stopBackgroundUpdate, startForegroundUpdate, stopForegroundUpdate} = useExpoTaskManager();
     const {getLatLngCurrentPosition} = useCoords();
     const navigation = useNavigation();
     const [userCancel, setUserCancel] = useState<boolean>(false);
+    const [showPopUp, setShowPopUp] = useState<boolean>(false);
 
     useEffect(() => {
         const onUpdateTaxisLocation = async (userId: string, username: string) => {
             const taxiCoords = await getLatLngCurrentPosition();
             if (!taxiCoords) {
-                setPopUp(true);
+                setShowPopUp(true);
                 return;
             } else 
-                setPopUp(false);
+                setShowPopUp(false);
             socket!.volatile.emit('taxis-location-updated', {
                 location: taxiCoords, 
                 userId: userId, 
@@ -92,13 +93,13 @@ export const TaxiHome: FC = () => {
     return (
         <View style={styles.mainContainer}>
 
-            {popUp && <LocationPermissionsPopUp />}
+            {showPopUp && <PermissionsPopUp permissionType="background" close={() => setShowPopUp(false)} text="Para estar disponible se requiere tener la ubicación activada y otorgar el permiso: 'Permitir todo el tiempo'."/>}
             
             {ride && <RideRequestBtn onPress={onPressRideRequest}/>}
 
             {userCancel && <UserCancelNotification closeNotification={() => setUserCancel(false)}/>}
             
-            <AvailableBtn />
+            <AvailableBtn setShowPopUp={setShowPopUp} showPopUp={showPopUp} />
         </View>
     );
 }

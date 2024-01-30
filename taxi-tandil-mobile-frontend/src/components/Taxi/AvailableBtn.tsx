@@ -1,4 +1,4 @@
-import { FC, useContext, useState } from "react";
+import { FC, useContext, useEffect, useState } from "react";
 import { Platform, StyleSheet, Text, View } from "react-native";
 import { TouchableHighlight } from "react-native-gesture-handler";
 import { SocketContext } from "../../hooks/useSocketContext";
@@ -6,11 +6,16 @@ import { useExpoTaskManager } from "../../hooks/useExpoTaskManager";
 import { useTaxiDispatchActions } from "../../hooks/useTaxiDispatchActions";
 import * as ExpoLocation from 'expo-location';
 
-export const AvailableBtn: FC = () => {
+type AvailableBtnProps = {
+    showPopUp: boolean,
+    setShowPopUp: (show: boolean) => void
+}
+
+export const AvailableBtn: FC<AvailableBtnProps> = ({showPopUp, setShowPopUp}) => {
     const [loading, setLoading] = useState<boolean>(false);
     const {socket} = useContext(SocketContext)!;
     const {stopBackgroundUpdate} = useExpoTaskManager();
-    const {available, setAvailable, setPopUp} = useTaxiDispatchActions();
+    const {available, setAvailable} = useTaxiDispatchActions();
 
     /**
      * @see link https://docs.expo.dev/versions/latest/sdk/location/#locationreversegeocodeasynclocation-options
@@ -30,14 +35,14 @@ export const AvailableBtn: FC = () => {
             const fgPermissions = await ExpoLocation.getForegroundPermissionsAsync();
             if (!fgPermissions.granted) {
                 if (!fgPermissions.canAskAgain) {
-                    setPopUp(true);
+                    setShowPopUp(true);
                     setLoading(false);
                     return;
                 }
                 
                 const newFgPermissions = await ExpoLocation.requestForegroundPermissionsAsync();
                 if (!newFgPermissions.granted) {
-                    setPopUp(true);
+                    setShowPopUp(true);
                     setLoading(false);
                     return;
                 }
@@ -45,14 +50,14 @@ export const AvailableBtn: FC = () => {
             const bgPermissions = await ExpoLocation.requestBackgroundPermissionsAsync();
             if (!bgPermissions.granted) {
                 if (!bgPermissions.canAskAgain) {
-                    setPopUp(true);
+                    setShowPopUp(true);
                     setLoading(false);
                     return;
                 }
                 
                 const newBgPermissions = await ExpoLocation.requestBackgroundPermissionsAsync();
                 if (!newBgPermissions.granted) {
-                    setPopUp(true);
+                    setShowPopUp(true);
                     setLoading(false);
                     return;
                 }
@@ -62,7 +67,7 @@ export const AvailableBtn: FC = () => {
             let fgPermissions = await ExpoLocation.requestForegroundPermissionsAsync();
             let bgPermissions = await ExpoLocation.requestBackgroundPermissionsAsync();
             if (!fgPermissions.granted || !bgPermissions.granted) {
-                setPopUp(true);
+                setShowPopUp(true);
                 setLoading(false);
                 return;
             }
@@ -71,21 +76,18 @@ export const AvailableBtn: FC = () => {
             // Check if gps is activated
             let provider = await ExpoLocation.hasServicesEnabledAsync();
             if (!provider) {
-                // Trigger the Android pop up for gps.
+                // Trigger the Android pop up for gps. If its set off, it will throw an error
                 await ExpoLocation.getCurrentPositionAsync({accuracy: ExpoLocation.Accuracy.Highest});
-                provider = await ExpoLocation.hasServicesEnabledAsync();
-                if (!provider) {
-                    setPopUp(true);
-                    setLoading(false);
-                    return;
-                }
+                setShowPopUp(true);
+                setLoading(false);
+                return;
             }
             setLoading(false);
-            setPopUp(false);
+            setShowPopUp(false);
             setAvailable(true);
             socket!.emit('join-room', 'taxis-available');
         } catch (error) {
-            setPopUp(true);
+            setShowPopUp(true);
             setLoading(false);
             console.log(error);
         }

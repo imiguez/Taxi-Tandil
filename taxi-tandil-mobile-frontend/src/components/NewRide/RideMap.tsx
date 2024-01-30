@@ -6,12 +6,13 @@ import constants from "../../constants";
 import { useMapDispatchActions } from "../../hooks/useMapDispatchActions";
 import { useCoords } from "../../hooks/useCoords";
 import * as ExpoLocation from 'expo-location';
+import PermissionsPopUp from "../Common/PermissionsPopUp";
 
 export const RideMap: FC = () => {
 
     const {reverseGeocode} = useCoords();
     const {origin, destination, lastModified, selectInMap, setLocation, focusInput, 
-        setSelectInMap, setPopUp} = useMapDispatchActions();
+        setSelectInMap} = useMapDispatchActions();
     let coords = {
         latitude: constants.tandilLocation.latitude,
         longitude: constants.tandilLocation.longitude,
@@ -27,6 +28,8 @@ export const RideMap: FC = () => {
         latitude: 0,
         longitude: 0,
     });
+
+    const [showPopUp, setShowPopUp] = useState<boolean>(false);
 
     const setCoordsToSelectInMapMarker = useMemo(() => {
         if (selectInMap && mapRef.current?.props.region) {
@@ -122,7 +125,7 @@ export const RideMap: FC = () => {
             let fgPermissions = await ExpoLocation.getForegroundPermissionsAsync();
             if (!fgPermissions.granted) {
                 if (!fgPermissions.canAskAgain) {
-                    setPopUp(true);
+                    setShowPopUp(true);
                     return;
                 }
                 
@@ -147,6 +150,7 @@ export const RideMap: FC = () => {
 
     return (
         <SafeAreaView style={styles.mapContainer}>
+            {showPopUp && <PermissionsPopUp permissionType="foreground" close={() => setShowPopUp(false)} text="Se requiere permiso a la locación para esta funcionalidad."/>}
             <MapView ref={mapRef} style={styles.map} provider={PROVIDER_GOOGLE}
                 toolbarEnabled={false} region={mapCoords}
                 initialRegion={coords} loadingEnabled={true}
