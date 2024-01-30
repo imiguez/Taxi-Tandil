@@ -7,6 +7,7 @@ import { useMapDispatchActions } from "../../hooks/useMapDispatchActions";
 import { useCoords } from "../../hooks/useCoords";
 import * as ExpoLocation from 'expo-location';
 import PermissionsPopUp from "../Common/PermissionsPopUp";
+import SelectInMapErrorNotification from "./SelectInMapErrorNotification";
 
 export const RideMap: FC = () => {
 
@@ -30,6 +31,7 @@ export const RideMap: FC = () => {
     });
 
     const [showPopUp, setShowPopUp] = useState<boolean>(false);
+    const [selectInMapError, setSelectInMapError] = useState<boolean>(false);
 
     const setCoordsToSelectInMapMarker = useMemo(() => {
         if (selectInMap && mapRef.current?.props.region) {
@@ -135,8 +137,13 @@ export const RideMap: FC = () => {
             }
         }
         let location = await reverseGeocode(markerCoords);
-        if (location == undefined)
+        if (location == undefined || location.longStringLocation.includes('null')) {
+            setSelectInMapError(true);
+            setTimeout(() => {
+                setSelectInMapError(false);
+            }, 5000);
             return;
+        }
         
         setLocation(location, focusInput);
         setSelectInMap(false);
@@ -150,6 +157,7 @@ export const RideMap: FC = () => {
 
     return (
         <SafeAreaView style={styles.mapContainer}>
+            {selectInMapError && <SelectInMapErrorNotification />}
             {showPopUp && <PermissionsPopUp permissionType="foreground" close={() => setShowPopUp(false)} text="Se requiere permiso a la locación para esta funcionalidad."/>}
             <MapView ref={mapRef} style={styles.map} provider={PROVIDER_GOOGLE}
                 toolbarEnabled={false} region={mapCoords}
