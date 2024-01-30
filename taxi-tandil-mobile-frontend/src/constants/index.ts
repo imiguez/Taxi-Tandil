@@ -38,6 +38,5 @@ const constants = {
 export const API_BASE_URL = "http://192.168.0.187:3000";
 export const WS_URL = "http://192.168.0.187:2000";
 export const BACKGROUND_LOCATION_TASK_NAME = "BACKGROUND_LOCATION_TASK";
-export const CHECK_LOCATION_ACTIVE = "CHECK_LOCATION_ACTIVE";
 
 export default constants;

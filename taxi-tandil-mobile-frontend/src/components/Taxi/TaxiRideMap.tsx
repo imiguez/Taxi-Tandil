@@ -1,6 +1,6 @@
 import { FC } from "react";
 import { StyleSheet, View } from "react-native";
-import MapView, { Marker } from "react-native-maps";
+import MapView, { Marker, PROVIDER_GOOGLE } from "react-native-maps";
 import { useCoords } from "../../hooks/useCoords";
 import { useTaxiDispatchActions } from "../../hooks/useTaxiDispatchActions";
 
@@ -19,7 +19,7 @@ export const TaxiRideMap: FC = () => {
         <View style={styles.mapContainer}>
             {currentLocation && ride &&
             <MapView
-                style={styles.map} provider="google" 
+                style={styles.map} provider={PROVIDER_GOOGLE}
                 toolbarEnabled={false}
                 initialRegion={initialRegion} 
                 loadingEnabled={true}

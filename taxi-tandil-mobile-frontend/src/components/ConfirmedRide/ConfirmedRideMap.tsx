@@ -1,6 +1,6 @@
 import { FC, useContext, useEffect, useState } from "react";
 import { StyleSheet, View } from "react-native";
-import MapView, { Marker } from "react-native-maps";
+import MapView, { Marker, PROVIDER_GOOGLE } from "react-native-maps";
 import { useCoords } from "../../hooks/useCoords";
 import { useMapDispatchActions } from "../../hooks/useMapDispatchActions";
 import { SocketContext } from "../../hooks/useSocketContext";
@@ -56,7 +56,7 @@ export const ConfirmedRideMap: FC = () => {
     return (
         <View style={styles.mapContainer}>
             <MapView
-                style={styles.map} provider="google" 
+                style={styles.map} provider={PROVIDER_GOOGLE}
                 toolbarEnabled={false}
                 initialRegion={initialRegion} 
                 loadingEnabled={true}

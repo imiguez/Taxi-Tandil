@@ -1,11 +1,12 @@
 import * as TaskManager from "expo-task-manager";
 import * as ExpoLocation from "expo-location";
-import { BACKGROUND_LOCATION_TASK_NAME, CHECK_LOCATION_ACTIVE } from "../constants";
+import { BACKGROUND_LOCATION_TASK_NAME } from "../constants";
 import { useTaxiDispatchActions } from "./useTaxiDispatchActions";
+import { useRef } from "react";
 
 
 export const useExpoTaskManager = () => {
-  let foregroundSubscription: ExpoLocation.LocationSubscription | null = null;
+  const sub = useRef<ExpoLocation.LocationSubscription>();
   const {setCurrentLocation} = useTaxiDispatchActions();
 
   const checkForegroundPermissions = async () => {
@@ -54,17 +55,18 @@ export const useExpoTaskManager = () => {
       return false;
     }
     // Make sure that foreground location tracking is not running
-    foregroundSubscription?.remove();
+    sub.current?.remove();
 
     // Start watching position in real-time
-    foregroundSubscription = await ExpoLocation.watchPositionAsync(
+    ExpoLocation.watchPositionAsync(
       {
         // For better logs, we set the accuracy to the most sensitive option
         accuracy: ExpoLocation.Accuracy.BestForNavigation,
         distanceInterval: 100,
-        // timeInterval: 4000,
+        // timeInterval: 10000,
       },
       (location) => {
+        if (!location) return;
         console.log(`watchPositionAsync`);
         let locationLatLng = {
           latitude: location.coords.latitude,
@@ -72,11 +74,17 @@ export const useExpoTaskManager = () => {
         };
         setCurrentLocation(locationLatLng);
       }
-    );
+    ).then((locationWatcher) => {
+      sub.current = locationWatcher;
+    }).catch((err) => {
+      console.log(err)
+    });
   };
 
   const stopForegroundUpdate = () => {
-    foregroundSubscription?.remove();
+    if (sub.current)
+      sub.current.remove();
+    console.log("Foreground location tracking stopped");
   };
 
   const startBackgroundUpdate = async () => {
@@ -111,8 +119,8 @@ export const useExpoTaskManager = () => {
       await ExpoLocation.startLocationUpdatesAsync(
         BACKGROUND_LOCATION_TASK_NAME,
         {
-          accuracy: ExpoLocation.Accuracy.BestForNavigation,
-          deferredUpdatesInterval: 10000,
+          accuracy: ExpoLocation.Accuracy.High,
+          deferredUpdatesDistance: 50,
           showsBackgroundLocationIndicator: true,
           foregroundService: {
             notificationTitle: "Location",
@@ -136,48 +144,8 @@ export const useExpoTaskManager = () => {
       await ExpoLocation.stopLocationUpdatesAsync(
         BACKGROUND_LOCATION_TASK_NAME
       );
-      console.log("Location tracking stopped");
+      console.log("Background location tracking stopped");
     }
-  };
-
-  // Start location tracking in background
-  const startLocationCheck = async () => {
-    console.log("startLocationCheck executed!");
-    const isTaskDefined = await TaskManager.isTaskDefined(
-      CHECK_LOCATION_ACTIVE
-    );
-    if (!isTaskDefined) {
-      console.log("Tasks werent defined");
-      return false;
-    }
-
-    // Don't track if it is already running in background
-    const hasStarted = await ExpoLocation.hasStartedLocationUpdatesAsync(
-      CHECK_LOCATION_ACTIVE
-    );
-    if (hasStarted) {
-      console.log(`Task ${CHECK_LOCATION_ACTIVE} already started`);
-      await ExpoLocation.stopLocationUpdatesAsync(CHECK_LOCATION_ACTIVE);
-    }
-
-    try {
-      await ExpoLocation.startLocationUpdatesAsync(
-        CHECK_LOCATION_ACTIVE,
-        {
-          accuracy: ExpoLocation.Accuracy.Balanced,
-          showsBackgroundLocationIndicator: true,
-          foregroundService: {
-            notificationTitle: "Location",
-            notificationBody: "Location tracking in background",
-            notificationColor: "#fff",
-          },
-        }
-      );
-    } catch (e) {
-      console.log(`startLocationCheck: ${e}`);
-      return false;
-    }
-    return true;
   };
 
   const stopAllTaks = async () => {
@@ -193,7 +161,6 @@ export const useExpoTaskManager = () => {
     checkBackgroundPermissions, requestBackgroundPermissions,
     startForegroundUpdate, stopForegroundUpdate,
     startBackgroundUpdate, stopBackgroundUpdate,
-    startLocationCheck,
     stopAllTaks,
   };
 };

@@ -13,13 +13,15 @@ type Props = {
 
 export const AcceptRideBtn: FC<Props> = ({canGoBack}) => {
     const {socket} = useContext(SocketContext)!;
-    const {startBackgroundUpdate, stopBackgroundUpdate} = useExpoTaskManager();
+    const {startBackgroundUpdate, stopBackgroundUpdate, stopForegroundUpdate} = useExpoTaskManager();
     const navigation = useNavigation();
     const {userId, username, setRide, setRideStatus, rideStatus, cleanUp} = useTaxiDispatchActions();
     const {getLatLngCurrentPosition} = useCoords();
     const {firstName, lastName} = useAuthDispatchActions();
-
+    
     const handleNewRideRequest = async (accepted: boolean) => {
+        const location = await getLatLngCurrentPosition();
+        if (!location) return;
         canGoBack.current = true;
         if (accepted) {
             setRideStatus('accepted');
@@ -30,7 +32,6 @@ export const AcceptRideBtn: FC<Props> = ({canGoBack}) => {
                 username: username, 
                 taxiName: `${firstName} ${lastName}`,
             });
-            const location = await getLatLngCurrentPosition();
             socket!.emit('location-update-for-user', {location: location, userId: userId});
             await startBackgroundUpdate();
         } else {
@@ -49,7 +50,8 @@ export const AcceptRideBtn: FC<Props> = ({canGoBack}) => {
         }, 10000);
     }
 
-    const handleRideCompleted = () => {
+    const handleRideCompleted = async () => {
+        await stopForegroundUpdate();
         socket!.emit('join-room', 'taxis-available');
         socket!.emit('ride-completed', userId);
         setRideStatus(null);

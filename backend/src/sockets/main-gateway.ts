@@ -84,6 +84,7 @@ export class MainGateway implements OnGatewayInit, OnGatewayConnection, OnGatewa
   @SubscribeMessage('taxis-location-updated')
   taxisLocationUpdated(@MessageBody() data: {location: LatLng, userId?: string, username?: string}, @ConnectedSocket() client: Socket) {
     let {location, userId, username} = data;
+    if (!location) return;
     let taxiId = client.data.customId;
     this.taxisLocation.set(taxiId, {
       location: location,
@@ -99,6 +100,7 @@ export class MainGateway implements OnGatewayInit, OnGatewayConnection, OnGatewa
   @SubscribeMessage('location-update-for-user')
   locationUpdateForUser(@MessageBody() data: {location: LatLng, userId: string}, @ConnectedSocket() client: Socket) {
     let {location, userId} = data;
+    if (!location) return;
     userId = this.connections.get(userId)!;
     this.server.to(userId).emit('location-update-from-taxi', location, client.id);
   }
@@ -264,5 +266,10 @@ export class MainGateway implements OnGatewayInit, OnGatewayConnection, OnGatewa
       this.server.to(this.connections.get(userId)!).emit('all-taxis-reject');
       this.activeRides.delete(userId);
     }
+  }
+
+  @SubscribeMessage('background-test')
+  backgroundTest(@MessageBody() data: {text: string}, @ConnectedSocket() client: Socket) {
+    console.log(data.text);
   }
 }

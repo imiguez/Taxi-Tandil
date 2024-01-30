@@ -8,9 +8,17 @@ export class AppController {
     //private gateway: EventsGateway
   ) {}
 
-  //@Public()
-  @Post('prueba')
-  prueba(@Body() body: any) {
+  @Public()
+  @Get()
+  base() {
     //this.gateway.prueba();
+    return {message: 'connected to the base url!'}
+  }
+
+  @Public()
+  @Get('prueba')
+  prueba() {
+    //this.gateway.prueba();
+    return {message: 'connected!'}
   }
 }

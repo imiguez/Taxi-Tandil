@@ -16,7 +16,7 @@ import UserCancelNotification from "../../components/Taxi/UserCancelNotification
 
 export const TaxiHome: FC = () => {
     const {socket} = useContext(SocketContext)!;
-    const {setRide, ride, userId, cleanUp, popUp} = useTaxiDispatchActions();
+    const {setRide, ride, userId, cleanUp, popUp, setPopUp} = useTaxiDispatchActions();
     const {stopBackgroundUpdate, startForegroundUpdate, stopForegroundUpdate} = useExpoTaskManager();
     const {getLatLngCurrentPosition} = useCoords();
     const navigation = useNavigation();
@@ -25,6 +25,11 @@ export const TaxiHome: FC = () => {
     useEffect(() => {
         const onUpdateTaxisLocation = async (userId: string, username: string) => {
             const taxiCoords = await getLatLngCurrentPosition();
+            if (!taxiCoords) {
+                setPopUp(true);
+                return;
+            } else 
+                setPopUp(false);
             socket!.volatile.emit('taxis-location-updated', {
                 location: taxiCoords, 
                 userId: userId, 

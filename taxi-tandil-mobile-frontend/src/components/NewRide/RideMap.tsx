@@ -1,6 +1,6 @@
 import React, { FC, useMemo, useRef, useState } from "react";
 import { Platform, SafeAreaView, StyleSheet } from "react-native";
-import MapView, { Details, LatLng, MapMarker, Marker, MarkerDragStartEndEvent, Region } from "react-native-maps";
+import MapView, { Details, LatLng, MapMarker, Marker, MarkerDragStartEndEvent, PROVIDER_GOOGLE, Region } from "react-native-maps";
 import { SelectInMapOptions } from "./SelectInMapOptions";
 import constants from "../../constants";
 import { useMapDispatchActions } from "../../hooks/useMapDispatchActions";
@@ -147,7 +147,7 @@ export const RideMap: FC = () => {
 
     return (
         <SafeAreaView style={styles.mapContainer}>
-            <MapView ref={mapRef} style={styles.map} provider="google" 
+            <MapView ref={mapRef} style={styles.map} provider={PROVIDER_GOOGLE}
                 toolbarEnabled={false} region={mapCoords}
                 initialRegion={coords} loadingEnabled={true}
                 onRegionChangeComplete={handleRegionChangeComplete} >
