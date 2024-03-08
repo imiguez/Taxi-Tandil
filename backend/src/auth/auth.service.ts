@@ -9,7 +9,7 @@ import { sign } from 'jsonwebtoken';
 
 @Injectable()
 export class AuthService {
-  private accessTokenTime: string = '10s';
+  private accessTokenTime: string = '15m';
   private refreshTokenTime: string = '1h';
   private iss = ''; // TODO: set to backend url.
 

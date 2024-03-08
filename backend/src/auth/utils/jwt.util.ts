@@ -15,10 +15,10 @@ export class JwtUtils {
   }
 
   public static validateTokenBySocket(client: Socket) {
-    const {token, custom_id} = client.handshake.auth;
+    const {token, apiId} = client.handshake.auth;
     try {
       const payload = this.validateToken(token);
-      return {...payload, custom_id};
+      return {...payload, apiId};
     } catch (error) {
       client._error(error);
     }

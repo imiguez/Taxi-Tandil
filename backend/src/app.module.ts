@@ -23,9 +23,9 @@ import { Ride } from './rides/entities/ride.entity';
       username: process.env.POSTGRES_USER,
       password: process.env.POSTGRES_PASSWORD,
       database: process.env.POSTGRES_DB,
-      autoLoadEntities: true,
-      entities: [User, Role, Ride], // Once the entity is already created, can comment it.
-      synchronize: true, // Set to false in production env.
+      autoLoadEntities: false,
+      entities: [User, Role, Ride],
+      // synchronize: true, // Set to false in production env.
     }),
     UsersModule, AuthModule, MainGatewayModule, RidesModule],
   controllers: [AppController],

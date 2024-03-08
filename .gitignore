@@ -36,6 +36,8 @@ taxi-tandil-mobile-frontend/.env
 # typescript
 *.tsbuildinfo
 
+# prettier
+.prettierrc.json
 
 # ----------------------------------------------- FRONTEND FOLDER ------------------------------------------------------
 

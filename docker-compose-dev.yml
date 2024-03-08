@@ -4,19 +4,23 @@ services:
  
   db:
     image: postgres
-    restart: always
+    # restart: always
+    environment:
+      - POSTGRES_DB=taxi-tandil-dev
+      - POSTGRES_USER=root
+      - POSTGRES_PASSWORD=root
     ports:
       - 5432:5432
     env_file:
       - .env 
     volumes:
-      - pgdata:/var/lib/postgresql/data
+      - /mnt/pg-volume:/var/lib/postgresql/data
  
   adminer:
     image: adminer
-    restart: always
+    # restart: always
     ports:
       - 8080:8080
  
-volumes:
-  pgdata:
+# volumes:
+#   pgdata:
