@@ -1,7 +1,7 @@
 {
   "expo": {
-    "name": "taxi-tandil-mobile-frontend",
-    "slug": "taxi-tandil-mobile-frontend",
+    "name": "ride",
+    "slug": "ride",
     "version": "1.0.0",
     "orientation": "portrait",
     "icon": "./assets/icon.png",
@@ -21,6 +21,9 @@
           "location",
           "fetch"
         ]
+      },
+      "config": {
+        "googleMapsApiKey": ""
       }
     },
     "android": {
@@ -28,14 +31,20 @@
         "android.permission.ACCESS_COARSE_LOCATION",
         "android.permission.ACCESS_FINE_LOCATION",
         "android.permission.ACCESS_BACKGROUND_LOCATION",
-        "android.permission.FOREGROUND_SERVICE"
+        "android.permission.FOREGROUND_SERVICE",
+        "android.permission.FOREGROUND_SERVICE_LOCATION"
       ],
       "adaptiveIcon": {
         "foregroundImage": "./assets/adaptive-icon.png",
         "backgroundColor": "#ffffff"
       },
-      "package": "com.anonymous.taxitandilmobilefrontend",
-      "softwareKeyboardLayoutMode": "pan"
+      "package": "com.ride",
+      "softwareKeyboardLayoutMode": "pan",
+      "config": {
+        "googleMaps": {
+          "apiKey": ""
+        }
+      }
     },
     "web": {
       "favicon": "./assets/favicon.png"
@@ -44,8 +53,24 @@
       [
         "expo-location",
         {
+          "isAndroidBackgroundLocationEnabled": true,
+          "isAndroidForegroundServiceEnabled": true
+        }
+      ],
+      [
+        "expo-build-properties",
+        {
+          "android": {
+            "__comment": "Setting usesCleartextTraffic to true is for Http (not Https) request on prod apks builds.",
+            "usesCleartextTraffic": true 
+          }
         }
       ]
-    ]
+    ],
+    "extra": {
+      "eas": {
+        "projectId": "39a3ed45-54fe-4db5-8575-e5cc0dab0ef9"
+      }
+    }
   }
 }

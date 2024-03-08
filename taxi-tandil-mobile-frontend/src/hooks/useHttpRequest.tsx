@@ -1,5 +1,4 @@
 import { useNavigation } from "@react-navigation/native";
-import {API_BASE_URL} from "../constants"
 import { useAuthDispatchActions } from "./useAuthDispatchActions";
 
 /**
@@ -76,7 +75,7 @@ export const useHttpRequest = () => {
      * @returns The json form of the response as any type.
      */
     const getRequest: (endpoint: string) => Promise<any> = async (endpoint: string) => {
-        let response = await fetch(`${API_BASE_URL}/${endpoint}`, {
+        let response = await fetch(`${process.env.EXPO_PUBLIC_API_BASE_URL}/${endpoint}`, {
             method: 'GET',
             headers: headers,
         });
@@ -90,7 +89,7 @@ export const useHttpRequest = () => {
      * @returns The json form of the response as any type.
      */
     const postRequest: (endpoint: string, body: object) => Promise<any> = async (endpoint: string, body: object) => {
-        let response = await fetch(`${API_BASE_URL}/${endpoint}`, {
+        let response = await fetch(`${process.env.EXPO_PUBLIC_API_BASE_URL}/${endpoint}`, {
             method: "POST",
             headers: headers,
             body: JSON.stringify(body),

@@ -1,8 +1,7 @@
-import { FC, PropsWithChildren, useContext, useEffect } from "react";
+import { FC, PropsWithChildren, useContext, useMemo } from "react";
 import { StyleSheet, Text, TouchableHighlight, View } from "react-native";
 import { useNavigation } from "@react-navigation/native";
 import { SocketContext } from "../../hooks/useSocketContext";
-import { LatLng } from "react-native-maps";
 import { useMapDispatchActions } from "../../hooks/useMapDispatchActions";
 import { StackNavigationProp } from "@react-navigation/stack";
 import RootStackParamList from "../../types/RootStackParamList";
@@ -21,10 +20,13 @@ export const UserHome: FC<PropsWithChildren> = () => {
 
     const onNoTaxisAvailable = () => {
         setRideStatus('no-taxis-available');
+        socket!.disconnect();
+        navigation.navigate('HomeStack', {screen: 'ConfirmedRide'});
     }
 
     const onAllTaxisReject = () => {
         setRideStatus('all-taxis-reject');
+        socket!.disconnect();
         navigation.navigate('HomeStack', {screen: 'ConfirmedRide'});
     }
 
@@ -39,20 +41,15 @@ export const UserHome: FC<PropsWithChildren> = () => {
         updateToInitialState();
     }
 
-    useEffect(() => {
-        socket!.on('taxi-confirmed-ride', onTaxiConfirmedRide);
-        socket!.on('no-taxis-available', onNoTaxisAvailable);
-        socket!.on('all-taxis-reject', onAllTaxisReject);
-        socket!.on('taxi-arrived', onTaxiArrived);
-        socket!.on('ride-completed', onRideCompleted);
-        return () => {
-            socket!.off('taxi-confirmed-ride', onTaxiConfirmedRide);
-            socket!.off('no-taxis-available', onNoTaxisAvailable);
-            socket!.off('all-taxis-reject', onAllTaxisReject);
-            socket!.off('taxi-arrived', onTaxiArrived);
-            socket!.off('ride-completed', onRideCompleted);
+    useMemo(() => {
+        if (socket != undefined) {
+            socket.on('taxi-confirmed-ride', onTaxiConfirmedRide);
+            socket.on('no-taxis-available', onNoTaxisAvailable);
+            socket.on('all-taxis-reject', onAllTaxisReject);
+            socket.on('taxi-arrived', onTaxiArrived);
+            socket.on('ride-completed', onRideCompleted);
         }
-    }, []);
+    }, [socket]);
 
     // TO DO: when there arent taxis-available a useMemo must be triggered and notify the user
     return (

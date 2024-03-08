@@ -1,0 +1,38 @@
+{
+  "cli": {
+    "version": ">= 7.0.0"
+  },
+  "build": {
+    "production": {
+      "node": "16.12.0"
+    },
+    "development": {
+      "extends": "production",
+      "distribution": "internal",
+      "ios": {
+        "simulator": true
+      }
+    },
+    "preview": {
+      "distribution": "internal",
+      "android": {
+        "buildType": "apk",
+        "env": {
+          "EXPO_PUBLIC_API_BASE_URL": "http://18.230.172.215:2080",
+          "EXPO_PUBLIC_WS_URL": "http://18.230.172.215:2000"
+        }
+      }
+    },
+    "preview2": {
+      "android": {
+        "gradleCommand": ":app:assembleRelease"
+      }
+    },
+    "preview3": {
+      "developmentClient": true
+    },
+    "preview4": {
+      "distribution": "internal"
+    }
+  }
+}

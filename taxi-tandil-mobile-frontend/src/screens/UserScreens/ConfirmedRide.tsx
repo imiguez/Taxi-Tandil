@@ -1,21 +1,26 @@
-import { FC } from "react";
+import { FC, useContext } from "react";
 import { StyleSheet, View } from "react-native";
 import constants from "../../constants";
 import { ConfirmedRideMap } from "../../components/ConfirmedRide/ConfirmedRideMap";
 import { ConfirmedRideCard } from "../../components/ConfirmedRide/ConfirmedRideCard";
 import { LinearGradient } from "expo-linear-gradient";
+import { SocketContext } from "../../hooks/useSocketContext";
 
 
 export const ConfirmedRide: FC = () => {
-
+    const {socket} = useContext(SocketContext)!;
+    // <LinearGradient style={styles.shadow}
+    //     locations={[0, 1]}
+    //     colors={['transparent', '#0000006b']}
+    // />
     return (
         <View style={styles.mainContainer}>
-            <ConfirmedRideMap />
-            <LinearGradient style={styles.shadow}
-                locations={[0, 1]}
-                colors={['transparent', '#0000006b']}
-            />
-            <ConfirmedRideCard />
+            {(socket != undefined) && 
+                <>
+                    <ConfirmedRideMap />
+                    <ConfirmedRideCard />
+                </>
+            }
         </View>
     );
 };

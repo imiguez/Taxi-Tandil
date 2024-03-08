@@ -1,21 +1,23 @@
-import { FC, useContext, useEffect, useState } from "react";
-import { Platform, StyleSheet, Text, View } from "react-native";
-import { TouchableHighlight } from "react-native-gesture-handler";
+import { FC, useContext, useState } from "react";
+import { Platform, StyleSheet, Text, TouchableHighlight, View } from "react-native";
 import { SocketContext } from "../../hooks/useSocketContext";
 import { useExpoTaskManager } from "../../hooks/useExpoTaskManager";
 import { useTaxiDispatchActions } from "../../hooks/useTaxiDispatchActions";
 import * as ExpoLocation from 'expo-location';
+import { io } from "socket.io-client";
+import { useAuthDispatchActions } from "../../hooks/useAuthDispatchActions";
 
 type AvailableBtnProps = {
-    showPopUp: boolean,
     setShowPopUp: (show: boolean) => void
 }
 
-export const AvailableBtn: FC<AvailableBtnProps> = ({showPopUp, setShowPopUp}) => {
+export const AvailableBtn: FC<AvailableBtnProps> = ({setShowPopUp}) => {
     const [loading, setLoading] = useState<boolean>(false);
     const {socket} = useContext(SocketContext)!;
     const {stopBackgroundUpdate} = useExpoTaskManager();
     const {available, setAvailable} = useTaxiDispatchActions();
+    const {accessToken, id} = useAuthDispatchActions();
+    const {setSocket} = useContext(SocketContext)!;
 
     /**
      * @see link https://docs.expo.dev/versions/latest/sdk/location/#locationreversegeocodeasynclocation-options
@@ -24,10 +26,12 @@ export const AvailableBtn: FC<AvailableBtnProps> = ({showPopUp, setShowPopUp}) =
         setLoading(true);
 
         if (!available) {
-            socket!.emit('leave-room', 'taxis-available');
+            socket!.on('disconnect', () => {
+                setAvailable(false)
+                setLoading(false);
+            });
+            socket!.disconnect();
             await stopBackgroundUpdate();
-            setAvailable(false);
-            setLoading(false);
             return;
         }
         
@@ -73,19 +77,49 @@ export const AvailableBtn: FC<AvailableBtnProps> = ({showPopUp, setShowPopUp}) =
             }
         }
         try {
+            let currentLocation;
             // Check if gps is activated
             let provider = await ExpoLocation.hasServicesEnabledAsync();
             if (!provider) {
                 // Trigger the Android pop up for gps. If its set off, it will throw an error
-                await ExpoLocation.getCurrentPositionAsync({accuracy: ExpoLocation.Accuracy.Highest});
+                currentLocation = await ExpoLocation.getCurrentPositionAsync({accuracy: ExpoLocation.Accuracy.Highest});
                 setShowPopUp(true);
                 setLoading(false);
                 return;
             }
-            setLoading(false);
             setShowPopUp(false);
-            setAvailable(true);
-            socket!.emit('join-room', 'taxis-available');
+
+            if (currentLocation == undefined)
+                currentLocation = await ExpoLocation.getCurrentPositionAsync({accuracy: ExpoLocation.Accuracy.Highest});
+
+            let location = {
+                latitude: currentLocation.coords.latitude,
+                longitude: currentLocation.coords.longitude,
+            };
+
+            const socket = io(process.env.EXPO_PUBLIC_WS_URL!, {
+                auth: {
+                    token: `Bearer ${accessToken}`,
+                    apiId: id,
+                    role: 'taxi',
+                    location: location,
+                },
+                transports: ['websocket'],
+            });
+            socket.on('connect_error', (error) => {
+                console.log('Error from socket.');
+                console.log(error);
+                setAvailable(false);
+                setLoading(false);
+                throw error;
+            });
+            socket.on('connect', () => {
+                // Socket connection established, update socket context.
+                setSocket(socket);
+                setAvailable(true);
+                setLoading(false);
+                console.log('socket setted: '+ socket != undefined);
+            });
         } catch (error) {
             setShowPopUp(true);
             setLoading(false);
@@ -97,7 +131,7 @@ export const AvailableBtn: FC<AvailableBtnProps> = ({showPopUp, setShowPopUp}) =
         <View style={styles.container}>
             <TouchableHighlight style={[styles.btn, {
                 backgroundColor: available ? '#f95959' :  '#a5a5a5', //: '#42b883',
-            }]} onPress={() => handleDisp(!available)}>
+            }]} onPress={() => handleDisp(!available)} disabled={loading}>
                 <Text>{loading ? 'Cargando...' : 'Disponible'}</Text>
             </TouchableHighlight>
         </View>

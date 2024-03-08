@@ -28,7 +28,7 @@ export const AcceptRideBtn: FC<Props> = ({canGoBack}) => {
             console.log(userId);
             socket!.emit('ride-response', {
                 accepted: true, 
-                userId: userId, 
+                userApiId: userId, 
                 username: username, 
                 taxiName: `${firstName} ${lastName}`,
             });
@@ -36,7 +36,7 @@ export const AcceptRideBtn: FC<Props> = ({canGoBack}) => {
             await startBackgroundUpdate();
         } else {
             cleanUp(); // Delete the ride and userId from the redux state
-            socket!.emit('ride-response', {accepted: false, userId: userId, username: username});
+            socket!.emit('ride-response', {accepted: false, userApiId: userId, username: username, taxiName: `${firstName} ${lastName}`});
             navigation.goBack();
         }
     }

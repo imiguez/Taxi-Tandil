@@ -17,7 +17,7 @@ export const ConfirmedRideCard: FC = () => {
     const {postRequest} = useHttpRequest();
 
     const onCancel = () => {
-        socket!.emit('cancel-ride');
+        socket!.emit('user-cancel-ride');
         setRideStatus('canceled');
         navigation.goBack();
     }

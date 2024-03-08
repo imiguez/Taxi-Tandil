@@ -1,4 +1,4 @@
-import { FC, useContext, useEffect, useState } from "react";
+import { FC, useContext, useEffect, useMemo, useState } from "react";
 import { StyleSheet, View } from "react-native";
 import { Ride } from "../../types/Location";
 import { SocketContext } from "../../hooks/useSocketContext";
@@ -23,39 +23,49 @@ export const TaxiHome: FC = () => {
     const [userCancel, setUserCancel] = useState<boolean>(false);
     const [showPopUp, setShowPopUp] = useState<boolean>(false);
 
-    useEffect(() => {
-        const onUpdateTaxisLocation = async (userId: string, username: string) => {
-            const taxiCoords = await getLatLngCurrentPosition();
-            if (!taxiCoords) {
-                setShowPopUp(true);
-                return;
-            } else 
-                setShowPopUp(false);
-            socket!.volatile.emit('taxis-location-updated', {
-                location: taxiCoords, 
-                userId: userId, 
-                username: username
-            });
-        };
-        const onRideRequest = (ride: Ride, userId: string, username: string) => {
-            setRide(ride, userId, username);
-            setUserCancel(false);
-        };
-        const onUserCancelRide = async () => {
-            await stopBackgroundUpdate();
-            await stopForegroundUpdate();
-            cleanUp();
-            setUserCancel(true);
+    const onUpdateTaxisLocation = async (userId: string, username: string) => {
+        const taxiCoords = await getLatLngCurrentPosition();
+        if (!taxiCoords) {
+            setShowPopUp(true);
+            return;
+        } else 
+            setShowPopUp(false);
+
+        console.log('emitted: taxi-location-updated');
+        socket!.volatile.emit('taxi-location-updated', {
+            location: taxiCoords, 
+            userApiId: userId, 
+            username: username
+        });
+    };
+
+    const onRideRequest = (ride: Ride, userId: string, username: string) => {
+        setRide(ride, userId, username);
+        setUserCancel(false);
+    };
+
+    const onUpdateLocationToBeAvailable = async () => {
+        const taxiCoords = await getLatLngCurrentPosition();
+        socket!.emit('location-updated-to-be-available', {location: taxiCoords});
+    }
+
+    const onUserCancelRide = async () => {
+        await stopBackgroundUpdate();
+        await stopForegroundUpdate();
+        cleanUp();
+        setUserCancel(true);
+    }
+
+    useMemo(() => {
+        if (socket != undefined) {
+            socket.on('update-taxi-location', onUpdateTaxisLocation);
+            socket.on('ride-request', onRideRequest);
+            socket.on('update-location-to-be-available', onUpdateLocationToBeAvailable);
+            socket.on('user-cancel-ride', onUserCancelRide);
         }
-        socket!.on('update-taxis-location', onUpdateTaxisLocation);
-        socket!.on('ride-request', onRideRequest);
-        socket!.on('user-cancel-ride', onUserCancelRide);
-        return () => {
-            socket!.off('update-taxis-location', onUpdateTaxisLocation);
-            socket!.off('ride-request', onRideRequest);
-            socket!.off('user-cancel-ride', onUserCancelRide);
-        }
-    }, []);
+    }, [socket]);
+
+    useEffect(() => {}, []);
 
     TaskManager.defineTask(BACKGROUND_LOCATION_TASK_NAME, async ({ data, error }) => {
         try {
@@ -66,9 +76,9 @@ export const TaxiHome: FC = () => {
             latitude: latitude,
             longitude: longitude,
             };
-            if (location && userId != null) {
+            if (location && userId != null && socket != undefined) {
                 console.log('location-update-for-user to: '+userId);
-                socket!.emit('location-update-for-user', {location: location, userId: userId});
+                socket!.emit('location-update-for-user', {location: location, userApiId: userId});
             }
         } catch (error) {
         console.error(`TaskManager: ${error}`);
@@ -99,7 +109,7 @@ export const TaxiHome: FC = () => {
 
             {userCancel && <UserCancelNotification closeNotification={() => setUserCancel(false)}/>}
             
-            <AvailableBtn setShowPopUp={setShowPopUp} showPopUp={showPopUp} />
+            <AvailableBtn setShowPopUp={setShowPopUp} />
         </View>
     );
 }
