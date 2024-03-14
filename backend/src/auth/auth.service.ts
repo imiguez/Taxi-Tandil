@@ -6,6 +6,7 @@ import { SignUpDto } from './dto/sign-up.dto';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Repository } from 'typeorm';
 import { sign } from 'jsonwebtoken';
+import { passwordsMatch, passwordEncoder } from './utils/password.util';
 
 @Injectable()
 export class AuthService {
@@ -19,7 +20,9 @@ export class AuthService {
   ) {}
 
   async signUp(signUpDto: SignUpDto) {
-    return await this.usersRepository.save(signUpDto);
+    signUpDto.password = passwordEncoder(signUpDto.password);
+    const {password, ...cleanedUser} = await this.usersRepository.save(signUpDto);
+    return cleanedUser;
   }
 
   async validateUser(loginDto: LoginDto): Promise<any> {
@@ -27,7 +30,7 @@ export class AuthService {
     const user = await this.usersRepository.findOneBy({'email': loginDto.email}); // TODO: query to a db
     // TODO: compare the password with the encrypted in the db
     if (user == null) throw new NotFoundException();
-    if (user.password !== loginDto.password) throw new BadRequestException('Invalid password.');
+    if (!passwordsMatch(loginDto.password, user.password)) throw new BadRequestException('Invalid password.');
     let {password, rides, ...cleanedUser} = user;
     return cleanedUser;
   }
