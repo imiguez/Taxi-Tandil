@@ -3,35 +3,44 @@
     "version": ">= 7.0.0"
   },
   "build": {
-    "production": {
+    "base": {
       "node": "16.12.0"
     },
     "development": {
-      "extends": "production",
-      "distribution": "internal",
-      "ios": {
-        "simulator": true
-      }
-    },
-    "preview": {
+      "extends": "base",
       "distribution": "internal",
       "android": {
         "buildType": "apk",
         "env": {
-          "EXPO_PUBLIC_API_BASE_URL": "http://18.230.172.215:2080",
-          "EXPO_PUBLIC_WS_URL": "http://18.230.172.215:2000"
+          "EXPO_PUBLIC_API_BASE_URL": "http://taxistandil.online:80",
+          "EXPO_PUBLIC_WS_URL": "http://taxistandil.online:2000"
+        }
+      },
+      "ios": {
+        "simulator": true
+      }
+    },
+    "production": {
+      "extends": "base",
+      "autoIncrement": "true",
+      "distribution": "store",
+      "android": {
+        "buildType": "app-bundle",
+        "env": {
+          "EXPO_PUBLIC_API_BASE_URL": "https://taxistandil.online:80",
+          "EXPO_PUBLIC_WS_URL": "https://taxistandil.online:2000"
         }
       }
     },
-    "preview2": {
+    "preview": {
       "android": {
         "gradleCommand": ":app:assembleRelease"
       }
     },
-    "preview3": {
+    "preview2": {
       "developmentClient": true
     },
-    "preview4": {
+    "preview3": {
       "distribution": "internal"
     }
   }

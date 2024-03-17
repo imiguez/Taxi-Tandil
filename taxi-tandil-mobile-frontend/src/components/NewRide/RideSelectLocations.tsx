@@ -47,7 +47,7 @@ const styles = StyleSheet.create({
         alignItems: 'center',
         flexWrap: 'nowrap',
         borderTopWidth: 0,
-        borderBottomWidth: 1,
+        borderBottomWidth: 0,
         borderWidth: 0,
         borderColor: 'black',
         // borderColor: '#c8c7cc',

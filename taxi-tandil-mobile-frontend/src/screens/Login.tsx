@@ -3,7 +3,6 @@ import { StyleSheet, Text, TextInput, TouchableHighlight, View } from "react-nat
 import { useNavigation } from "@react-navigation/native";
 import { useHttpRequest } from "../hooks/useHttpRequest";
 import { useAuthDispatchActions } from "../hooks/useAuthDispatchActions";
-import { RolesType } from "../types/slices/authSliceTypes";
 
 export const Login: FC = () => {
     const navigation = useNavigation();
@@ -37,13 +36,7 @@ export const Login: FC = () => {
             setFormEmail('');
             setFormPassword('');
             setUserAuthData(data);
-
-            // And then redirect to the respective home screen.
-            if (response.user.roles.find((role: RolesType) => role.name == 'taxi') != undefined)
-                navigation.navigate('HomeStack', {screen: 'TaxiHome'});
-            else
-                navigation.navigate('HomeStack', {screen: 'UserHome'});
-
+            navigation.navigate('Main', {screen: 'Home', params: {screen: 'NewRide'}});
         } catch (error) {
             console.log(`error from catch: ${error}`);
         }

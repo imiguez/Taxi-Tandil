@@ -1,57 +1,67 @@
 import { NavigationContainer } from "@react-navigation/native";
 import { CardStyleInterpolators, createStackNavigator } from "@react-navigation/stack";
+import { createBottomTabNavigator } from '@react-navigation/bottom-tabs';
 import { FC, PropsWithChildren } from "react";
 import { Login } from "./src/screens/Login";
-import { UserHome } from "./src/screens/UserScreens/UserHome";
 import { NewRide } from "./src/screens/UserScreens/NewRide";
-import RootStackParamList, { HomeStackParamList } from "./src/types/RootStackParamList";
-import { Button } from "react-native";
+import RootStackParamList, { HomeStackParamList, MainTabParamList, TaxiStackParamList } from "./src/types/RootStackParamList";
 import { Settings } from "./src/screens/Settings";
 import { ConfirmedRide } from "./src/screens/UserScreens/ConfirmedRide";
-import { TaxiHome } from "./src/screens/TaxiScreens/TaxiHome";
 import { AcceptedRide } from "./src/screens/TaxiScreens/AcceptedRide";
 import { SignUp } from "./src/screens/SignUp";
+import TabBar from "./src/components/Common/TabBar";
+import TaxiHome from "./src/screens/TaxiScreens/TaxiHome";
 
 
 const HomeStack = createStackNavigator<HomeStackParamList>();
-
+const TaxiStack = createStackNavigator<TaxiStackParamList>();
+const MainTabs = createBottomTabNavigator<MainTabParamList>();
 const RootStack = createStackNavigator<RootStackParamList>();
 
-
 const HomeScreenStack: FC = () => {
-
     return (
         <HomeStack.Navigator screenOptions={({ navigation }) => ({
-            headerShown: true,
-            headerTitleAlign: 'center',
+            headerShown: false,
             cardStyleInterpolator: CardStyleInterpolators.forHorizontalIOS,
-            headerRight: () => (<Button title='Settings' onPress={() => {
-                navigation.navigate('Settings');
-            }}/>),
         })}>
-            <HomeStack.Screen name="UserHome" component={UserHome} options={{
-                headerLeft: () => (<></>),
-            }}/>
-            <HomeStack.Screen name="TaxiHome" component={TaxiHome} options={{
-                headerLeft: () => (<></>),
-            }}/>
-            <HomeStack.Screen name="NewRide" component={NewRide} options={{
-                headerTitle: ''
-            }}/>
-            <HomeStack.Screen name="ConfirmedRide" component={ConfirmedRide} options={{
-                headerShown: false,
-            }}/>
-            <HomeStack.Screen name="Settings" component={Settings} options={{
-                title: 'Configuraciones',
-                headerRight: () => (<></>),
-            }}/>
-            <HomeStack.Screen name="AcceptedRide" component={AcceptedRide} options={{
-                headerShown: false,
-            }}/>
+            <HomeStack.Screen name="NewRide" component={NewRide}/>
+            <HomeStack.Screen name="ConfirmedRide" component={ConfirmedRide}/>
         </HomeStack.Navigator>
     );
 };
 
+const TaxiScreenStack: FC = () => {
+    return (
+        <TaxiStack.Navigator screenOptions={({ navigation }) => ({
+            headerShown: false,
+            cardStyleInterpolator: CardStyleInterpolators.forHorizontalIOS,
+        })}>
+            <TaxiStack.Screen name="TaxiHome" component={TaxiHome}/>
+            <TaxiStack.Screen name="AcceptedRide" component={AcceptedRide}/>
+        </TaxiStack.Navigator>
+    );
+}
+
+const MainScreenTabs: FC = () => {
+    return (
+        <MainTabs.Navigator initialRouteName="Home" backBehavior="history"
+            tabBar={(props) => <TabBar {...props}/>} 
+            screenOptions={{
+                headerTitleAlign: 'center',
+            }}>
+            <MainTabs.Screen name="Taxi" component={TaxiScreenStack}  options={{
+                headerShown: false,
+            }}/>
+            <MainTabs.Screen name="Rides" component={Settings} />
+            <MainTabs.Screen name="Home" component={HomeScreenStack} options={{
+                headerShown: false,
+            }}/>
+            <MainTabs.Screen name="Settings" component={Settings} options={{
+                title: 'Configuraciones',
+            }}/>
+        </MainTabs.Navigator>
+    )
+}
 
 const Routes: FC<PropsWithChildren> = () => {
 
@@ -63,7 +73,7 @@ const Routes: FC<PropsWithChildren> = () => {
                 }}>
                 <RootStack.Screen name="SignUp" component={SignUp}/>
                 <RootStack.Screen name="Login" component={Login}/>
-                <RootStack.Screen name="HomeStack" component={HomeScreenStack}/>
+                <RootStack.Screen name="Main" component={MainScreenTabs}/>
             </RootStack.Navigator>
         </NavigationContainer>
     );

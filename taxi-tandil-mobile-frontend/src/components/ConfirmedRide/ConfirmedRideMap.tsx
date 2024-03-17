@@ -87,7 +87,7 @@ export const ConfirmedRideMap: FC = () => {
 
 const styles = StyleSheet.create({
     mapContainer: {
-        flex: .6,
+        flex: .7,
         borderWidth: 0,
         borderColor: 'red',
         borderStyle: 'solid',

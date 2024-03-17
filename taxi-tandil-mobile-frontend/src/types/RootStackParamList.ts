@@ -1,18 +1,26 @@
 import { NavigatorScreenParams } from "@react-navigation/native";
 
 export type HomeStackParamList = {
-  UserHome: undefined,
-  TaxiHome: undefined,
   NewRide: undefined,
   ConfirmedRide: undefined,
-  Settings: undefined,
+}
+
+export type TaxiStackParamList = {
+  TaxiHome: undefined,
   AcceptedRide: undefined,
+}
+
+export type MainTabParamList = {
+  Taxi: NavigatorScreenParams<TaxiStackParamList>,
+  Rides: undefined,
+  Home: NavigatorScreenParams<HomeStackParamList>,
+  Settings: undefined,
 }
 
 export type RootStackParamList = {
   Login: undefined,
   SignUp: undefined,
-  HomeStack: NavigatorScreenParams<HomeStackParamList>,
+  Main: NavigatorScreenParams<MainTabParamList>,
 }
 
 declare global {
