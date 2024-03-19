@@ -30,11 +30,7 @@ type taxiLocationType = {
 
 // On ubuntu the port should be higher than 1024 or the user who runs the app must be root priviliged
 @UseGuards(JwtAuthGuard)
-@WebSocketGateway(2000, {
-  cors: {
-    origin: process.env.CORS_ORIGIN,
-  },
-})
+@WebSocketGateway()
 export class MainGateway implements OnGatewayInit, OnGatewayConnection, OnGatewayDisconnect {
   // connections will have all the direct connections to this node, either if they are from users or taxis.
   private connections: Map<string, string> = new Map();
