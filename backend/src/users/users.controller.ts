@@ -1,6 +1,7 @@
-import { Controller, Get, Request } from '@nestjs/common';
+import { Body, Controller, Get, Param, Put, Res } from '@nestjs/common';
 import { UsersService } from './users.service';
-import { Public } from 'src/custom-decorators';
+import { UpdateUserDto } from './dtos/user-update.dto';
+import { Response } from 'express';
 
 @Controller('users')
 export class UsersController {
@@ -9,14 +10,13 @@ export class UsersController {
     //private gateway: EventsGateway
   ) {}
 
-  @Get('profile')
-  async getProfile(@Request() req: any) {
-    return req.user;
+  @Get(':id')
+  async getUser(@Param('id') id: number, @Res({ passthrough: true }) res: Response) {
+    return await this.usersService.findById(id);
   }
 
-  @Public()
-  @Get()
-  async getAllUsers(@Request() req: any) {
-    return await this.usersService.findAll();
+  @Put(':id')
+  async updateUser(@Res({ passthrough: true }) res: Response, @Param('id') id: number, @Body() userDto: UpdateUserDto) {
+    return await this.usersService.updateById(id, userDto);
   }
 }

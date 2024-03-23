@@ -22,7 +22,6 @@ async function bootstrap() {
   });
   app.useGlobalPipes(new ValidationPipe());
   app.useWebSocketAdapter(new IoAdapter(app));
-  await app.listen(process.env.PORT!);
-  console.log(`Listenning on port: ${process.env.PORT}`);
+  await app.listen(443);
 }
 bootstrap();

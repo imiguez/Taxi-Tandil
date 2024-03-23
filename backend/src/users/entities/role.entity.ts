@@ -1,11 +1,9 @@
-import { Column, Entity, ManyToMany, PrimaryGeneratedColumn } from "typeorm";
+import { Column, Entity, ManyToMany } from "typeorm";
 import { User } from "./user.entity";
+import { BaseEntity } from "src/base-entity";
 
 @Entity({name: 'roles'})
-export class Role {
-    @PrimaryGeneratedColumn()
-    id: number;
-  
+export class Role extends BaseEntity {
     @Column({ length: 25 })
     name: string;
 

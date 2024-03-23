@@ -1,11 +1,9 @@
+import { BaseEntity } from "src/base-entity";
 import { User } from "src/users/entities/user.entity";
-import { Column, Entity, JoinColumn, ManyToOne, PrimaryGeneratedColumn } from "typeorm";
+import { Column, Entity, JoinColumn, ManyToOne } from "typeorm";
 
 @Entity({name: 'rides'})
-export class Ride {
-    @PrimaryGeneratedColumn()
-    id: number;
-
+export class Ride extends BaseEntity {
     @Column({name: 'origin_lat', type: 'float8'})
     originLatitude: number;
 
@@ -20,16 +18,20 @@ export class Ride {
 
     @Column({name: 'accepted_timestamp', type: 'timestamp without time zone'})
     acceptedTimestamp: Date;
-    
-    // Can be added a timestamp when driver arrives and finishes the ride.
+
+    @Column({name: 'arrived_timestamp', type: 'timestamp without time zone', default: null, nullable: true})
+    arrivedTimestamp: Date;
+
+    @Column({name: 'finished_timestamp', type: 'timestamp without time zone', default: null, nullable: true})
+    finishedTimestamp: Date;
     
     @ManyToOne(() => User, (user) => user.rides, {nullable: false})
     @JoinColumn({name: 'user_id', referencedColumnName: 'id'})
-    user: Promise<User>;
+    user: User;
 
     @ManyToOne(() => User, (user) => user.rides, {nullable: false})
     @JoinColumn({name: 'driver_id', referencedColumnName: 'id'})
-    driver: Promise<User>;
+    driver: User;
 
     @Column({name: 'was_canceled', default: false, nullable: false})
     wasCanceled: boolean;

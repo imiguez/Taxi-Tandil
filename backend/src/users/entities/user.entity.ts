@@ -1,29 +1,30 @@
-import { Column, Entity, JoinTable, ManyToMany, OneToMany, PrimaryGeneratedColumn } from "typeorm";
+import { Column, Entity, JoinTable, ManyToMany, OneToMany } from "typeorm";
 import { Role } from "./role.entity";
 import { Ride } from "src/rides/entities/ride.entity";
+import { BaseEntity } from "src/base-entity";
 
 @Entity({name: 'users'})
-export class User {
-    @PrimaryGeneratedColumn()
-    id: number;
-  
-    @Column({ length: 25 })
+export class User extends BaseEntity {
+    @Column({ name: 'first_name', length: 25 })
     firstName: string;
   
-    @Column({ length: 25 })
+    @Column({ name: 'last_name', length: 25 })
     lastName: string;
   
     @Column({ length: 200, unique: true })
     email: string;
 
-    @Column()
+    @Column({ select: false })
     password: string;
+
+    @Column({ name: 'phone_number', length: 20, nullable: true })
+    phoneNumber: string;
 
     @ManyToMany(() => Role, (role) => role.users, {eager: true})
     @JoinTable({name: 'users_roles'})
     roles: Role[];
 
-    @OneToMany(() => Ride, ride => ride.user)
-    @OneToMany(() => Ride, ride => ride.driver)
-    rides: Promise<Ride[]>;
+    @OneToMany(() => Ride, ride => ride.user, {lazy: true})
+    @OneToMany(() => Ride, ride => ride.driver, {lazy: true})
+    rides: Ride[];
 }

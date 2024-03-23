@@ -1,7 +1,7 @@
-import { Controller, Post, Get, Body, Req } from '@nestjs/common';
+import { Controller, Post, Body, Req } from '@nestjs/common';
 import { Public } from 'src/custom-decorators';
 import { AuthService } from './auth.service';
-import { Request as RequestExpress } from 'express';
+import { Request } from 'express';
 import { SignUpDto } from './dto/sign-up.dto';
 import { LoginDto } from './dto/login.dto';
 @Controller('auth')
@@ -12,7 +12,8 @@ export class AuthController {
   @Public()
   @Post('sign-up')
   async signUp(@Body() signUpDto: SignUpDto) {
-    return await this.authService.signUp(signUpDto);
+    const user = await this.authService.signUp(signUpDto);
+    return await this.authService.login(user);
   }
 
   @Public()
@@ -23,13 +24,7 @@ export class AuthController {
   }
 
   @Post('refresh-jwt-token')
-  async refreshJwtToken(@Req() req: RequestExpress, @Body('refreshToken') refreshToken: string) {
+  async refreshJwtToken(@Req() req: Request, @Body('refreshToken') refreshToken: string) {
     return await this.authService.refreshJwtToken(refreshToken, req.user);
-  }
-
-  // Only for dev purposes
-  @Get('prueba')
-  async prueba(@Req() req: RequestExpress) {
-    return {message:'paso prueba'};
   }
 }
