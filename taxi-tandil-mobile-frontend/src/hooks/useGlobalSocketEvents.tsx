@@ -14,8 +14,10 @@ import { StackNavigationProp } from "@react-navigation/stack";
 
 export const useGlobalocketEvents = () => {
     const {socket} = useContext(SocketContext)!;
-    const {setRideStatus, setTaxiInfo, updateToInitialState, rideStatus} = useMapDispatchActions();
-    const {setRide, userId, cleanUp, ride} = useTaxiDispatchActions();
+    const {setRideStatus, setTaxiInfo, rideStatus} = useMapDispatchActions();
+    const mapCleanUp = useMapDispatchActions().cleanUp;
+    const {setRide, userId, ride} = useTaxiDispatchActions();
+    const taxiCleanUp = useTaxiDispatchActions().cleanUp;
     const {stopBackgroundUpdate, startForegroundUpdate, stopForegroundUpdate} = useExpoTaskManager();
     const {getLatLngCurrentPosition} = useCoords();
     const navigation = useNavigation<StackNavigationProp<RootStackParamList>>();
@@ -55,7 +57,7 @@ export const useGlobalocketEvents = () => {
                     return;
             }
             await startForegroundUpdate();
-            navigation.navigate('Main', {screen: 'Taxi', params: {screen: 'TaxiHome'}});
+            navigation.navigate('Main', {screen: 'Taxi', params: {screen: 'AcceptedRide'}});
         } catch (error) {
             console.log(error)
         }
@@ -69,7 +71,7 @@ export const useGlobalocketEvents = () => {
     const onUserCancelRide = async () => {
         await stopBackgroundUpdate();
         await stopForegroundUpdate();
-        cleanUp();
+        taxiCleanUp();
         setUserCancel(true);
     }
 
@@ -121,7 +123,7 @@ export const useGlobalocketEvents = () => {
     const onRideCompleted = () => {
         if (!navigation.isFocused())
             navigation.popToTop();
-        updateToInitialState();
+        mapCleanUp();
     }
 
     return {

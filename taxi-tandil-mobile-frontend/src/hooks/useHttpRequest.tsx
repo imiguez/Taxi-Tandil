@@ -14,7 +14,6 @@ export const useHttpRequest = () => {
         "Authorization": accessToken ? `Bearer ${accessToken}` : '',
     }
 
-
     /**
      * Returns a new jwt access token.
      * @returns The a promise of a new access token in string format.
@@ -75,7 +74,7 @@ export const useHttpRequest = () => {
      * @returns The json form of the response as any type.
      */
     const getRequest: (endpoint: string) => Promise<any> = async (endpoint: string) => {
-        let response = await fetch(`${process.env.EXPO_PUBLIC_API_BASE_URL}/${endpoint}`, {
+        let response = await fetch(`${process.env.EXPO_PUBLIC_BASE_URL}/${endpoint}`, {
             method: 'GET',
             headers: headers,
         });
@@ -89,7 +88,7 @@ export const useHttpRequest = () => {
      * @returns The json form of the response as any type.
      */
     const postRequest: (endpoint: string, body: object) => Promise<any> = async (endpoint: string, body: object) => {
-        let response = await fetch(`${process.env.EXPO_PUBLIC_API_BASE_URL}/${endpoint}`, {
+        let response = await fetch(`${process.env.EXPO_PUBLIC_BASE_URL}/${endpoint}`, {
             method: "POST",
             headers: headers,
             body: JSON.stringify(body),
@@ -97,7 +96,23 @@ export const useHttpRequest = () => {
         return await handleResponse(response, async () => postRequest(endpoint, body));
     }
 
+
+    /**
+     * Make a PUT request.
+     * @param endpoint - String endpoint without the base url.
+     * @param body - Object that will be send to the backend.
+     * @returns The json form of the response as any type.
+     */
+    const putRequest: (endpoint: string, body: object) => Promise<any> = async (endpoint: string, body: object) => {
+        let response = await fetch(`${process.env.EXPO_PUBLIC_BASE_URL}/${endpoint}`, {
+            method: "PUT",
+            headers: headers,
+            body: JSON.stringify(body),
+        });
+        return await handleResponse(response, async () => putRequest(endpoint, body));
+    }
+
     return {
-        getRequest, postRequest
+        getRequest, postRequest, putRequest
     }
 }

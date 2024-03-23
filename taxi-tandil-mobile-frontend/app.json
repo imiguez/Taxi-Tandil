@@ -63,7 +63,7 @@
         {
           "android": {
             "__comment": "Setting usesCleartextTraffic to true is for Http (not Https) request on prod apks builds.",
-            "usesCleartextTraffic": true 
+            "usesCleartextTraffic": false 
           }
         }
       ]

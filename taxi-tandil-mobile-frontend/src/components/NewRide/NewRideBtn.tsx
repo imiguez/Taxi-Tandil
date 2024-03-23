@@ -5,13 +5,15 @@ import { useNavigation } from '@react-navigation/native';
 import { io } from 'socket.io-client';
 import { useAuthDispatchActions } from '../../hooks/useAuthDispatchActions';
 import { SocketContext } from '../../hooks/useSocketContext';
+import WarningModal from '../Common/WarningModal';
 
 const NewRideBtn: FC = () => {
   const navigation = useNavigation();
-  const { setSocket } = useContext(SocketContext)!;
+  const { socket, setSocket } = useContext(SocketContext)!;
   const { origin, destination, rideStatus, setRideStatus } = useMapDispatchActions();
   const { firstName, lastName, accessToken, id } = useAuthDispatchActions();
   const [confirmBtn, setConfirmBtn] = useState<boolean>(false);
+  const [showWarning, setShowWarning] = useState<boolean>(false);
 
   useMemo(() => {
     setConfirmBtn(
@@ -22,6 +24,11 @@ const NewRideBtn: FC = () => {
   }, [rideStatus, origin, destination]);
 
   const onConfirmRide = () => {
+    if (socket != undefined && socket.auth.role == 'taxi') {
+      setShowWarning(true);
+      return;
+    }
+
     setRideStatus('emmited');
     navigation.navigate('Main', {screen: 'Home', params: {screen: 'ConfirmedRide'}});
     if (!(origin && origin.location != null) || !(destination && destination.location != null)) {
@@ -38,24 +45,24 @@ const NewRideBtn: FC = () => {
         longitude: destination.location.longitude,
       },
     };
-    const socket = io(process.env.EXPO_PUBLIC_WS_URL!, {
+    const s = io(process.env.EXPO_PUBLIC_BASE_URL!, {
       auth: {
         token: `Bearer ${accessToken}`,
         apiId: id,
         role: 'user',
       },
       transports: ['websocket'],
+      secure: true
     });
-    socket.on('connect_error', (error) => {
+    s.on('connect_error', (error) => {
       console.log('Error from socket.');
       console.log(error);
       throw error;
     });
-    socket.on('connect', () => {
+    s.on('connect', () => {
       // Socket connection established, update socket context.
-      setSocket(socket);
-      console.log('socket setted: ' + socket != undefined);
-      socket.emit('new-ride', { ride: ride, username: `${firstName} ${lastName}` });
+      setSocket(s);
+      s.emit('new-ride', { ride: ride, username: `${firstName} ${lastName}` });
       setRideStatus('emmited');
       navigation.navigate('Main', {screen: 'Home', params: {screen: 'ConfirmedRide'}});
     });
@@ -63,6 +70,10 @@ const NewRideBtn: FC = () => {
 
   return (
     <>
+      {showWarning &&
+        <WarningModal cardStyles={{height: '30%'}} close={() => setShowWarning(false)}
+        text='Para poder pedir un viaje no debe estar disponible como taxi o remis.' />
+      }
       {origin && destination && (
         <TouchableHighlight
           style={styles.button}

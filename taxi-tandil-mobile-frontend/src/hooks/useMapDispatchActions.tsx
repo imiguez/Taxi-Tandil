@@ -52,19 +52,19 @@ export const useMapDispatchActions = () => {
         dispatch(setTaxi(taxi));
     }
 
-    const updateToInitialState = () => {
+    const cleanUp = () => {
         dispatch(setOrigin(null));
         dispatch(setDestination(null));
         dispatch(setLastModified(null));
         dispatch(setSelectInMapFromRideSlice(false));
         dispatch(setFocusInputFromRideSlice('origin'));
-        dispatch(setRideStatusFromRideSlice('completed'));
+        dispatch(setRideStatusFromRideSlice(null));
         dispatch(setTaxi(null));
     }
 
     return {
         setLocation, invertLocations, setSelectInMap, setFocusInput, setRideStatus, setTaxiInfo,
         origin, destination, lastModified, selectInMap, focusInput, rideStatus, taxi,
-        updateToInitialState
+        cleanUp
     }
 }

@@ -97,7 +97,7 @@ export const AvailableBtn: FC<AvailableBtnProps> = ({setShowPopUp}) => {
                 longitude: currentLocation.coords.longitude,
             };
 
-            const socket = io(process.env.EXPO_PUBLIC_WS_URL!, {
+            const socket = io(process.env.EXPO_PUBLIC_BASE_URL!, {
                 auth: {
                     token: `Bearer ${accessToken}`,
                     apiId: id,
@@ -118,7 +118,6 @@ export const AvailableBtn: FC<AvailableBtnProps> = ({setShowPopUp}) => {
                 setSocket(socket);
                 setAvailable(true);
                 setLoading(false);
-                console.log('socket setted: '+ socket != undefined);
             });
         } catch (error) {
             setShowPopUp(true);

@@ -3,5 +3,5 @@ import { Socket } from "socket.io-client";
 
 export const SocketContext = createContext<{
   socket: Socket | undefined,
-  setSocket: (socket: Socket) => void,
+  setSocket: (socket: Socket | undefined) => void,
 } | undefined>(undefined);

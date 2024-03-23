@@ -12,8 +12,7 @@
       "android": {
         "buildType": "apk",
         "env": {
-          "EXPO_PUBLIC_API_BASE_URL": "http://taxistandil.online:80",
-          "EXPO_PUBLIC_WS_URL": "http://taxistandil.online:2000"
+          "EXPO_PUBLIC_BASE_URL": "https://taxistandil.online"
         }
       },
       "ios": {
@@ -27,8 +26,7 @@
       "android": {
         "buildType": "app-bundle",
         "env": {
-          "EXPO_PUBLIC_API_BASE_URL": "https://taxistandil.online:80",
-          "EXPO_PUBLIC_WS_URL": "https://taxistandil.online:2000"
+          "EXPO_PUBLIC_API_BASE_URL": "https://taxistandil.online"
         }
       }
     },
