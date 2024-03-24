@@ -1,5 +1,6 @@
 import { useNavigation } from "@react-navigation/native";
 import { useAuthDispatchActions } from "./useAuthDispatchActions";
+import { HttpError } from "../utils/HttpError";
 
 /**
  * A hook that handle the http request with the backend.
@@ -49,7 +50,7 @@ export const useHttpRequest = () => {
      * @returns The response of the request in json() format.
      */
     const handleResponse = async (response: Response, requestFn: () => Promise<any>) => {
-        let jsonResponse = await response.json();
+        let jsonResponse: any = await response.json();
         if (!response.ok) {
             if (jsonResponse.message == 'jwt expired') {
                 try {
@@ -62,9 +63,9 @@ export const useHttpRequest = () => {
                         await cleanUp();
                         navigation.navigate('Login');
                     }
-                    throw error;
+                    throw new HttpError(error.message ?? 'Unknown http error.', error.statusCode ?? 500);
                 }
-            } else throw new Error(JSON.stringify(jsonResponse));
+            } else throw new HttpError(jsonResponse.message ?? 'Unknown http error.', jsonResponse.statusCode ?? 500);
         } else return jsonResponse;
     }
     

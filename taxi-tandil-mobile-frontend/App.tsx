@@ -14,11 +14,12 @@ export default function App() {
   return (
     <Provider store={store}>
       <SocketContext.Provider value={{socket, setSocket}}>
-          <SafeAreaProvider>
+          {/* <SafeAreaProvider style={{paddingTop: Platform.OS == 'android' ? StatusBar.currentHeight : 0}}
+          > */}
             <Routes>
               <ExpoStatusBar.StatusBar style='auto' />
             </Routes>
-          </SafeAreaProvider>
+          {/* </SafeAreaProvider> */}
       </SocketContext.Provider>
     </Provider>
   );

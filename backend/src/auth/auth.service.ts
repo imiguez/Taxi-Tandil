@@ -1,4 +1,4 @@
-import { BadRequestException, HttpException, HttpStatus, Injectable, UnauthorizedException } from '@nestjs/common';
+import { HttpException, HttpStatus, Injectable, UnauthorizedException } from '@nestjs/common';
 import { JwtUtils } from './utils/jwt.util';
 import { LoginDto } from './dto/login.dto';
 import { User } from 'src/users/entities/user.entity';
@@ -54,7 +54,7 @@ export class AuthService {
         .addSelect("user.password")
         .where("user.email = :email", { email: loginDto.email })
         .getOneOrFail();
-      if (!passwordsMatch(loginDto.password, user.password)) throw new BadRequestException('Incorrect password.');
+      if (!passwordsMatch(loginDto.password, user.password)) throw new HttpException('Incorrect password.', HttpStatus.BAD_REQUEST);
       let {password, rides, ...cleanedUser} = user;
       return cleanedUser;
     } catch (error) {
