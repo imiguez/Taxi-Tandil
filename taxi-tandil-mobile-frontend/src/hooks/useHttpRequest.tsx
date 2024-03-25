@@ -1,6 +1,7 @@
 import { useNavigation } from "@react-navigation/native";
 import { useAuthDispatchActions } from "./useAuthDispatchActions";
 import { HttpError } from "../utils/HttpError";
+import { useLogOut } from "./useLogOut";
 
 /**
  * A hook that handle the http request with the backend.
@@ -9,6 +10,7 @@ import { HttpError } from "../utils/HttpError";
 export const useHttpRequest = () => {
     const {accessToken, refreshToken, setNewAccessToken, cleanUp} = useAuthDispatchActions();
     const navigation = useNavigation();
+    const {logOut} = useLogOut();
 
     let headers = {
         "Content-Type": "application/json",
@@ -17,6 +19,7 @@ export const useHttpRequest = () => {
 
     /**
      * Returns a new jwt access token.
+     * @todo Before logout, notify the user that the session has expired by a modal.    
      * @returns The a promise of a new access token in string format.
      * @throws
      * Throws an error if the refreshToken from the 'useAuthDispatchActions' is undefined.
@@ -26,8 +29,15 @@ export const useHttpRequest = () => {
     const getNewAccessToken: () => Promise<string> = async () => { 
         if (refreshToken == undefined)
             throw new Error('The Access Token is null or undefined.');
-        const response: any = await postRequest('auth/refresh-jwt-token', {refreshToken: `Bearer ${refreshToken}`});
-        return response.access_token;
+        try {
+            const response: any = await postRequest('auth/refresh-jwt-token', {refreshToken: `Bearer ${refreshToken}`});
+            return response.access_token;
+        } catch (error: any) {
+            // TODO: Before logout, notify the user that the session has expired by a modal.
+            if (error.message == 'refresh jwt expired')
+                logOut();
+            else throw error;
+        }
     }
 
     /**
@@ -114,6 +124,6 @@ export const useHttpRequest = () => {
     }
 
     return {
-        getRequest, postRequest, putRequest
+        getNewAccessToken, getRequest, postRequest, putRequest
     }
 }

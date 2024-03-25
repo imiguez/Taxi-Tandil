@@ -2,18 +2,17 @@ import { StyleSheet, Text, TouchableHighlight } from 'react-native';
 import React, { FC, useContext, useMemo, useState } from 'react';
 import { useMapDispatchActions } from '../../hooks/useMapDispatchActions';
 import { useNavigation } from '@react-navigation/native';
-import { io } from 'socket.io-client';
-import { useAuthDispatchActions } from '../../hooks/useAuthDispatchActions';
 import { SocketContext } from '../../hooks/useSocketContext';
 import WarningModal from '../Common/WarningModal';
+import { useSocketConnectionEvents } from '../../hooks/useSocketConnectionEvents';
 
 const NewRideBtn: FC = () => {
   const navigation = useNavigation();
-  const { socket, setSocket } = useContext(SocketContext)!;
+  const { socket } = useContext(SocketContext)!;
   const { origin, destination, rideStatus, setRideStatus } = useMapDispatchActions();
-  const { firstName, lastName, accessToken, id } = useAuthDispatchActions();
   const [confirmBtn, setConfirmBtn] = useState<boolean>(false);
   const [showWarning, setShowWarning] = useState<boolean>(false);
+  const { connectAsUser } = useSocketConnectionEvents();
 
   useMemo(() => {
     setConfirmBtn(
@@ -45,27 +44,7 @@ const NewRideBtn: FC = () => {
         longitude: destination.location.longitude,
       },
     };
-    const s = io(process.env.EXPO_PUBLIC_BASE_URL!, {
-      auth: {
-        token: `Bearer ${accessToken}`,
-        apiId: id,
-        role: 'user',
-      },
-      transports: ['websocket'],
-      secure: true
-    });
-    s.on('connect_error', (error) => {
-      console.log('Error from socket.');
-      console.log(error);
-      throw error;
-    });
-    s.on('connect', () => {
-      // Socket connection established, update socket context.
-      setSocket(s);
-      s.emit('new-ride', { ride: ride, username: `${firstName} ${lastName}` });
-      setRideStatus('emmited');
-      navigation.navigate('Main', {screen: 'Home', params: {screen: 'ConfirmedRide'}});
-    });
+    connectAsUser(ride);
   };
 
   return (

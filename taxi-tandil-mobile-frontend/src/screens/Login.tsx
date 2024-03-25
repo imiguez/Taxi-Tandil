@@ -4,9 +4,12 @@ import { useNavigation } from '@react-navigation/native';
 import { useHttpRequest } from '../hooks/useHttpRequest';
 import { useAuthDispatchActions } from '../hooks/useAuthDispatchActions';
 import { input, emptyInput } from '../types/Auth';
+import { initialAuthSliceStateType } from '../types/slices/authSliceTypes';
+import { StackNavigationProp } from '@react-navigation/stack';
+import RootStackParamList from '../types/RootStackParamList';
 
 export const Login: FC = () => {
-  const navigation = useNavigation();
+  const navigation = useNavigation<StackNavigationProp<RootStackParamList>>();
   const [formEmail, setFormEmail] = useState<input>(emptyInput);
   const [formPassword, setFormPassword] = useState<input>(emptyInput);
   const [serverMsg, setServerMsg] = useState<string>('');
@@ -34,7 +37,7 @@ export const Login: FC = () => {
     };
     try {
       const response = await postRequest('auth/login', body);
-      let data = {
+      let data: initialAuthSliceStateType = {
         id: response.user.id,
         firstName: response.user.firstName,
         lastName: response.user.lastName,

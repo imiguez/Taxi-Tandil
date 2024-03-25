@@ -2,16 +2,10 @@ import { FC, useRef, useState } from "react";
 import { StyleSheet, Text, TouchableOpacity, View } from "react-native";
 import { useAuthDispatchActions } from "../hooks/useAuthDispatchActions";
 import { Ionicons, FontAwesome } from '@expo/vector-icons';
-import RootStackParamList from "../types/RootStackParamList";
-import { StackNavigationProp } from "@react-navigation/stack";
 import WorkWithUsModal from "../components/Common/Settings/WorkWithUsModal";
 import LogoutModal from "../components/Common/Settings/LogoutModal";
 
-interface SettingsInterface {
-    navigation: StackNavigationProp<RootStackParamList>,
-}
-
-export const Settings: FC<SettingsInterface> = ({navigation}) => {
+export const Settings: FC = () => {
     const {firstName, lastName} = useAuthDispatchActions();
     const [showLogoutPopUp, setShowLogoutPopUp] = useState<boolean>(false);
     const [showWorkWithUs, setShowWorkWithUs] = useState<boolean>(false);
@@ -39,7 +33,7 @@ export const Settings: FC<SettingsInterface> = ({navigation}) => {
                     <Text>Cerrar sesión</Text>
                 </TouchableOpacity>
                 {showLogoutPopUp && 
-                    <LogoutModal close={() => showPopUp(setShowLogoutPopUp, false)} navigation={navigation}/>
+                    <LogoutModal close={() => showPopUp(setShowLogoutPopUp, false)} />
                 }
             </View>
         </View>

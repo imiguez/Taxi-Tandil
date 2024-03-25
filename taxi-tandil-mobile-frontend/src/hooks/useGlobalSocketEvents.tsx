@@ -103,6 +103,11 @@ export const useGlobalocketEvents = () => {
         navigation.navigate('Main', {screen: 'Home', params: {screen: 'ConfirmedRide'}});
     };
 
+    //TODO
+    const onTaxiCancelRide = async () => {
+        
+    }
+
     const onNoTaxisAvailable = () => {
         setRideStatus('no-taxis-available');
         socket!.disconnect();
@@ -118,12 +123,14 @@ export const useGlobalocketEvents = () => {
     const onTaxiArrived = () => {
         setRideStatus('arrived');
         navigation.navigate('Main', {screen: 'Home', params: {screen: 'ConfirmedRide'}});
+        socket!.disconnect();
     }
 
     const onRideCompleted = () => {
         if (!navigation.isFocused())
             navigation.popToTop();
         mapCleanUp();
+        socket!.disconnect();
     }
 
     return {

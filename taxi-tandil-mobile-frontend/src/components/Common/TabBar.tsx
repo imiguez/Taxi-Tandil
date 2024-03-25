@@ -49,6 +49,9 @@ const TabBar: FC<TabBarInterface> = ({ state, descriptors, navigation }) => {
     return () => {
       keyboardShowListener.remove();
       keyboardNotShowListener.remove();
+      navigation.removeListener('beforeRemove', (e: any) => {
+        if (e.data.action.type != 'POP_TO_TOP') e.preventDefault();
+      });
     };
   }, []);
 

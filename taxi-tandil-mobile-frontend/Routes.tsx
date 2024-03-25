@@ -44,7 +44,7 @@ const TaxiScreenStack: FC = () => {
 
 const MainScreenTabs: FC = () => {
     return (
-        <MainTabs.Navigator initialRouteName="Home" backBehavior="history"
+        <MainTabs.Navigator backBehavior="history"
             tabBar={(props) => <TabBar {...props}/>} 
             screenOptions={{
                 headerTitleAlign: 'center',
@@ -71,8 +71,8 @@ const Routes: FC<PropsWithChildren> = () => {
                   cardStyleInterpolator: CardStyleInterpolators.forHorizontalIOS,
                   headerShown: false,
                 }}>
-                <RootStack.Screen name="SignUp" component={SignUp}/>
                 <RootStack.Screen name="Login" component={Login}/>
+                <RootStack.Screen name="SignUp" component={SignUp}/>
                 <RootStack.Screen name="Main" component={MainScreenTabs}/>
             </RootStack.Navigator>
         </NavigationContainer>

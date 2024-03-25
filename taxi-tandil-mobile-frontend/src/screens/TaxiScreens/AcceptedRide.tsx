@@ -39,6 +39,10 @@ export const AcceptedRide: FC = () => {
         rideReverseGeocoding();
         return () => {
             socket!.off('user-cancel-ride', onUserCancelRide);
+            navigation.removeListener('beforeRemove', (e) => {
+                if (canGoBack.current) return;
+                e.preventDefault();
+            });
         }
     }, []);
 

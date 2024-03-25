@@ -4,8 +4,7 @@ import { SocketContext } from "../../hooks/useSocketContext";
 import { useExpoTaskManager } from "../../hooks/useExpoTaskManager";
 import { useTaxiDispatchActions } from "../../hooks/useTaxiDispatchActions";
 import * as ExpoLocation from 'expo-location';
-import { io } from "socket.io-client";
-import { useAuthDispatchActions } from "../../hooks/useAuthDispatchActions";
+import { useSocketConnectionEvents } from "../../hooks/useSocketConnectionEvents";
 
 type AvailableBtnProps = {
     setShowPopUp: (show: boolean) => void
@@ -16,8 +15,7 @@ export const AvailableBtn: FC<AvailableBtnProps> = ({setShowPopUp}) => {
     const {socket} = useContext(SocketContext)!;
     const {stopBackgroundUpdate} = useExpoTaskManager();
     const {available, setAvailable} = useTaxiDispatchActions();
-    const {accessToken, id} = useAuthDispatchActions();
-    const {setSocket} = useContext(SocketContext)!;
+    const { connectAsTaxi } = useSocketConnectionEvents();
 
     /**
      * @see link https://docs.expo.dev/versions/latest/sdk/location/#locationreversegeocodeasynclocation-options
@@ -97,25 +95,7 @@ export const AvailableBtn: FC<AvailableBtnProps> = ({setShowPopUp}) => {
                 longitude: currentLocation.coords.longitude,
             };
 
-            const socket = io(process.env.EXPO_PUBLIC_BASE_URL!, {
-                auth: {
-                    token: `Bearer ${accessToken}`,
-                    apiId: id,
-                    role: 'taxi',
-                    location: location,
-                },
-                transports: ['websocket'],
-            });
-            socket.on('connect_error', (error) => {
-                console.log('Error from socket.');
-                console.log(error);
-                setAvailable(false);
-                setLoading(false);
-                throw error;
-            });
-            socket.on('connect', () => {
-                // Socket connection established, update socket context.
-                setSocket(socket);
+            connectAsTaxi(location, () => {
                 setAvailable(true);
                 setLoading(false);
             });
