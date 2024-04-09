@@ -36,4 +36,13 @@ const constants = {
 };
 
 export const BACKGROUND_LOCATION_TASK_NAME = "BACKGROUND_LOCATION_TASK";
+export const SecureStoreItems = [
+    'id',
+    'firstName',
+    'lastName',
+    'email',
+    'roles',
+    'access_token',
+    'refresh_token',
+];
 export default constants;

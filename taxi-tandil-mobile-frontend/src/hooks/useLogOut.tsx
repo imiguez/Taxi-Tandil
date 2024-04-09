@@ -6,6 +6,8 @@ import { useTaxiDispatchActions } from './useTaxiDispatchActions';
 import { useNavigation } from '@react-navigation/native';
 import { StackNavigationProp } from '@react-navigation/stack';
 import RootStackParamList from '../types/RootStackParamList';
+import * as SecureStore from 'expo-secure-store';
+import { SecureStoreItems } from '../constants';
 
 export const useLogOut = () => {
   const navigation = useNavigation<StackNavigationProp<RootStackParamList>>();
@@ -15,7 +17,7 @@ export const useLogOut = () => {
   const mapCleanUp = useMapDispatchActions().cleanUp;
 
   return {
-    logOut() {
+    async logOut() {
       if (roles.find((role) => role.name == 'taxi')) taxiCleanUp();
       mapCleanUp();
       if (socket) {
@@ -23,6 +25,9 @@ export const useLogOut = () => {
         setSocket(undefined);
       }
       cleanUp();
+      for (const item in SecureStoreItems) {
+        await SecureStore.deleteItemAsync(item);
+      }
       // Scaling up in navigations to execute popToTop and navigate to Login screen
       let nav = navigation;
       while (nav.getState().routeNames.find((v) => v == 'Home') == undefined) {

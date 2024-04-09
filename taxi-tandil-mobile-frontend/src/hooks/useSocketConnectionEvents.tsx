@@ -58,7 +58,7 @@ export const useSocketConnectionEvents = () => {
         });
         onConnectAsTaxi(newS, onConnect);
         onConnectionErrorAsTaxi(newS, location, onConnect);
-      } else throw error;
+      }// else throw error;
     });
   };
 
@@ -100,7 +100,7 @@ export const useSocketConnectionEvents = () => {
         });
         onConnectAsUser(newS, ride);
         onConnectionErrorAsUser(newS, ride);
-      } else throw error;
+      }// else throw error;
     });
   };
 

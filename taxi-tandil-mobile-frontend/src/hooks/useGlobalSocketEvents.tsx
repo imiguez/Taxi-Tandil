@@ -46,6 +46,7 @@ export const useGlobalocketEvents = () => {
     const onRideRequest = (ride: Ride, userId: string, username: string) => {
         setRide(ride, userId, username);
         setUserCancel(false);
+        navigation.navigate('Main', {screen: 'Taxi', params: {screen: 'TaxiHome'}});
     };
 
     const onPressRideRequest = async () => {
@@ -73,6 +74,7 @@ export const useGlobalocketEvents = () => {
         await stopForegroundUpdate();
         taxiCleanUp();
         setUserCancel(true);
+        navigation.navigate('Main', {screen: 'Taxi', params: {screen: 'TaxiHome'}});
     }
 
     const defineBackgroundTask = () => {

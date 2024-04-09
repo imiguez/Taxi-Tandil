@@ -26,6 +26,7 @@ export const SocketAuthMiddleWare = (): SocketAuthMiddleWareReturnType => {
         } catch (error) {
             // TODO: create a handler in order to dont let app crashes when an error occur.
             console.log('Error in jwt-auth-middleware.ts');
+            client._error(error);
             next(error);
         }
     }

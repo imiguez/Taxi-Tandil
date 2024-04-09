@@ -1,4 +1,4 @@
-import { Keyboard, StyleSheet, TouchableOpacity, View } from 'react-native';
+import { AppState, AppStateStatus, Keyboard, StyleSheet, TouchableOpacity, View } from 'react-native';
 import React, { FC, useEffect, useMemo, useState } from 'react';
 import { TabNavigationState } from '@react-navigation/native';
 import { EdgeInsets } from 'react-native-safe-area-context';
@@ -7,6 +7,9 @@ import { Ionicons, Fontisto, MaterialIcons } from '@expo/vector-icons';
 import { LinearGradient } from 'expo-linear-gradient';
 import { useAuthDispatchActions } from '../../hooks/useAuthDispatchActions';
 import { useGlobalocketEvents } from '../../hooks/useGlobalSocketEvents';
+import { useMapDispatchActions } from '../../hooks/useMapDispatchActions';
+import { useTaxiDispatchActions } from '../../hooks/useTaxiDispatchActions';
+import * as SecureStore from 'expo-secure-store';
 
 interface TabBarInterface {
   state: TabNavigationState<MainTabParamList>;
@@ -22,7 +25,7 @@ const TabBar: FC<TabBarInterface> = ({ state, descriptors, navigation }) => {
     onUpdateTaxisLocation,
     onRideRequest,
     onUpdateLocationToBeAvailable,
-    onUserCancelRide,
+    onUserCancelRide, 
     onTaxiConfirmedRide,
     onNoTaxisAvailable,
     onAllTaxisReject,
@@ -30,12 +33,36 @@ const TabBar: FC<TabBarInterface> = ({ state, descriptors, navigation }) => {
     onRideCompleted,
   } = useGlobalocketEvents();
   const { roles } = useAuthDispatchActions();
+  const {origin, destination, rideStatus, taxi} = useMapDispatchActions();
+  const {ride, userId, username, available} = useTaxiDispatchActions();
+  const taxiRideStatus = useTaxiDispatchActions().rideStatus;
   const [showTab, setShowTab] = useState<boolean>(true);
 
   const onKeyboardShow = () => setShowTab(false);
   const onKeyboardNotShow = () => setShowTab(true);
+  
+  const handleAppStateChange = async (nextAppState: AppStateStatus) => {
+    if (nextAppState !== 'active') {
+      if (socket != undefined) { // If its currently on a ride request or active ride.
+        if (socket.auth.role == 'user') {
+            await SecureStore.setItemAsync('origin', JSON.stringify(origin));
+            await SecureStore.setItemAsync('destination', JSON.stringify(destination));
+            await SecureStore.setItemAsync('rideStatus', JSON.stringify(rideStatus));
+            await SecureStore.setItemAsync('taxi', JSON.stringify(taxi));
+        } else if (socket.auth.role == 'taxi') {
+          await SecureStore.setItemAsync('ride', JSON.stringify(ride));
+          await SecureStore.setItemAsync('userId', JSON.stringify(userId));
+          await SecureStore.setItemAsync('username', JSON.stringify(username));
+          await SecureStore.setItemAsync('available', JSON.stringify(available));
+          await SecureStore.setItemAsync('taxiRideStatus', JSON.stringify(taxiRideStatus));
+        }
+      }
+    }
+    AppState.currentState = nextAppState;
+  }
 
   useEffect(() => {
+    const subscription = AppState.addEventListener('change', handleAppStateChange);
     const keyboardShowListener = Keyboard.addListener('keyboardDidShow', onKeyboardShow);
     const keyboardNotShowListener = Keyboard.addListener('keyboardDidHide', onKeyboardNotShow);
     
@@ -45,8 +72,9 @@ const TabBar: FC<TabBarInterface> = ({ state, descriptors, navigation }) => {
     
     if (roles.find((role) => role.name === 'taxi'))
       defineBackgroundTask();
-
+    
     return () => {
+      subscription.remove();
       keyboardShowListener.remove();
       keyboardNotShowListener.remove();
       navigation.removeListener('beforeRemove', (e: any) => {

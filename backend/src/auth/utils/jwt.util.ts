@@ -16,12 +16,8 @@ export class JwtUtils {
 
   public static validateTokenBySocket(client: Socket) {
     const {token, apiId} = client.handshake.auth;
-    try {
-      const payload = this.validateToken(token);
-      return {...payload, apiId};
-    } catch (error) {
-      client._error(error);
-    }
+    const payload = this.validateToken(token);
+    return {...payload, apiId};
   }
 
   public static validateToken(authorization: string | undefined, ignoreExpiration: boolean = false): CustomJwtPayload {
