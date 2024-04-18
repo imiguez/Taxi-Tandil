@@ -3,18 +3,16 @@ import { StyleSheet, Text, TouchableHighlight, View } from "react-native";
 import { useMapDispatchActions } from "../../hooks/useMapDispatchActions";
 import { useNavigation } from "@react-navigation/native";
 import { SocketContext } from "../../hooks/useSocketContext";
-import { useAuthDispatchActions } from "../../hooks/useAuthDispatchActions";
-import { useHttpRequest } from "../../hooks/useHttpRequest";
 import { LinearGradient } from "expo-linear-gradient";
+import { StackNavigationProp } from "@react-navigation/stack";
+import RootStackParamList from "../../types/RootStackParamList";
 
 
 export const ConfirmedRideCard: FC = () => {
     const {socket} = useContext(SocketContext)!;
     const {origin, destination, setRideStatus, rideStatus, taxi} = useMapDispatchActions();
-    const navigation = useNavigation();
+    const navigation = useNavigation<StackNavigationProp<RootStackParamList>>();
     const [msg, setMsg] = useState<string>("Esperando taxi...");
-    const {id} = useAuthDispatchActions();
-    const {postRequest} = useHttpRequest();
 
     const onCancel = () => {
         socket!.emit('user-cancel-ride');
@@ -22,28 +20,11 @@ export const ConfirmedRideCard: FC = () => {
         navigation.goBack();
     }
 
-    const createRide = async () => {
-        let body = {
-            originLatitude: origin?.location.latitude,
-            originLongitude: origin?.location.longitude,
-            destinationLatitude: destination?.location.latitude,
-            destinationLongitude: destination?.location.longitude,
-            user_id: id,
-            driver_id: taxi?.id,
-        }
-        try {
-            await postRequest('rides', body);
-        } catch (error) {
-            console.log(error);
-        }
-    }
-
     useMemo(() => {
         let newMsg = '';
         switch (rideStatus) {
             case 'accepted':
                 newMsg = `${taxi?.username} acepto tu viaje!`;
-                createRide();
             break;
             case 'no-taxis-available':
                 newMsg = 'Actualmente no hay taxis disponibles.';

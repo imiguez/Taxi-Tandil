@@ -1,6 +1,7 @@
 import { BaseEntity } from "src/base-entity";
 import { User } from "src/users/entities/user.entity";
 import { Column, Entity, JoinColumn, ManyToOne } from "typeorm";
+import { CancellationReason } from "./CancellationReason.enum";
 
 @Entity({name: 'rides'})
 export class Ride extends BaseEntity {
@@ -33,6 +34,15 @@ export class Ride extends BaseEntity {
     @JoinColumn({name: 'driver_id', referencedColumnName: 'id'})
     driver: User;
 
-    @Column({name: 'was_canceled', default: false, nullable: false})
-    wasCanceled: boolean;
+    @Column({name: 'was_cancelled', default: false, nullable: false})
+    wasCancelled: boolean;
+
+    @Column({
+        name: "cancellation_reason",
+        type: "enum",
+        enum: CancellationReason,
+        nullable: true,
+        default: null,
+    })
+    cancellationReason: CancellationReason;
 }

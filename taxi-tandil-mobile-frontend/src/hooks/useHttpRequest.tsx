@@ -34,9 +34,9 @@ export const useHttpRequest = () => {
             return response.access_token;
         } catch (error: any) {
             // TODO: Before logout, notify the user that the session has expired by a modal.
-            if (error.message == 'refresh jwt expired')
-                logOut();
-            else throw error;
+            if (error.message == 'refresh jwt expired') {
+                await logOut();
+            } else throw error;
         }
     }
 
@@ -63,18 +63,8 @@ export const useHttpRequest = () => {
         let jsonResponse: any = await response.json();
         if (!response.ok) {
             if (jsonResponse.message == 'jwt expired') {
-                try {
-                    await onAccessTokenExpires();
-                    return await requestFn();
-                } catch (error: any) {
-                    // 'error' var has the http error as a string message atributte.
-                    let errorFormated = JSON.parse(error.message);
-                    if (errorFormated.message == 'refresh jwt expired') {
-                        await cleanUp();
-                        navigation.navigate('Login');
-                    }
-                    throw new HttpError(error.message ?? 'Unknown http error.', error.statusCode ?? 500);
-                }
+                await onAccessTokenExpires();
+                return await requestFn();
             } else throw new HttpError(jsonResponse.message ?? 'Unknown http error.', jsonResponse.statusCode ?? 500);
         } else return jsonResponse;
     }

@@ -27,25 +27,23 @@ export class RidesService {
       .createQueryBuilder().insert().into(Ride)
       .values({
         ...cleanedRide, acceptedTimestamp: new Date()
-      }).returning([
-        'id', 'accepted_timestamp', 'origin_lat', 'origin_lng', 'destination_lat', 'destination_lng'
-      ]).execute();
-      return result.generatedMaps[0];
+      }).returning("*").execute();
+      return result.raw[0];
     } catch (error) {
       throw new HttpException(error.message, HttpStatus.UNPROCESSABLE_ENTITY);
     }
   }
 
-  async update(ride: UpdateRideDto) {
+  async update(id: number, ride: UpdateRideDto) {
     try {
       const result = await this.ridesRepository
       .createQueryBuilder()
       .update(Ride)
       .set(ride)
-      .where("id = :id", { id: ride.id })
-      .returning(['was_canceled', 'arrived_timestamp', 'finished_timestamp', 'updated_at'])
+      .where("id = :id", { id: id })
+      .returning("*")
       .execute();
-      return result.generatedMaps[0];
+      return result.raw[0];
     } catch (error) {
       throw new HttpException(error.message, HttpStatus.UNPROCESSABLE_ENTITY);
     }

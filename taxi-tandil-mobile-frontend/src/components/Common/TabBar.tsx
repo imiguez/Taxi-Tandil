@@ -10,6 +10,7 @@ import { useGlobalocketEvents } from '../../hooks/useGlobalSocketEvents';
 import { useMapDispatchActions } from '../../hooks/useMapDispatchActions';
 import { useTaxiDispatchActions } from '../../hooks/useTaxiDispatchActions';
 import * as SecureStore from 'expo-secure-store';
+import { useSocketConnectionEvents } from '../../hooks/useSocketConnectionEvents';
 
 interface TabBarInterface {
   state: TabNavigationState<MainTabParamList>;
@@ -20,11 +21,11 @@ interface TabBarInterface {
 
 const TabBar: FC<TabBarInterface> = ({ state, descriptors, navigation }) => {
   const {
-    socket,
+    socket, onReconnect,
     defineBackgroundTask,
     onUpdateTaxisLocation,
     onRideRequest,
-    onUpdateLocationToBeAvailable,
+    onUserDisconnect,
     onUserCancelRide, 
     onTaxiConfirmedRide,
     onNoTaxisAvailable,
@@ -36,6 +37,7 @@ const TabBar: FC<TabBarInterface> = ({ state, descriptors, navigation }) => {
   const {origin, destination, rideStatus, taxi} = useMapDispatchActions();
   const {ride, userId, username, available} = useTaxiDispatchActions();
   const taxiRideStatus = useTaxiDispatchActions().rideStatus;
+  const {reconnectionCheck} = useSocketConnectionEvents();
   const [showTab, setShowTab] = useState<boolean>(true);
 
   const onKeyboardShow = () => setShowTab(false);
@@ -45,10 +47,10 @@ const TabBar: FC<TabBarInterface> = ({ state, descriptors, navigation }) => {
     if (nextAppState !== 'active') {
       if (socket != undefined) { // If its currently on a ride request or active ride.
         if (socket.auth.role == 'user') {
-            await SecureStore.setItemAsync('origin', JSON.stringify(origin));
-            await SecureStore.setItemAsync('destination', JSON.stringify(destination));
-            await SecureStore.setItemAsync('rideStatus', JSON.stringify(rideStatus));
-            await SecureStore.setItemAsync('taxi', JSON.stringify(taxi));
+          await SecureStore.setItemAsync('origin', JSON.stringify(origin));
+          await SecureStore.setItemAsync('destination', JSON.stringify(destination));
+          await SecureStore.setItemAsync('rideStatus', JSON.stringify(rideStatus));
+          await SecureStore.setItemAsync('taxi', JSON.stringify(taxi));
         } else if (socket.auth.role == 'taxi') {
           await SecureStore.setItemAsync('ride', JSON.stringify(ride));
           await SecureStore.setItemAsync('userId', JSON.stringify(userId));
@@ -62,6 +64,8 @@ const TabBar: FC<TabBarInterface> = ({ state, descriptors, navigation }) => {
   }
 
   useEffect(() => {
+    reconnectionCheck();
+
     const subscription = AppState.addEventListener('change', handleAppStateChange);
     const keyboardShowListener = Keyboard.addListener('keyboardDidShow', onKeyboardShow);
     const keyboardNotShowListener = Keyboard.addListener('keyboardDidHide', onKeyboardNotShow);
@@ -88,14 +92,16 @@ const TabBar: FC<TabBarInterface> = ({ state, descriptors, navigation }) => {
       if (roles.find((role) => role.name === 'taxi')) {
         socket.on('update-taxi-location', onUpdateTaxisLocation);
         socket.on('ride-request', onRideRequest);
-        socket.on('update-location-to-be-available', onUpdateLocationToBeAvailable);
         socket.on('user-cancel-ride', onUserCancelRide);
+        socket.on('user-disconnect', onUserDisconnect);
       }
       socket.on('taxi-confirmed-ride', onTaxiConfirmedRide);
       socket.on('no-taxis-available', onNoTaxisAvailable);
       socket.on('all-taxis-reject', onAllTaxisReject);
       socket.on('taxi-arrived', onTaxiArrived);
       socket.on('ride-completed', onRideCompleted);
+
+      socket.on('reconnect-after-reconnection-check', onReconnect);
     }
   }, [socket]);
 

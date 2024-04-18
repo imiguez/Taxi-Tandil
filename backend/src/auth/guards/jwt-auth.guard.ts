@@ -28,7 +28,7 @@ export class JwtAuthGuard extends AuthGuard('jwt') {
       if (context.getType() == 'http') {
         const request = context.switchToHttp().getRequest();
         const isRefreshTokenPath: boolean = request.route.path.includes('refresh-jwt-token');
-        const payload = JwtUtils.validateTokenByHttp(request, isRefreshTokenPath);
+        const payload = JwtUtils.validateToken(request.headers.authorization, isRefreshTokenPath);
         if (payload.isRefreshToken)
           throw new UnauthorizedException('Provided a refresh_token in the Authorization header when must be an access_token.');
         request['user'] = payload;

@@ -1,4 +1,4 @@
-import { useContext, useState } from "react";
+import { useContext } from "react";
 import { useCoords } from "./useCoords";
 import { SocketContext } from "./useSocketContext";
 import { useTaxiDispatchActions } from "./useTaxiDispatchActions";
@@ -11,29 +11,57 @@ import { useNavigation } from "@react-navigation/native";
 import { useMapDispatchActions } from "./useMapDispatchActions";
 import RootStackParamList from "../types/RootStackParamList";
 import { StackNavigationProp } from "@react-navigation/stack";
+import { useHttpRequest } from "./useHttpRequest";
+import { useSocketConnectionEvents } from "./useSocketConnectionEvents";
 
 export const useGlobalocketEvents = () => {
     const {socket} = useContext(SocketContext)!;
-    const {setRideStatus, setTaxiInfo, rideStatus} = useMapDispatchActions();
+    const {setRideStatus, setTaxiInfo, rideStatus, setLocation} = useMapDispatchActions();
     const mapCleanUp = useMapDispatchActions().cleanUp;
-    const {setRide, userId, ride} = useTaxiDispatchActions();
+    const {setRide, userId, ride, setCurrentLocation, userCancel, setUserCancel, popUp, setPopUp} = useTaxiDispatchActions();
+    const setTaxiRideStatus = useTaxiDispatchActions().setRideStatus;
     const taxiCleanUp = useTaxiDispatchActions().cleanUp;
-    const {stopBackgroundUpdate, startForegroundUpdate, stopForegroundUpdate} = useExpoTaskManager();
+    const {startBackgroundUpdate, stopBackgroundUpdate, startForegroundUpdate, stopForegroundUpdate} = useExpoTaskManager();
     const {getLatLngCurrentPosition} = useCoords();
     const navigation = useNavigation<StackNavigationProp<RootStackParamList>>();
+    const {putRequest} = useHttpRequest();
+    const {reconnect} = useSocketConnectionEvents();
 
-    const [userCancel, setUserCancel] = useState<boolean>(false);
-    const [showPopUp, setShowPopUp] = useState<boolean>(false);
+
+//-------------------------------------- Common Functions ------------------------------------
+    
+    const onReconnect = async (role: 'user' | 'taxi', ride: Ride, arrived: boolean, foreingId: string) => {
+        socket?.disconnect();
+        // TODO handle ride info on user reconnect.
+        if (role === 'user') {
+            setTaxiInfo({id: foreingId, username: null});
+            setRideStatus(arrived ? 'arrived' : 'accepted');
+            // const origin = await reverseGeocode(ride.origin);
+            // setLocation(origin!, 'origin');
+            // const destination = await reverseGeocode(ride.destination);
+            // setLocation(destination!, 'destination');
+            navigation.navigate('Main', {screen: 'Home', params: {screen: 'ConfirmedRide'}});
+        }
+        if (role === 'taxi') {
+            setRide(ride, foreingId, null);
+            setTaxiRideStatus(arrived ? 'arrived' : 'accepted');
+            const coords = await getLatLngCurrentPosition();
+            setCurrentLocation(coords!);
+            navigation.navigate('Main', {screen: 'Taxi', params: {screen: 'AcceptedRide'}});
+        }
+        reconnect(role);
+    }
+
 
 //-------------------------------------- Taxis Functions ------------------------------------
 
     const onUpdateTaxisLocation = async (userId: string, username: string) => {
         const taxiCoords = await getLatLngCurrentPosition();
         if (!taxiCoords) {
-            setShowPopUp(true);
+            setPopUp(true);
             return;
         } else 
-            setShowPopUp(false);
+            setPopUp(false);
 
         console.log('emitted: taxi-location-updated');
         socket!.volatile.emit('taxi-location-updated', {
@@ -64,9 +92,10 @@ export const useGlobalocketEvents = () => {
         }
     }
 
-    const onUpdateLocationToBeAvailable = async () => {
+    const updateLocationToBeAvailable = async () => {
         const taxiCoords = await getLatLngCurrentPosition();
         socket!.emit('location-updated-to-be-available', {location: taxiCoords});
+        console.log('emmitting location-updated-to-be-available');
     }
 
     const onUserCancelRide = async () => {
@@ -75,6 +104,33 @@ export const useGlobalocketEvents = () => {
         taxiCleanUp();
         setUserCancel(true);
         navigation.navigate('Main', {screen: 'Taxi', params: {screen: 'TaxiHome'}});
+        await updateLocationToBeAvailable();
+    }
+
+    const onUserDisconnect = async (rideId?: number) => {
+        await stopBackgroundUpdate();
+        await stopForegroundUpdate();
+        
+        if (rideId == null) {
+            taxiCleanUp();
+            setUserCancel(true);
+            navigation.navigate('Main', {screen: 'Taxi', params: {screen: 'TaxiHome'}});
+            await updateLocationToBeAvailable();
+            return;
+        }
+
+        const timeout = setTimeout(async () => {
+            navigation.navigate('Main', {screen: 'Taxi', params: {screen: 'TaxiHome'}});
+            socket!.emit('cancel-ride-because-user-disconnect', {userApiId: userId, rideId: rideId});
+            await putRequest(`rides/${rideId}`, {wasCancelled: true, cancellationReason: "User lost connection"});
+            await updateLocationToBeAvailable();
+        }, 2*30*1000);
+
+        socket!.on('user-reconnect', async () => {
+            clearTimeout(timeout);
+            await startForegroundUpdate();
+            await startBackgroundUpdate();
+        });
     }
 
     const defineBackgroundTask = () => {
@@ -137,9 +193,10 @@ export const useGlobalocketEvents = () => {
 
     return {
         navigation, ride, rideStatus, socket,
-        userCancel, setUserCancel, showPopUp, setShowPopUp,
-        onUpdateTaxisLocation, onRideRequest, onPressRideRequest, 
-        onUpdateLocationToBeAvailable, onUserCancelRide, defineBackgroundTask,
+        userCancel, setUserCancel, popUp, setPopUp,
+        onReconnect,
+        onUpdateTaxisLocation, onRideRequest, onPressRideRequest, onUserDisconnect, 
+        updateLocationToBeAvailable, onUserCancelRide, defineBackgroundTask,
         onTaxiConfirmedRide, onNoTaxisAvailable, onAllTaxisReject,
         onTaxiArrived, onRideCompleted
     }

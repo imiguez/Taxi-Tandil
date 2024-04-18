@@ -1,12 +1,12 @@
 import { OmitType, PartialType } from "@nestjs/mapped-types";
 import { Ride } from "../entities/ride.entity";
-import { IsNotEmpty, IsNumber } from "class-validator";
+import { IsNotEmpty } from "class-validator";
 
 export class CreateRideDto extends PartialType(
-    OmitType(Ride, ['wasCanceled', 'arrivedTimestamp', 'finishedTimestamp', 'updated_at'] as const),
+    OmitType(Ride, ['wasCancelled', 'arrivedTimestamp', 'finishedTimestamp', 'updated_at'] as const),
 ) {
-    @IsNotEmpty() @IsNumber()
+    @IsNotEmpty()
     user_id: number;
-    @IsNotEmpty() @IsNumber()
+    @IsNotEmpty()
     driver_id: number;
 }
