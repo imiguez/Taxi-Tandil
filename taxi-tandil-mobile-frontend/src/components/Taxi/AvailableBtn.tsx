@@ -12,7 +12,7 @@ type AvailableBtnProps = {
 
 export const AvailableBtn: FC<AvailableBtnProps> = ({setShowPopUp}) => {
     const [loading, setLoading] = useState<boolean>(false);
-    const {socket} = useContext(SocketContext)!;
+    const {socket, setSocket} = useContext(SocketContext)!;
     const {stopBackgroundUpdate} = useExpoTaskManager();
     const {available, setAvailable} = useTaxiDispatchActions();
     const { connectAsTaxi } = useSocketConnectionEvents();
@@ -29,6 +29,7 @@ export const AvailableBtn: FC<AvailableBtnProps> = ({setShowPopUp}) => {
                 setLoading(false);
             });
             socket!.disconnect();
+            setSocket(undefined);
             await stopBackgroundUpdate();
             return;
         }
@@ -97,6 +98,9 @@ export const AvailableBtn: FC<AvailableBtnProps> = ({setShowPopUp}) => {
 
             connectAsTaxi(location, () => {
                 setAvailable(true);
+                setLoading(false);
+            }, () => {
+                setAvailable(false);
                 setLoading(false);
             });
         } catch (error) {

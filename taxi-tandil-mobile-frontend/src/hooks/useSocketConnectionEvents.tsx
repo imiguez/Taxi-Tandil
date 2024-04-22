@@ -1,12 +1,13 @@
 import { useContext } from 'react';
 import { Socket, io } from 'socket.io-client';
-import { setRideStatus } from '../../slices/userRideSlice';
 import { useAuthDispatchActions } from './useAuthDispatchActions';
 import { useHttpRequest } from './useHttpRequest';
 import { SocketContext } from './useSocketContext';
 import { useNavigation } from '@react-navigation/native';
 import { LatLng, Ride } from '../types/Location';
 import { useTaxiDispatchActions } from './useTaxiDispatchActions';
+import { useCommonSlice } from './slices/useCommonSlice';
+import { useMapDispatchActions } from './useMapDispatchActions';
 
 interface ConnectionOptions {
   transports: string[],
@@ -28,6 +29,8 @@ export const useSocketConnectionEvents = () => {
   const { firstName, lastName, accessToken, id, setNewAccessToken } = useAuthDispatchActions();
   const { getNewAccessToken } = useHttpRequest();
   const { userId } = useTaxiDispatchActions();
+  const { setRideStatus } = useMapDispatchActions();
+  const { setError } = useCommonSlice();
 
   const connectionOptions = {
     transports: ['websocket'],
@@ -36,8 +39,9 @@ export const useSocketConnectionEvents = () => {
   };
 
   const reconnectionCheck = () => {
+    if (id == undefined) return;
     // In case of reconnection, the backend checks the role with which has to authenticate and return it on reconnect-after-reconnection-check event.
-    const options = {
+    const options: ConnectionOptions = {
       ...connectionOptions,
       auth: {
         token: `Bearer ${accessToken}`,
@@ -47,37 +51,12 @@ export const useSocketConnectionEvents = () => {
       },
     };
     const s = io(process.env.EXPO_PUBLIC_BASE_URL!, options);
-    onReconnection(s);
-    onReconnectionError(s);
-    s.on('disconnect', () => console.log('reconnection disconnect!'))
-  }
-  
-  const onReconnection = (s: Socket) => {
-    s.on('connect', () => {
-      console.log('socket reconnected');
-      setSocket(s);
-    });
-  }
-  
-  const onReconnectionError = (s: Socket) => {
-    s.on('connect_error', async (error) => {
-      console.log('Error from socket: ', error);
-      if (error.message == 'jwt expired') {
-        const newAccessToken = await getNewAccessToken();
-        const newS = io(process.env.EXPO_PUBLIC_BASE_URL!, {
-          ...connectionOptions,
-          auth: {
-            token: `Bearer ${newAccessToken}`,
-            apiId: id,
-            role: 'user',
-            reconnectionCheck: true,
-          },
-        });
-        setNewAccessToken(newAccessToken);
-        onReconnection(newS);
-        onReconnectionError(newS);
-      }// else throw error;
-    });
+    const onConnect = (socket: Socket) => {
+      socket.on('disconnect', () => console.log('reconnection disconnect!'));
+    }
+
+    onConnectionSuccess(s, onConnect);
+    onConnectionError(s, options, onConnect)
   }
 
   const reconnect = (role: 'user' | 'taxi') => {
@@ -99,7 +78,7 @@ export const useSocketConnectionEvents = () => {
     onConnectionError(s, options, onReconnect);
   }
 
-  const connectAsTaxi = (location: LatLng, onConnect: () => void) => {
+  const connectAsTaxi = (location: LatLng, onSuccess: () => void, onError: () => void) => {
     if (id == undefined) return;
     const options: ConnectionOptions = {
       ...connectionOptions,
@@ -112,8 +91,8 @@ export const useSocketConnectionEvents = () => {
       },
     };
     const s = io(process.env.EXPO_PUBLIC_BASE_URL!, options);
-    onConnectionSuccess(s, onConnect);
-    onConnectionError(s, options, onConnect);
+    onConnectionSuccess(s, onSuccess);
+    onConnectionError(s, options, onSuccess, onError);
   };
 
   const connectAsUser = (ride: Ride) => {
@@ -133,8 +112,13 @@ export const useSocketConnectionEvents = () => {
       setRideStatus('emmited');
       navigation.navigate('Main', { screen: 'Home', params: { screen: 'ConfirmedRide' } });
     }
+
+    const onError = () => {
+      setRideStatus(null);
+    }
+
     onConnectionSuccess(s, onConnect),
-    onConnectionError(s, options, onConnect);
+    onConnectionError(s, options, onConnect, onError);
   };
 
   const onConnectionSuccess = (s: Socket, onConnectionSuccess: (s: Socket) => void) => {
@@ -145,7 +129,7 @@ export const useSocketConnectionEvents = () => {
     });
   }
 
-  const onConnectionError = (s: Socket, connectionOptions: ConnectionOptions, onSuccess: (s: Socket) => void) => {
+  const onConnectionError = (s: Socket, connectionOptions: ConnectionOptions, onSuccess: (s: Socket) => void, onError?: () => void) => {
     s.on('connect_error', async (error) => {
       console.log('Error from socket: ', error);
       if (error.message == 'jwt expired') {
@@ -154,8 +138,19 @@ export const useSocketConnectionEvents = () => {
         const newS = io(process.env.EXPO_PUBLIC_BASE_URL!, connectionOptions);
         setNewAccessToken(newAccessToken);
         onConnectionSuccess(newS, onSuccess);
-        onConnectionError(newS, connectionOptions, onSuccess);
+        if (onError != undefined)
+          onConnectionError(newS, connectionOptions, onSuccess, onError);
+        else
+          onConnectionError(newS, connectionOptions, onSuccess);
+        return;
       }// else throw error;
+
+      if (onError != undefined) onError();
+
+      if (error.message == 'There is already a connection with the same id') {
+        setError(`Su usuario ya tiene una conexión activa, esto puede suceder porque un usuario intenta conectarse desde dos dispositivos simultaneamente o puede ser un error de la aplicación. 
+Pruebe cerrando y abriendo la aplicación de nuevo. En caso de que persista el error y crea que no hay otro usuario usando su cuenta, debe comunicarse con soporte en Configuraciones.`);
+      }
     });
   }
 

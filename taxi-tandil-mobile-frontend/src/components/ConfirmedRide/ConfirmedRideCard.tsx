@@ -20,6 +20,11 @@ export const ConfirmedRideCard: FC = () => {
         navigation.goBack();
     }
 
+    const onGoBack = () => {
+        setRideStatus(null);
+        navigation.goBack();
+    }
+
     useMemo(() => {
         let newMsg = '';
         switch (rideStatus) {
@@ -64,7 +69,7 @@ export const ConfirmedRideCard: FC = () => {
                     </TouchableHighlight>
                 }
                 {!(rideStatus == 'emmited' || rideStatus == 'accepted') &&
-                    <TouchableHighlight style={styles.button} onPress={() => navigation.goBack()} >
+                    <TouchableHighlight style={styles.button} onPress={onGoBack} >
                         <Text style={styles.btnText}>Volver atras</Text>
                     </TouchableHighlight>
                 }

@@ -8,6 +8,7 @@ import { StackNavigationProp } from '@react-navigation/stack';
 import RootStackParamList from '../types/RootStackParamList';
 import * as SecureStore from 'expo-secure-store';
 import { SecureStoreItems } from '../constants';
+import { useCommonSlice } from './slices/useCommonSlice';
 
 export const useLogOut = () => {
   const navigation = useNavigation<StackNavigationProp<RootStackParamList>>();
@@ -15,6 +16,7 @@ export const useLogOut = () => {
   const { roles, cleanUp } = useAuthDispatchActions();
   const taxiCleanUp = useTaxiDispatchActions().cleanUp;
   const mapCleanUp = useMapDispatchActions().cleanUp;
+  const commonCleanUp = useCommonSlice().cleanUp;
 
   return {
     async logOut() {
@@ -24,6 +26,7 @@ export const useLogOut = () => {
         socket.disconnect();
         setSocket(undefined);
       }
+      commonCleanUp();
       cleanUp();
       for (const item in SecureStoreItems) {
         await SecureStore.deleteItemAsync(item);

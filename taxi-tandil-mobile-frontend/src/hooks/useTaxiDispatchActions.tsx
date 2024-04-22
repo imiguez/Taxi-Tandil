@@ -7,9 +7,7 @@ import { selectCurrentLocation, selectRide, selectUserId, setUserId, selectAvail
     setAvailable as setAvailableFromTaxiRideSlice, 
     setRideStatus as setRideStatusFromTaxiRideSlice, 
     setPopUp as setPopUpFromTaxiRideSlice,
-    setUserCancel as setUserCancelFromTaxiRideSlice,
     selectRideStatus, setUsername, selectUsername, selectPopUp,
-    selectUserCancel,
 } from "../../slices/taxiRideSlice";
 import { initialTaxiRideSliceStateType } from "../types/slices/taxiRideSliceTypes";
 
@@ -23,11 +21,6 @@ export const useTaxiDispatchActions = () => {
     const available = useSelector(selectAvailable);
     const rideStatus = useSelector(selectRideStatus);
     const popUp = useSelector(selectPopUp);
-    const userCancel = useSelector(selectUserCancel);
-
-    const setUserCancel = (userCancel: boolean) => {
-        dispatch(setUserCancelFromTaxiRideSlice(userCancel));
-    }
 
     const setPopUp = (popUp: boolean) => {
         dispatch(setPopUpFromTaxiRideSlice(popUp));
@@ -66,7 +59,6 @@ export const useTaxiDispatchActions = () => {
         dispatch(setRideFromTaxiRideSlice(null));
         dispatch(setUserId(null));
         dispatch(setRideStatusFromTaxiRideSlice(null));
-        dispatch(setUserCancelFromTaxiRideSlice(false));
         dispatch(setPopUpFromTaxiRideSlice(false));
     }
     
@@ -76,7 +68,6 @@ export const useTaxiDispatchActions = () => {
         setAvailable, available,
         setRideStatus, rideStatus,
         setPopUp, popUp,
-        setUserCancel, userCancel,
         cleanUp
     }
 }

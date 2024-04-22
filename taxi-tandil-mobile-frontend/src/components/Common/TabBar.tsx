@@ -11,6 +11,8 @@ import { useMapDispatchActions } from '../../hooks/useMapDispatchActions';
 import { useTaxiDispatchActions } from '../../hooks/useTaxiDispatchActions';
 import * as SecureStore from 'expo-secure-store';
 import { useSocketConnectionEvents } from '../../hooks/useSocketConnectionEvents';
+import { useCommonSlice } from '../../hooks/slices/useCommonSlice';
+import WarningModal from './WarningModal';
 
 interface TabBarInterface {
   state: TabNavigationState<MainTabParamList>;
@@ -39,6 +41,7 @@ const TabBar: FC<TabBarInterface> = ({ state, descriptors, navigation }) => {
   const taxiRideStatus = useTaxiDispatchActions().rideStatus;
   const {reconnectionCheck} = useSocketConnectionEvents();
   const [showTab, setShowTab] = useState<boolean>(true);
+  const { error, errorMessage, cleanError } = useCommonSlice();
 
   const onKeyboardShow = () => setShowTab(false);
   const onKeyboardNotShow = () => setShowTab(true);
@@ -107,6 +110,10 @@ const TabBar: FC<TabBarInterface> = ({ state, descriptors, navigation }) => {
 
   return (
     <>
+      {error && errorMessage != undefined &&
+        <WarningModal close={cleanError} text={errorMessage} />
+      }
+
       <LinearGradient
         style={[styles.linearGradient, !showTab ? { display: 'none' } : {}]}
         locations={[0.2, 1]}

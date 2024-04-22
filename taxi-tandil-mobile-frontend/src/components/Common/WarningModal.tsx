@@ -1,5 +1,6 @@
-import { Modal, StyleProp, StyleSheet, Text, TouchableOpacity, View, ViewStyle } from 'react-native'
+import { Modal, ScrollView, StyleProp, StyleSheet, Text, TouchableOpacity, View, ViewStyle } from 'react-native'
 import React, { FC, ReactNode } from 'react'
+import constants from '../../constants'
 
 interface WarningModalInterface {
     text: string,
@@ -13,8 +14,10 @@ const WarningModal: FC<WarningModalInterface> = ({text, close, cardStyles, child
   return (
     <Modal animationType='none' transparent onRequestClose={close}>
       <View style={[styles.cardContainer, cardStyles ? cardStyles : {}]}>
+        <ScrollView>
             <Text style={styles.text}>{text}</Text>
             {children}
+        </ScrollView>
             <View style={styles.btnsContainer}>
                 <TouchableOpacity onPress={close}>
                     <Text>Ok</Text>
@@ -30,8 +33,9 @@ export default WarningModal
 const styles = StyleSheet.create({
     cardContainer: {
         width: '80%',
+        maxHeight: constants.windowHeight*.60,
         position: 'absolute',
-        top: '25%',
+        top: '20%',
         left: '10%',
         backgroundColor: 'white',
         borderRadius: 15,
@@ -44,6 +48,7 @@ const styles = StyleSheet.create({
         paddingBottom: 50
     },
     text: {
+        textAlign: 'left',
         paddingHorizontal: 10,
         fontSize: 16,
         paddingTop: 10

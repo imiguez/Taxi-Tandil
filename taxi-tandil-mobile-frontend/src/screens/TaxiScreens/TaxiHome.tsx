@@ -1,17 +1,20 @@
 import { StyleSheet, View } from 'react-native'
 import React from 'react'
-import UserCancelNotification from '../../components/Taxi/UserCancelNotification';
 import RideRequestBtn from '../../components/Taxi/RideRequestBtn';
 import PermissionsPopUp from '../../components/Common/PermissionsPopUp';
 import { AvailableBtn } from '../../components/Taxi/AvailableBtn';
 import { useGlobalocketEvents } from '../../hooks/useGlobalSocketEvents';
+import { useCommonSlice } from '../../hooks/slices/useCommonSlice';
+import RideCancelledNotification from '../../components/Common/Notifications/RideCancelledNotification';
+import { NotificationsMap } from '../../constants';
 
 const TaxiHome = () => {
     const {
-        userCancel, setUserCancel, popUp, setPopUp,
+        popUp, setPopUp,
         ride,
         onPressRideRequest,
     } = useGlobalocketEvents();
+    const { notifications, removeNotification } = useCommonSlice();
 
   return (
     <View style={styles.mainContainer}>
@@ -19,8 +22,10 @@ const TaxiHome = () => {
         
         {ride && <RideRequestBtn onPress={onPressRideRequest}/>}
 
-        {userCancel && <UserCancelNotification closeNotification={() => setUserCancel(false)}/>}
-        
+        {notifications != undefined && notifications.find(n => n == 'User cancelled ride') != undefined &&
+            <RideCancelledNotification text={NotificationsMap.get('User cancelled ride') ?? ''} onClose={() => removeNotification('User cancelled ride')}/>
+        }
+
         <AvailableBtn setShowPopUp={setPopUp} />
 
     </View>

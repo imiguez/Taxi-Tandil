@@ -3,16 +3,16 @@ import React, { FC, useContext, useMemo, useState } from 'react';
 import { useMapDispatchActions } from '../../hooks/useMapDispatchActions';
 import { useNavigation } from '@react-navigation/native';
 import { SocketContext } from '../../hooks/useSocketContext';
-import WarningModal from '../Common/WarningModal';
 import { useSocketConnectionEvents } from '../../hooks/useSocketConnectionEvents';
+import { useCommonSlice } from '../../hooks/slices/useCommonSlice';
 
 const NewRideBtn: FC = () => {
   const navigation = useNavigation();
   const { socket } = useContext(SocketContext)!;
-  const { origin, destination, rideStatus, setRideStatus } = useMapDispatchActions();
+  const { origin, destination, rideStatus } = useMapDispatchActions();
   const [confirmBtn, setConfirmBtn] = useState<boolean>(false);
-  const [showWarning, setShowWarning] = useState<boolean>(false);
   const { connectAsUser } = useSocketConnectionEvents();
+  const { setError } = useCommonSlice();
 
   useMemo(() => {
     setConfirmBtn(
@@ -24,12 +24,10 @@ const NewRideBtn: FC = () => {
 
   const onConfirmRide = () => {
     if (socket != undefined && socket.auth.role == 'taxi') {
-      setShowWarning(true);
+      setError('Usted ya tiene una conexión activa como taxista/remisero, para poder pedir un viaje debe dejar de estar disponible como taxista/remisero.');
       return;
     }
 
-    setRideStatus('emmited');
-    navigation.navigate('Main', {screen: 'Home', params: {screen: 'ConfirmedRide'}});
     if (!(origin && origin.location != null) || !(destination && destination.location != null)) {
       console.log('Error: the origin or the destination its undefined.');
       return;
@@ -49,10 +47,6 @@ const NewRideBtn: FC = () => {
 
   return (
     <>
-      {showWarning &&
-        <WarningModal cardStyles={{height: '30%'}} close={() => setShowWarning(false)}
-        text='Para poder pedir un viaje no debe estar disponible como taxi o remis.' />
-      }
       {origin && destination && (
         <TouchableHighlight
           style={styles.button}

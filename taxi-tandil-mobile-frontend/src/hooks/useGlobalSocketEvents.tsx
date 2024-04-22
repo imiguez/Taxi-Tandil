@@ -13,12 +13,13 @@ import RootStackParamList from "../types/RootStackParamList";
 import { StackNavigationProp } from "@react-navigation/stack";
 import { useHttpRequest } from "./useHttpRequest";
 import { useSocketConnectionEvents } from "./useSocketConnectionEvents";
+import { useCommonSlice } from "./slices/useCommonSlice";
 
 export const useGlobalocketEvents = () => {
     const {socket} = useContext(SocketContext)!;
     const {setRideStatus, setTaxiInfo, rideStatus, setLocation} = useMapDispatchActions();
     const mapCleanUp = useMapDispatchActions().cleanUp;
-    const {setRide, userId, ride, setCurrentLocation, userCancel, setUserCancel, popUp, setPopUp} = useTaxiDispatchActions();
+    const {setRide, userId, ride, setCurrentLocation, popUp, setPopUp} = useTaxiDispatchActions();
     const setTaxiRideStatus = useTaxiDispatchActions().setRideStatus;
     const taxiCleanUp = useTaxiDispatchActions().cleanUp;
     const {startBackgroundUpdate, stopBackgroundUpdate, startForegroundUpdate, stopForegroundUpdate} = useExpoTaskManager();
@@ -26,6 +27,7 @@ export const useGlobalocketEvents = () => {
     const navigation = useNavigation<StackNavigationProp<RootStackParamList>>();
     const {putRequest} = useHttpRequest();
     const {reconnect} = useSocketConnectionEvents();
+    const { addNotification, removeNotification } = useCommonSlice();
 
 
 //-------------------------------------- Common Functions ------------------------------------
@@ -73,7 +75,7 @@ export const useGlobalocketEvents = () => {
 
     const onRideRequest = (ride: Ride, userId: string, username: string) => {
         setRide(ride, userId, username);
-        setUserCancel(false);
+        removeNotification('User cancelled ride');
         navigation.navigate('Main', {screen: 'Taxi', params: {screen: 'TaxiHome'}});
     };
 
@@ -102,7 +104,7 @@ export const useGlobalocketEvents = () => {
         await stopBackgroundUpdate();
         await stopForegroundUpdate();
         taxiCleanUp();
-        setUserCancel(true);
+        addNotification('User cancelled ride');
         navigation.navigate('Main', {screen: 'Taxi', params: {screen: 'TaxiHome'}});
         await updateLocationToBeAvailable();
     }
@@ -113,7 +115,8 @@ export const useGlobalocketEvents = () => {
         
         if (rideId == null) {
             taxiCleanUp();
-            setUserCancel(true);
+            // Change for a 'Ride cancelled because user disconnection' or something like that
+            addNotification('User cancelled ride');
             navigation.navigate('Main', {screen: 'Taxi', params: {screen: 'TaxiHome'}});
             await updateLocationToBeAvailable();
             return;
@@ -163,7 +166,7 @@ export const useGlobalocketEvents = () => {
 
     //TODO
     const onTaxiCancelRide = async () => {
-        
+        addNotification('Taxi cancelled ride');
     }
 
     const onNoTaxisAvailable = () => {
@@ -193,7 +196,7 @@ export const useGlobalocketEvents = () => {
 
     return {
         navigation, ride, rideStatus, socket,
-        userCancel, setUserCancel, popUp, setPopUp,
+        popUp, setPopUp,
         onReconnect,
         onUpdateTaxisLocation, onRideRequest, onPressRideRequest, onUserDisconnect, 
         updateLocationToBeAvailable, onUserCancelRide, defineBackgroundTask,

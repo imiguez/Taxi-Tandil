@@ -1,4 +1,5 @@
 import { Dimensions } from "react-native";
+import { notificationKeyType } from "../types/slices/commonSliceTypes";
 
 const constants = {
     tandilLocation: {
@@ -34,6 +35,11 @@ const constants = {
     windowWidth: Dimensions.get("window").width,
     windowHeight: Dimensions.get("window").height,
 };
+
+export const NotificationsMap: Map<notificationKeyType, string> = new Map<notificationKeyType, string>([
+    ['User cancelled ride', 'El usuario canceló el viaje' ],
+    ['Taxi cancelled ride', 'El taxi/remis canceló el viaje.'],
+]);
 
 export const BACKGROUND_LOCATION_TASK_NAME = "BACKGROUND_LOCATION_TASK";
 export const SecureStoreItems = [
