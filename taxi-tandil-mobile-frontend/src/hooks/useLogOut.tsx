@@ -1,14 +1,14 @@
 import { useContext } from 'react';
+import { useNavigation } from '@react-navigation/native';
+import { StackNavigationProp } from '@react-navigation/stack';
+import * as SecureStore from 'expo-secure-store';
 import { useAuthDispatchActions } from './slices/useAuthDispatchActions';
 import { useMapDispatchActions } from './slices/useMapDispatchActions';
 import { SocketContext } from './useSocketContext';
 import { useTaxiDispatchActions } from './slices/useTaxiDispatchActions';
-import { useNavigation } from '@react-navigation/native';
-import { StackNavigationProp } from '@react-navigation/stack';
-import RootStackParamList from '../types/RootStackParamList';
-import * as SecureStore from 'expo-secure-store';
-import { SecureStoreItems } from '../constants';
 import { useCommonSlice } from './slices/useCommonSlice';
+import { SecureStoreItems } from 'constants/index';
+import RootStackParamList from 'types/RootStackParamList';
 
 export const useLogOut = () => {
   const navigation = useNavigation<StackNavigationProp<RootStackParamList>>();

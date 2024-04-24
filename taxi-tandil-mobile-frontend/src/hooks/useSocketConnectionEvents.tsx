@@ -1,13 +1,13 @@
 import { useContext } from 'react';
 import { Socket, io } from 'socket.io-client';
+import { useNavigation } from '@react-navigation/native';
 import { useAuthDispatchActions } from './slices/useAuthDispatchActions';
 import { useHttpRequest } from './useHttpRequest';
 import { SocketContext } from './useSocketContext';
-import { useNavigation } from '@react-navigation/native';
-import { LatLng, Ride } from '../types/Location';
 import { useTaxiDispatchActions } from './slices/useTaxiDispatchActions';
 import { useCommonSlice } from './slices/useCommonSlice';
 import { useMapDispatchActions } from './slices/useMapDispatchActions';
+import { LatLng, Ride } from 'types/Location';
 
 interface ConnectionOptions {
   transports: string[],

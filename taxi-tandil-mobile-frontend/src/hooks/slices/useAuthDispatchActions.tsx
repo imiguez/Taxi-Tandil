@@ -1,12 +1,12 @@
 import { useDispatch, useSelector } from "react-redux";
-import { initialState, selectAccessToken, selectEmail, selectFirstName, selectId, selectLastName, selectRefreshToken, selectRoles, 
-    setAccessToken, setEmail, setFirstName, setId, setLastName, setRefreshToken, setRoles, } from "../../../slices/authSlice";
-import { initialAuthSliceStateType } from "../../types/slices/authSliceTypes";
 import * as SecureStore from 'expo-secure-store';
-import { SecureStoreItems } from "../../constants";
 import { useNavigation } from "@react-navigation/native";
 import { StackNavigationProp } from "@react-navigation/stack";
-import RootStackParamList from "../../types/RootStackParamList";
+import { initialState, selectAccessToken, selectEmail, selectFirstName, selectId, selectLastName, selectRefreshToken, selectRoles, 
+    setAccessToken, setEmail, setFirstName, setId, setLastName, setRefreshToken, setRoles, } from "../../../slices/authSlice";
+import { SecureStoreItems } from "constants/index";
+import RootStackParamList from "types/RootStackParamList";
+import { initialAuthSliceStateType } from "types/slices/authSliceTypes";
 
 export const useAuthDispatchActions = () => {
     const dispatch = useDispatch();

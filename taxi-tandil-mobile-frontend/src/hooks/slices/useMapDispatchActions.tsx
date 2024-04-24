@@ -5,8 +5,8 @@ import { selectDestination, selectOrigin, selectLastModified, selectSelectInMap,
     setSelectInMap as setSelectInMapFromRideSlice, 
     setRideStatus as setRideStatusFromRideSlice,
     selectTaxi, setTaxi } from "../../../slices/userRideSlice";
-import { LocationWithName } from "../../types/Location";
-import { initialUserRideSliceStateType } from "../../types/slices/userRideSliceTypes";
+import { LocationWithName } from "types/Location";
+import { initialUserRideSliceStateType } from "types/slices/userRideSliceTypes";
 
 export const useMapDispatchActions = () => {
     const dispatch = useDispatch();

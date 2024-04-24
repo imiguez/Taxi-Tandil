@@ -1,7 +1,7 @@
 import { useNavigation } from "@react-navigation/native";
 import { useAuthDispatchActions } from "./slices/useAuthDispatchActions";
-import { HttpError } from "../utils/HttpError";
 import { useLogOut } from "./useLogOut";
+import { HttpError } from "utils/HttpError";
 
 /**
  * A hook that handle the http request with the backend.

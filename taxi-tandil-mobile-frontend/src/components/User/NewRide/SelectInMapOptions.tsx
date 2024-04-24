@@ -1,7 +1,7 @@
 import { FC, useState } from "react";
 import { StyleSheet, Text, View } from "react-native";
 import { TouchableHighlight } from "react-native-gesture-handler";
-import constants from "../../constants";
+import { screenWidth } from "constants/index";
 
 type SelectInMapOptionsProps = {
     onConfirm: () => Promise<void>,
@@ -55,7 +55,7 @@ const styles = StyleSheet.create({
         borderStyle: 'solid',
     },
     msg: {
-        width: (constants.screenWidth-110)*.8,
+        width: (screenWidth-110)*.8,
         backgroundColor: '#ffffffe3',
         borderRadius: 5,
         paddingVertical: 5,

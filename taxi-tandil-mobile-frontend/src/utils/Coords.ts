@@ -1,5 +1,5 @@
 import * as ExpoLocation from 'expo-location';
-import { LatLng } from "../types/Location";
+import { LatLng } from 'types/Location';
 
 export class Coords {
     public static reverseGeocode = async (coord: LatLng) => {

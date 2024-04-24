@@ -1,9 +1,8 @@
 import { FC, useContext } from "react";
 import { StyleSheet, View } from "react-native";
-import { ConfirmedRideMap } from "../../components/ConfirmedRide/ConfirmedRideMap";
-import { ConfirmedRideCard } from "../../components/ConfirmedRide/ConfirmedRideCard";
-import { SocketContext } from "../../hooks/useSocketContext";
-
+import { ConfirmedRideCard } from "components/User/ConfirmedRide/ConfirmedRideCard";
+import { ConfirmedRideMap } from "components/User/ConfirmedRide/ConfirmedRideMap";
+import { SocketContext } from "hooks/useSocketContext";
 
 export const ConfirmedRide: FC = () => {
     const {socket} = useContext(SocketContext)!;

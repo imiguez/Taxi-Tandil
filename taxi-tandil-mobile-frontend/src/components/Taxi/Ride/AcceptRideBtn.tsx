@@ -1,13 +1,13 @@
 import { FC, MutableRefObject, useContext } from "react";
-import { SocketContext } from "../../../hooks/useSocketContext";
-import { useExpoTaskManager } from "../../../hooks/useExpoTaskManager";
 import { StyleSheet, Text, TouchableHighlight } from "react-native";
 import { useNavigation } from "@react-navigation/native";
-import { useTaxiDispatchActions } from "../../../hooks/slices/useTaxiDispatchActions";
-import { useAuthDispatchActions } from "../../../hooks/slices/useAuthDispatchActions";
-import { useGlobalocketEvents } from "../../../hooks/useGlobalSocketEvents";
-import { useHttpRequest } from "../../../hooks/useHttpRequest";
-import { Coords } from "../../../utils/Coords";
+import { useAuthDispatchActions } from "hooks/slices/useAuthDispatchActions";
+import { useTaxiDispatchActions } from "hooks/slices/useTaxiDispatchActions";
+import { useExpoTaskManager } from "hooks/useExpoTaskManager";
+import { useGlobalocketEvents } from "hooks/useGlobalSocketEvents";
+import { useHttpRequest } from "hooks/useHttpRequest";
+import { SocketContext } from "hooks/useSocketContext";
+import { Coords } from "utils/Coords";
 
 type Props = {
     canGoBack: MutableRefObject<boolean>

@@ -1,5 +1,5 @@
+import { LatLng } from "react-native-maps";
 import { useDispatch, useSelector } from "react-redux";
-import { LatLng, Ride } from "../../types/Location";
 import { selectCurrentLocation, selectRide, selectUserId, setUserId, selectAvailable,
     setRide as setRideFromTaxiRideSlice, 
     setCurrentLocation as setCurrentLocationFromTaxiRideSlice, 
@@ -8,8 +8,9 @@ import { selectCurrentLocation, selectRide, selectUserId, setUserId, selectAvail
     setPopUp as setPopUpFromTaxiRideSlice,
     selectRideStatus, setUsername, selectUsername, selectPopUp,
 } from "../../../slices/taxiRideSlice";
-import { initialTaxiRideSliceStateType } from "../../types/slices/taxiRideSliceTypes";
-import { Coords } from "../../utils/Coords";
+import { Ride } from "types/Location";
+import { initialTaxiRideSliceStateType } from "types/slices/taxiRideSliceTypes";
+import { Coords } from "utils/Coords";
 
 export const useTaxiDispatchActions = () => {
     const dispatch = useDispatch();

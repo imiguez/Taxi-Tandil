@@ -1,7 +1,7 @@
 import { FC } from "react";
 import { StyleSheet, Text, View } from "react-native";
 import { GooglePlaceData } from "react-native-google-places-autocomplete";
-import constants from "../../constants";
+import { screenWidth } from "constants/index";
 
 type AutoCompleteRowProps = {
     data: GooglePlaceData,
@@ -29,7 +29,7 @@ export const AutoCompleteRow: FC<AutoCompleteRowProps> = ({data, index}) => {
 const styles = StyleSheet.create({
     container: {
         flex: 1,
-        maxWidth: constants.screenWidth - 60,
+        maxWidth: screenWidth - 60,
         borderWidth: 0,
         borderColor: 'red',
         borderStyle: 'solid'

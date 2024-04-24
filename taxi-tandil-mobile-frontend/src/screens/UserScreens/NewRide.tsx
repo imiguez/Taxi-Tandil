@@ -1,10 +1,11 @@
 import { FC, useEffect } from "react";
 import { StyleSheet, View } from "react-native";
-import { useMapDispatchActions } from "../../hooks/slices/useMapDispatchActions";
-import { RideMap } from "../../components/NewRide/RideMap";
-import { RideSelectLocations } from "../../components/NewRide/RideSelectLocations";
 import { LinearGradient } from "expo-linear-gradient";
-import NewRideBtn from "../../components/NewRide/NewRideBtn";
+
+import NewRideBtn from "components/User/NewRide/NewRideBtn";
+import { RideMap } from "components/User/NewRide/RideMap";
+import { RideSelectLocations } from "components/User/NewRide/RideSelectLocations";
+import { useMapDispatchActions } from "hooks/slices/useMapDispatchActions";
 
 export const NewRide: FC = () => {
     const {setSelectInMap} = useMapDispatchActions();

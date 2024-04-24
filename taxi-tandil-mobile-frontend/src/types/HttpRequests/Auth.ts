@@ -1,9 +1,9 @@
-import { Roles } from "../slices/authSliceTypes"
+import { RolesType } from "../slices/authSliceTypes";
 
 type LoginPayload = {
     username: string,
     email: string,
-    roles: Roles[],
+    roles: RolesType[],
 }
 
 export type LoginResponseType = {

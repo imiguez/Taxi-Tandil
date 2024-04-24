@@ -5,7 +5,7 @@ import { selectError, selectErrorMessage,
     selectNotifications,
     setNotifications as setNotificationFromCommonSlice,
 } from "../../../slices/commonSlice";
-import { notificationKeyType } from "../../types/slices/commonSliceTypes";
+import { notificationKeyType } from "types/slices/commonSliceTypes";
 
 
 export const useCommonSlice = () => {

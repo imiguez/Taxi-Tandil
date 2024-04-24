@@ -1,10 +1,10 @@
 import { StyleSheet, Text, TouchableHighlight } from 'react-native';
 import React, { FC, useContext, useMemo, useState } from 'react';
-import { useMapDispatchActions } from '../../hooks/slices/useMapDispatchActions';
 import { useNavigation } from '@react-navigation/native';
-import { SocketContext } from '../../hooks/useSocketContext';
-import { useSocketConnectionEvents } from '../../hooks/useSocketConnectionEvents';
-import { useCommonSlice } from '../../hooks/slices/useCommonSlice';
+import { useCommonSlice } from 'hooks/slices/useCommonSlice';
+import { useMapDispatchActions } from 'hooks/slices/useMapDispatchActions';
+import { useSocketConnectionEvents } from 'hooks/useSocketConnectionEvents';
+import { SocketContext } from 'hooks/useSocketContext';
 
 const NewRideBtn: FC = () => {
   const navigation = useNavigation();

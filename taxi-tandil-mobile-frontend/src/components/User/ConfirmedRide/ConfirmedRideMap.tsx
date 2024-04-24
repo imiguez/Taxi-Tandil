@@ -1,10 +1,9 @@
+import { useMapDispatchActions } from "hooks/slices/useMapDispatchActions";
+import { SocketContext } from "hooks/useSocketContext";
 import { FC, useContext, useEffect, useState } from "react";
 import { StyleSheet, View } from "react-native";
-import MapView, { Marker, PROVIDER_GOOGLE } from "react-native-maps";
-import { useMapDispatchActions } from "../../hooks/slices/useMapDispatchActions";
-import { SocketContext } from "../../hooks/useSocketContext";
-import { LatLng } from "../../types/Location";
-import { Coords } from "../../utils/Coords";
+import MapView, { LatLng, Marker, PROVIDER_GOOGLE } from "react-native-maps";
+import { Coords } from "utils/Coords";
 
 export const ConfirmedRideMap: FC = () => {
     const {origin, destination} = useMapDispatchActions();

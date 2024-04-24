@@ -1,14 +1,14 @@
 import { FC, useContext, useEffect, useRef, useState } from "react";
-import { TaxiRideMap } from "../../components/Taxi/Ride/TaxiRideMap";
 import { StyleSheet, Text, View } from "react-native";
 import { LinearGradient } from "expo-linear-gradient";
-import constants from "../../constants";
-import { LocationWithName } from "../../types/Location";
-import { AcceptRideBtn } from "../../components/Taxi/Ride/AcceptRideBtn";
-import { useTaxiDispatchActions } from "../../hooks/slices/useTaxiDispatchActions";
-import { SocketContext } from "../../hooks/useSocketContext";
 import { useNavigation } from "@react-navigation/native";
-import { Coords } from "../../utils/Coords";
+import { windowHeight } from "constants/index";
+import { AcceptRideBtn } from "components/Taxi/Ride/AcceptRideBtn";
+import { TaxiRideMap } from "components/Taxi/Ride/TaxiRideMap";
+import { useTaxiDispatchActions } from "hooks/slices/useTaxiDispatchActions";
+import { SocketContext } from "hooks/useSocketContext";
+import { LocationWithName } from "types/Location";
+import { Coords } from "utils/Coords";
 
 export const AcceptedRide: FC = () => {
     const {socket} = useContext(SocketContext)!;
@@ -70,7 +70,7 @@ export const AcceptedRide: FC = () => {
 
 const styles = StyleSheet.create({
     cardContainer: {
-        height: constants.windowHeight*.45,
+        height: windowHeight*.45,
         width: '100%',
         position: 'absolute',
         bottom: 0,
@@ -96,6 +96,6 @@ const styles = StyleSheet.create({
         width: '100%', 
         height: 40, 
         position: 'absolute', 
-        bottom: (constants.windowHeight*.45) - 30,
+        bottom: (windowHeight*.45) - 30,
     }
 });

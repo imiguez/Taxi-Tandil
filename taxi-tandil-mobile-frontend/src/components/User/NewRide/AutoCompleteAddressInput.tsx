@@ -1,12 +1,11 @@
-import { FC, useEffect, useMemo, useRef, useState } from "react";
+import { FC, useEffect, useRef, useState } from "react";
 import { Keyboard, StyleSheet, View } from "react-native";
 import { GooglePlacesAutocomplete, GooglePlacesAutocompleteRef } from "react-native-google-places-autocomplete";
-import constants from "../../constants";
-import { GOOGLE_MAPS_API_KEY } from "@env";
 import { AutoCompleteRow } from "./AutoCompleteRow";
-import { useMapDispatchActions } from "../../hooks/slices/useMapDispatchActions";
 import { CurrentLocationInBetweenCompo } from "./CurrentLocationInBetweenCompo";
 import { SelectInMapInBetweenCompo } from "./SelectInMapInBetweenCompo";
+import { screenWidth, tandilLocation } from "constants/index";
+import { useMapDispatchActions } from "hooks/slices/useMapDispatchActions";
 
 type AutoCompleteAddressInputProps = {
     placeholder: string,
@@ -54,9 +53,9 @@ export const AutoCompleteAddressInput: FC<AutoCompleteAddressInputProps> = ({pla
           borderWidth: 0,
           borderColor: 'red',
           borderStyle: 'solid',
-          width: constants.screenWidth,
+          width: screenWidth,
           position: 'absolute',
-          left: ((constants.screenWidth-20)*-.12)-10, 
+          left: ((screenWidth-20)*-.12)-10, 
           top: set == 'destination' ? 195 : 245,
         }
       }}
@@ -93,7 +92,7 @@ export const AutoCompleteAddressInput: FC<AutoCompleteAddressInputProps> = ({pla
         components: 'country:ar',
         types: 'address',
         radius: 30000,
-        location: `${constants.tandilLocation.latitude}, ${constants.tandilLocation.longitude}`,
+        location: `${tandilLocation.latitude}, ${tandilLocation.longitude}`,
       }}
       nearbyPlacesAPI="GooglePlacesSearch"
       debounce={1400}
@@ -105,13 +104,13 @@ export const AutoCompleteAddressInput: FC<AutoCompleteAddressInputProps> = ({pla
       renderRow={(data, index) => <AutoCompleteRow data={data} index={index}/>}
       inbetweenCompo={<View style={{
         display: isFocus && !selectInMap ? 'flex' : 'none',
-        width: constants.screenWidth,
+        width: screenWidth,
         position: 'absolute',
         borderWidth: 0,
         borderColor: 'red',
         borderStyle: 'solid',
         top: set=='origin' ? 105 : 55,
-        left: ((constants.screenWidth-20)*-.12) - 10,
+        left: ((screenWidth-20)*-.12) - 10,
       }}>
         <CurrentLocationInBetweenCompo set={set} />
         <SelectInMapInBetweenCompo />

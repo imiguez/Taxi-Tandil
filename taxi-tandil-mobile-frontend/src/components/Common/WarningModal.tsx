@@ -1,6 +1,6 @@
 import { Modal, ScrollView, StyleProp, StyleSheet, Text, TouchableOpacity, View, ViewStyle } from 'react-native'
 import React, { FC, ReactNode } from 'react'
-import constants from '../../constants'
+import { windowHeight } from 'constants/index';
 
 interface WarningModalInterface {
     text: string,
@@ -33,7 +33,7 @@ export default WarningModal
 const styles = StyleSheet.create({
     cardContainer: {
         width: '80%',
-        maxHeight: constants.windowHeight*.60,
+        maxHeight: windowHeight*.60,
         position: 'absolute',
         top: '20%',
         left: '10%',

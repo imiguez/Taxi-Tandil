@@ -1,8 +1,8 @@
+import { useTaxiDispatchActions } from "hooks/slices/useTaxiDispatchActions";
 import { FC } from "react";
 import { StyleSheet, View } from "react-native";
 import MapView, { Marker, PROVIDER_GOOGLE } from "react-native-maps";
-import { useTaxiDispatchActions } from "../../../hooks/slices/useTaxiDispatchActions";
-import { Coords } from "../../../utils/Coords";
+import { Coords } from "utils/Coords";
 
 export const TaxiRideMap: FC = () => {
     

@@ -1,8 +1,8 @@
 import { FC } from "react";
 import { StyleSheet, Text } from "react-native";
 import { TouchableHighlight } from "react-native-gesture-handler";
-import { useMapDispatchActions } from "../../hooks/slices/useMapDispatchActions";
-import constants from "../../constants";
+import { rndLocation1, rndLocation2, screenWidth } from "constants/index";
+import { useMapDispatchActions } from "hooks/slices/useMapDispatchActions";
 
 
 export const InvertOriginDestinationBtn: FC = () => {
@@ -10,8 +10,8 @@ export const InvertOriginDestinationBtn: FC = () => {
     const {invertLocations, setLocation} = useMapDispatchActions();
     
     const autoAssignLocations = () => {
-        setLocation(constants.rndLocation1, 'origin');
-        setLocation(constants.rndLocation2, 'destination');
+        setLocation(rndLocation1, 'origin');
+        setLocation(rndLocation2, 'destination');
     }
 
     return (
@@ -28,6 +28,6 @@ const styles = StyleSheet.create({
         elevation: 8,
         margin: 0,
         height: 60,
-        width: (constants.screenWidth - 20)*.08,
+        width: (screenWidth - 20)*.08,
     },
 });

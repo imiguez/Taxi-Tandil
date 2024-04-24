@@ -1,12 +1,12 @@
 import { FC, useContext, useState } from "react";
 import { StyleSheet, Text, TouchableOpacity, View,  } from "react-native";
-import { SocketContext } from "../../../hooks/useSocketContext";
-import { useExpoTaskManager } from "../../../hooks/useExpoTaskManager";
-import { useTaxiDispatchActions } from "../../../hooks/slices/useTaxiDispatchActions";
 import * as ExpoLocation from 'expo-location';
-import { useSocketConnectionEvents } from "../../../hooks/useSocketConnectionEvents";
-import { LocationPermissions } from "../../../utils/LocationPermissions";
-import { useCommonSlice } from "../../../hooks/slices/useCommonSlice";
+import { useCommonSlice } from "hooks/slices/useCommonSlice";
+import { useTaxiDispatchActions } from "hooks/slices/useTaxiDispatchActions";
+import { useExpoTaskManager } from "hooks/useExpoTaskManager";
+import { useSocketConnectionEvents } from "hooks/useSocketConnectionEvents";
+import { SocketContext } from "hooks/useSocketContext";
+import { LocationPermissions } from "utils/LocationPermissions";
 
 type AvailableBtnProps = {
     setShowPopUp: (show: boolean) => void

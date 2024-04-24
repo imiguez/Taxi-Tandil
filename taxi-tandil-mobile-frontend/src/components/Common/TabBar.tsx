@@ -2,17 +2,17 @@ import { AppState, AppStateStatus, Keyboard, StyleSheet, TouchableOpacity, View 
 import React, { FC, useEffect, useMemo, useState } from 'react';
 import { TabNavigationState } from '@react-navigation/native';
 import { EdgeInsets } from 'react-native-safe-area-context';
-import { MainTabParamList } from '../../types/RootStackParamList';
 import { Ionicons, Fontisto, MaterialIcons } from '@expo/vector-icons';
 import { LinearGradient } from 'expo-linear-gradient';
-import { useAuthDispatchActions } from '../../hooks/slices/useAuthDispatchActions';
-import { useGlobalocketEvents } from '../../hooks/useGlobalSocketEvents';
-import { useMapDispatchActions } from '../../hooks/slices/useMapDispatchActions';
-import { useTaxiDispatchActions } from '../../hooks/slices/useTaxiDispatchActions';
 import * as SecureStore from 'expo-secure-store';
-import { useSocketConnectionEvents } from '../../hooks/useSocketConnectionEvents';
-import { useCommonSlice } from '../../hooks/slices/useCommonSlice';
 import WarningModal from './WarningModal';
+import { useAuthDispatchActions } from 'hooks/slices/useAuthDispatchActions';
+import { useCommonSlice } from 'hooks/slices/useCommonSlice';
+import { useMapDispatchActions } from 'hooks/slices/useMapDispatchActions';
+import { useTaxiDispatchActions } from 'hooks/slices/useTaxiDispatchActions';
+import { useGlobalocketEvents } from 'hooks/useGlobalSocketEvents';
+import { useSocketConnectionEvents } from 'hooks/useSocketConnectionEvents';
+import { MainTabParamList } from 'types/RootStackParamList';
 
 interface TabBarInterface {
   state: TabNavigationState<MainTabParamList>;

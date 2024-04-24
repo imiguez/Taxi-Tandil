@@ -2,7 +2,7 @@ import { FC } from "react";
 import { StyleSheet, View } from "react-native";
 import { InvertOriginDestinationBtn } from "./InvertOriginDestinationBtn";
 import { AutoCompleteAddressInput } from "./AutoCompleteAddressInput";
-import constants from "../../constants";
+import { screenWidth } from "constants/index";
 
 export const RideSelectLocations: FC = () => {
 
@@ -56,7 +56,7 @@ const styles = StyleSheet.create({
     inputsContainer: {
         margin: 0,
         display: 'flex',
-        width: (constants.screenWidth - 20)*.88,
+        width: (screenWidth - 20)*.88,
         minHeight: 100,
     },
     confirmBtnContainer: {

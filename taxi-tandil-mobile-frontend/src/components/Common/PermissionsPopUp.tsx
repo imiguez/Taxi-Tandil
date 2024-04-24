@@ -4,8 +4,8 @@ import { AppState, AppStateStatus } from 'react-native';
 import { FC, useEffect, useMemo, useRef, useState } from 'react';
 import GenericCancelBtn from './GenericCancelBtn';
 import PermissionsBtn from './PermissionsBtn';
-import { LocationPermissions } from '../../utils/LocationPermissions';
-import { useTaxiDispatchActions } from '../../hooks/slices/useTaxiDispatchActions';
+import { useTaxiDispatchActions } from 'hooks/slices/useTaxiDispatchActions';
+import { LocationPermissions } from 'utils/LocationPermissions';
 
 type PermissionsPopUpProps = {
     close: () => void,

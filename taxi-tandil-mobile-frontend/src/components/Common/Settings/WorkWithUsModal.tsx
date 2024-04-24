@@ -1,8 +1,8 @@
 import { Keyboard, StyleSheet, TextInput } from 'react-native';
 import React, { FC, useEffect, useState } from 'react';
 import AreYouSureModal from '../AreYouSureModal';
-import { useHttpRequest } from '../../../hooks/useHttpRequest';
-import { useAuthDispatchActions } from '../../../hooks/slices/useAuthDispatchActions';
+import { useAuthDispatchActions } from 'hooks/slices/useAuthDispatchActions';
+import { useHttpRequest } from 'hooks/useHttpRequest';
 
 interface WorkWithUsModalInterface {
   close: () => void;

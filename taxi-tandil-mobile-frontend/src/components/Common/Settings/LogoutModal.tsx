@@ -1,6 +1,6 @@
 import React, { FC } from 'react';
 import AreYouSureModal from '../AreYouSureModal';
-import { useLogOut } from '../../../hooks/useLogOut';
+import { useLogOut } from 'hooks/useLogOut';
 
 interface LogoutModalInterface {
   close: () => void;

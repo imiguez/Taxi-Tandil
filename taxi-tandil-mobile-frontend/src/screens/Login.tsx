@@ -1,12 +1,12 @@
 import { FC, useEffect, useState } from 'react';
 import { KeyboardAvoidingView, Platform, ScrollView, StyleSheet, Text, TextInput, TouchableHighlight, View } from 'react-native';
 import { useNavigation } from '@react-navigation/native';
-import { useHttpRequest } from '../hooks/useHttpRequest';
-import { useAuthDispatchActions } from '../hooks/slices/useAuthDispatchActions';
-import { input, emptyInput } from '../types/Auth';
-import { initialAuthSliceStateType } from '../types/slices/authSliceTypes';
 import { StackNavigationProp } from '@react-navigation/stack';
-import RootStackParamList from '../types/RootStackParamList';
+import { useAuthDispatchActions } from "hooks/slices/useAuthDispatchActions";
+import { useHttpRequest } from 'hooks/useHttpRequest';
+import { input, emptyInput } from 'types/Auth';
+import RootStackParamList from 'types/RootStackParamList';
+import { initialAuthSliceStateType } from 'types/slices/authSliceTypes';
 
 export const Login: FC = () => {
   const navigation = useNavigation<StackNavigationProp<RootStackParamList>>();

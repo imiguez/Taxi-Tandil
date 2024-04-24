@@ -1,11 +1,11 @@
 import { FC, useContext, useMemo, useState } from "react";
 import { StyleSheet, Text, TouchableHighlight, View } from "react-native";
-import { useMapDispatchActions } from "../../hooks/slices/useMapDispatchActions";
 import { useNavigation } from "@react-navigation/native";
-import { SocketContext } from "../../hooks/useSocketContext";
 import { LinearGradient } from "expo-linear-gradient";
 import { StackNavigationProp } from "@react-navigation/stack";
-import RootStackParamList from "../../types/RootStackParamList";
+import { useMapDispatchActions } from "hooks/slices/useMapDispatchActions";
+import { SocketContext } from "hooks/useSocketContext";
+import RootStackParamList from "types/RootStackParamList";
 
 
 export const ConfirmedRideCard: FC = () => {

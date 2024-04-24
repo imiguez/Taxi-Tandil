@@ -1,12 +1,12 @@
 import { StyleSheet, View } from 'react-native'
 import React from 'react'
-import RideRequestBtn from '../../components/Taxi/Home/RideRequestBtn';
-import PermissionsPopUp from '../../components/Common/PermissionsPopUp';
-import { AvailableBtn } from '../../components/Taxi/Home/AvailableBtn';
-import { useGlobalocketEvents } from '../../hooks/useGlobalSocketEvents';
-import { useCommonSlice } from '../../hooks/slices/useCommonSlice';
-import { NotificationsMap } from '../../constants';
-import BasicNotification from '../../components/Common/Notifications/BasicNotification';
+import { NotificationsMap } from 'constants/index';
+import BasicNotification from 'components/Common/Notifications/BasicNotification';
+import PermissionsPopUp from 'components/Common/PermissionsPopUp';
+import { AvailableBtn } from 'components/Taxi/Home/AvailableBtn';
+import RideRequestBtn from 'components/Taxi/Home/RideRequestBtn';
+import { useCommonSlice } from 'hooks/slices/useCommonSlice';
+import { useGlobalocketEvents } from 'hooks/useGlobalSocketEvents';
 
 const TaxiHome = () => {
     const {

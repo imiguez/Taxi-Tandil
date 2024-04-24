@@ -1,19 +1,19 @@
 import { useContext } from "react";
-import { SocketContext } from "./useSocketContext";
-import { useTaxiDispatchActions } from "./slices/useTaxiDispatchActions";
-import { useExpoTaskManager } from "./useExpoTaskManager";
-import { Ride } from "../types/Location";
-import { BACKGROUND_LOCATION_TASK_NAME } from "../constants";
 import * as TaskManager from "expo-task-manager";
 import * as ExpoLocation from 'expo-location';
 import { useNavigation } from "@react-navigation/native";
-import { useMapDispatchActions } from "./slices/useMapDispatchActions";
-import RootStackParamList from "../types/RootStackParamList";
 import { StackNavigationProp } from "@react-navigation/stack";
+import { SocketContext } from "./useSocketContext";
+import { useTaxiDispatchActions } from "./slices/useTaxiDispatchActions";
+import { useExpoTaskManager } from "./useExpoTaskManager";
+import { useMapDispatchActions } from "./slices/useMapDispatchActions";
 import { useHttpRequest } from "./useHttpRequest";
 import { useSocketConnectionEvents } from "./useSocketConnectionEvents";
 import { useCommonSlice } from "./slices/useCommonSlice";
-import { Coords } from "../utils/Coords";
+import { BACKGROUND_LOCATION_TASK_NAME } from "constants/index";
+import { Ride } from "types/Location";
+import RootStackParamList from "types/RootStackParamList";
+import { Coords } from "utils/Coords";
 
 export const useGlobalocketEvents = () => {
     const {socket} = useContext(SocketContext)!;

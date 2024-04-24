@@ -2,28 +2,21 @@ import React, { FC, useMemo, useRef, useState } from "react";
 import { Platform, SafeAreaView, StyleSheet } from "react-native";
 import MapView, { Details, LatLng, MapMarker, Marker, MarkerDragStartEndEvent, PROVIDER_GOOGLE, Region } from "react-native-maps";
 import { SelectInMapOptions } from "./SelectInMapOptions";
-import constants from "../../constants";
-import { useMapDispatchActions } from "../../hooks/slices/useMapDispatchActions";
 import * as ExpoLocation from 'expo-location';
-import PermissionsPopUp from "../Common/PermissionsPopUp";
 import SelectInMapErrorNotification from "./SelectInMapErrorNotification";
-import { Coords } from "../../utils/Coords";
+import { tandilLocation, screenWidth, windowHeight } from "constants/index";
+import PermissionsPopUp from "components/Common/PermissionsPopUp";
+import { useMapDispatchActions } from "hooks/slices/useMapDispatchActions";
+import { Coords } from "utils/Coords";
 
 export const RideMap: FC = () => {
 
-    const {origin, destination, lastModified, selectInMap, setLocation, focusInput, 
-        setSelectInMap} = useMapDispatchActions();
-    let coords = {
-        latitude: constants.tandilLocation.latitude,
-        longitude: constants.tandilLocation.longitude,
-        latitudeDelta: 0.0922,
-        longitudeDelta: 0.0421,
-    };
+    const {origin, destination, lastModified, selectInMap, setLocation, focusInput, setSelectInMap} = useMapDispatchActions();
     
     const mapRef = useRef<MapView>(null);
     const markerRef = useRef<MapMarker>(null);
     
-    const [mapCoords, setMapCoords] = useState(coords);
+    const [mapCoords, setMapCoords] = useState(tandilLocation);
     const [markerCoords, setMarkerCoords] = useState<LatLng>({
         latitude: 0,
         longitude: 0,
@@ -160,21 +153,15 @@ export const RideMap: FC = () => {
             {showPopUp && <PermissionsPopUp permissionType="foreground" close={() => setShowPopUp(false)} text="Se requiere permiso a la locación para esta funcionalidad."/>}
             <MapView ref={mapRef} style={styles.map} provider={PROVIDER_GOOGLE}
                 toolbarEnabled={false} region={mapCoords}
-                initialRegion={coords} loadingEnabled={true}
+                initialRegion={tandilLocation} loadingEnabled={true}
                 onRegionChangeComplete={handleRegionChangeComplete} >
 
                 {origin?.location && !selectInMap && 
-                    <Marker coordinate={{
-                        latitude: origin.location.latitude,
-                        longitude: origin.location.longitude,
-                    }} title={origin.shortStringLocation}/>
+                    <Marker coordinate={origin.location} title={origin.shortStringLocation}/>
                 }
 
                 {destination?.location && !selectInMap &&
-                    <Marker coordinate={{
-                        latitude: destination.location.latitude,
-                        longitude: destination.location.longitude,
-                    }} title={destination.shortStringLocation}/>
+                    <Marker coordinate={destination.location} title={destination.shortStringLocation}/>
                 }
 
                 {selectInMap && <Marker ref={markerRef}
@@ -194,8 +181,8 @@ const styles = StyleSheet.create({
     mapContainer: {
         position:'absolute',
         top: 110,
-        width: constants.screenWidth,
-        height: (constants.windowHeight)-110,
+        width: screenWidth,
+        height: (windowHeight)-110,
         borderWidth: 0,
         borderColor: 'red',
         borderStyle: 'solid',
