@@ -1,8 +1,8 @@
 import { useContext } from 'react';
-import { useAuthDispatchActions } from './useAuthDispatchActions';
-import { useMapDispatchActions } from './useMapDispatchActions';
+import { useAuthDispatchActions } from './slices/useAuthDispatchActions';
+import { useMapDispatchActions } from './slices/useMapDispatchActions';
 import { SocketContext } from './useSocketContext';
-import { useTaxiDispatchActions } from './useTaxiDispatchActions';
+import { useTaxiDispatchActions } from './slices/useTaxiDispatchActions';
 import { useNavigation } from '@react-navigation/native';
 import { StackNavigationProp } from '@react-navigation/stack';
 import RootStackParamList from '../types/RootStackParamList';
@@ -33,8 +33,11 @@ export const useLogOut = () => {
       }
       // Scaling up in navigations to execute popToTop and navigate to Login screen
       let nav = navigation;
-      while (nav.getState().routeNames.find((v) => v == 'Home') == undefined) {
-        nav = nav.getParent<StackNavigationProp<RootStackParamList>>();
+      let i = true;
+      while (i && nav != undefined &&  nav.getState().routeNames.find((v) => v == 'Home') == undefined) {
+        if (nav.getParent<StackNavigationProp<RootStackParamList>>() == undefined) i = false;
+        else
+          nav = nav.getParent<StackNavigationProp<RootStackParamList>>();
       }
       nav.popToTop();
     },

@@ -3,15 +3,14 @@ import { Platform, SafeAreaView, StyleSheet } from "react-native";
 import MapView, { Details, LatLng, MapMarker, Marker, MarkerDragStartEndEvent, PROVIDER_GOOGLE, Region } from "react-native-maps";
 import { SelectInMapOptions } from "./SelectInMapOptions";
 import constants from "../../constants";
-import { useMapDispatchActions } from "../../hooks/useMapDispatchActions";
-import { useCoords } from "../../hooks/useCoords";
+import { useMapDispatchActions } from "../../hooks/slices/useMapDispatchActions";
 import * as ExpoLocation from 'expo-location';
 import PermissionsPopUp from "../Common/PermissionsPopUp";
 import SelectInMapErrorNotification from "./SelectInMapErrorNotification";
+import { Coords } from "../../utils/Coords";
 
 export const RideMap: FC = () => {
 
-    const {reverseGeocode} = useCoords();
     const {origin, destination, lastModified, selectInMap, setLocation, focusInput, 
         setSelectInMap} = useMapDispatchActions();
     let coords = {
@@ -136,7 +135,7 @@ export const RideMap: FC = () => {
                     return;
             }
         }
-        let location = await reverseGeocode(markerCoords);
+        let location = await Coords.reverseGeocode(markerCoords);
         if (location == undefined || location.longStringLocation.includes('null')) {
             setSelectInMapError(true);
             setTimeout(() => {

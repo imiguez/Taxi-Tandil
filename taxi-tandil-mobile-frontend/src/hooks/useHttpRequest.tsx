@@ -1,5 +1,5 @@
 import { useNavigation } from "@react-navigation/native";
-import { useAuthDispatchActions } from "./useAuthDispatchActions";
+import { useAuthDispatchActions } from "./slices/useAuthDispatchActions";
 import { HttpError } from "../utils/HttpError";
 import { useLogOut } from "./useLogOut";
 

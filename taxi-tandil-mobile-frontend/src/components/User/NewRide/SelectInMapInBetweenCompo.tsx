@@ -1,6 +1,6 @@
 import { FC } from "react";
 import { Keyboard, StyleSheet, Text, TouchableHighlight } from "react-native";
-import { useMapDispatchActions } from "../../hooks/useMapDispatchActions";
+import { useMapDispatchActions } from "../../hooks/slices/useMapDispatchActions";
 
 
 export const SelectInMapInBetweenCompo: FC = () => {

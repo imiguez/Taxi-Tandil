@@ -39,6 +39,7 @@ const constants = {
 export const NotificationsMap: Map<notificationKeyType, string> = new Map<notificationKeyType, string>([
     ['User cancelled ride', 'El usuario canceló el viaje' ],
     ['Taxi cancelled ride', 'El taxi/remis canceló el viaje.'],
+    ['Taxi connection failed', 'Hubo un error, intente nuevamente.'],
 ]);
 
 export const BACKGROUND_LOCATION_TASK_NAME = "BACKGROUND_LOCATION_TASK";

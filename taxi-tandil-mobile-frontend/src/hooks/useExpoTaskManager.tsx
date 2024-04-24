@@ -1,7 +1,7 @@
 import * as TaskManager from "expo-task-manager";
 import * as ExpoLocation from "expo-location";
 import { BACKGROUND_LOCATION_TASK_NAME } from "../constants";
-import { useTaxiDispatchActions } from "./useTaxiDispatchActions";
+import { useTaxiDispatchActions } from "./slices/useTaxiDispatchActions";
 import { useRef } from "react";
 
 

@@ -1,6 +1,6 @@
 import { FC, useEffect } from "react";
 import { StyleSheet, View } from "react-native";
-import { useMapDispatchActions } from "../../hooks/useMapDispatchActions";
+import { useMapDispatchActions } from "../../hooks/slices/useMapDispatchActions";
 import { RideMap } from "../../components/NewRide/RideMap";
 import { RideSelectLocations } from "../../components/NewRide/RideSelectLocations";
 import { LinearGradient } from "expo-linear-gradient";

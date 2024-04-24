@@ -1,18 +1,17 @@
 import { FC, useContext, useEffect, useRef, useState } from "react";
-import { TaxiRideMap } from "../../components/Taxi/TaxiRideMap";
+import { TaxiRideMap } from "../../components/Taxi/Ride/TaxiRideMap";
 import { StyleSheet, Text, View } from "react-native";
 import { LinearGradient } from "expo-linear-gradient";
 import constants from "../../constants";
-import { useCoords } from "../../hooks/useCoords";
 import { LocationWithName } from "../../types/Location";
-import { AcceptRideBtn } from "../../components/Taxi/AcceptRideBtn";
-import { useTaxiDispatchActions } from "../../hooks/useTaxiDispatchActions";
+import { AcceptRideBtn } from "../../components/Taxi/Ride/AcceptRideBtn";
+import { useTaxiDispatchActions } from "../../hooks/slices/useTaxiDispatchActions";
 import { SocketContext } from "../../hooks/useSocketContext";
 import { useNavigation } from "@react-navigation/native";
+import { Coords } from "../../utils/Coords";
 
 export const AcceptedRide: FC = () => {
     const {socket} = useContext(SocketContext)!;
-    const {reverseGeocode} = useCoords();
     const [origin, setOrigin] = useState<LocationWithName | null>();
     const [destination, setDestination] = useState<LocationWithName | null>();
     const {ride, username, rideStatus} = useTaxiDispatchActions();
@@ -33,8 +32,8 @@ export const AcceptedRide: FC = () => {
         socket!.on('user-cancel-ride', onUserCancelRide);
         const rideReverseGeocoding = async () => {
             // Can be optimized storing the location once in redux state
-            setOrigin(await reverseGeocode(ride?.origin?.location!));
-            setDestination(await reverseGeocode(ride?.destination?.location!));
+            setOrigin(await Coords.reverseGeocode(ride?.origin?.location!));
+            setDestination(await Coords.reverseGeocode(ride?.destination?.location!));
         }
         rideReverseGeocoding();
         return () => {

@@ -1,18 +1,17 @@
 import { FC } from "react";
 import { StyleSheet, View } from "react-native";
 import MapView, { Marker, PROVIDER_GOOGLE } from "react-native-maps";
-import { useCoords } from "../../hooks/useCoords";
-import { useTaxiDispatchActions } from "../../hooks/useTaxiDispatchActions";
+import { useTaxiDispatchActions } from "../../../hooks/slices/useTaxiDispatchActions";
+import { Coords } from "../../../utils/Coords";
 
 export const TaxiRideMap: FC = () => {
     
-    const {calculateIntermediateCoord} = useCoords();
     const {currentLocation, ride} = useTaxiDispatchActions();
     let initialRegion;
     // When the user cancel the ride, the ride from useTaxiDispatchActions will be null
     // and this component will still be mounted for milliseconds, so there are ride checks.
     if (ride) {
-        initialRegion = calculateIntermediateCoord(ride?.origin?.location!, ride?.destination?.location!);
+        initialRegion = Coords.calculateIntermediateCoord(ride?.origin?.location!, ride?.destination?.location!);
     }
 
     return (

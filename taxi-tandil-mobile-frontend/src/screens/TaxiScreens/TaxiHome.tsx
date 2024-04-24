@@ -1,12 +1,12 @@
 import { StyleSheet, View } from 'react-native'
 import React from 'react'
-import RideRequestBtn from '../../components/Taxi/RideRequestBtn';
+import RideRequestBtn from '../../components/Taxi/Home/RideRequestBtn';
 import PermissionsPopUp from '../../components/Common/PermissionsPopUp';
-import { AvailableBtn } from '../../components/Taxi/AvailableBtn';
+import { AvailableBtn } from '../../components/Taxi/Home/AvailableBtn';
 import { useGlobalocketEvents } from '../../hooks/useGlobalSocketEvents';
 import { useCommonSlice } from '../../hooks/slices/useCommonSlice';
-import RideCancelledNotification from '../../components/Common/Notifications/RideCancelledNotification';
 import { NotificationsMap } from '../../constants';
+import BasicNotification from '../../components/Common/Notifications/BasicNotification';
 
 const TaxiHome = () => {
     const {
@@ -22,8 +22,13 @@ const TaxiHome = () => {
         
         {ride && <RideRequestBtn onPress={onPressRideRequest}/>}
 
-        {notifications != undefined && notifications.find(n => n == 'User cancelled ride') != undefined &&
-            <RideCancelledNotification text={NotificationsMap.get('User cancelled ride') ?? ''} onClose={() => removeNotification('User cancelled ride')}/>
+        {notifications != undefined && 
+            notifications.map((notification, key) => {
+                if (notification == 'User cancelled ride')
+                    return <BasicNotification key={key} text={NotificationsMap.get('User cancelled ride') ?? ''} onClose={() => removeNotification('User cancelled ride')} additionalStyles={{backgroundColor: '#f9595980'}}/>
+                if (notification == 'Taxi connection failed')
+                    return <BasicNotification key={key} text={NotificationsMap.get('Taxi connection failed') ?? ''} onClose={() => removeNotification('Taxi connection failed')} additionalStyles={{backgroundColor: '#f9595980'}}/>;
+            })
         }
 
         <AvailableBtn setShowPopUp={setPopUp} />

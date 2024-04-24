@@ -1,13 +1,13 @@
 import { FC, MutableRefObject, useContext } from "react";
-import { SocketContext } from "../../hooks/useSocketContext";
-import { useExpoTaskManager } from "../../hooks/useExpoTaskManager";
+import { SocketContext } from "../../../hooks/useSocketContext";
+import { useExpoTaskManager } from "../../../hooks/useExpoTaskManager";
 import { StyleSheet, Text, TouchableHighlight } from "react-native";
 import { useNavigation } from "@react-navigation/native";
-import { useTaxiDispatchActions } from "../../hooks/useTaxiDispatchActions";
-import { useCoords } from "../../hooks/useCoords";
-import { useAuthDispatchActions } from "../../hooks/useAuthDispatchActions";
-import { useGlobalocketEvents } from "../../hooks/useGlobalSocketEvents";
-import { useHttpRequest } from "../../hooks/useHttpRequest";
+import { useTaxiDispatchActions } from "../../../hooks/slices/useTaxiDispatchActions";
+import { useAuthDispatchActions } from "../../../hooks/slices/useAuthDispatchActions";
+import { useGlobalocketEvents } from "../../../hooks/useGlobalSocketEvents";
+import { useHttpRequest } from "../../../hooks/useHttpRequest";
+import { Coords } from "../../../utils/Coords";
 
 type Props = {
     canGoBack: MutableRefObject<boolean>
@@ -18,7 +18,6 @@ export const AcceptRideBtn: FC<Props> = ({canGoBack}) => {
     const {startBackgroundUpdate, stopBackgroundUpdate, stopForegroundUpdate} = useExpoTaskManager();
     const navigation = useNavigation();
     const {userId, username, ride, setRide, setRideStatus, rideStatus, cleanUp} = useTaxiDispatchActions();
-    const {getLatLngCurrentPosition} = useCoords();
     const {firstName, lastName, id} = useAuthDispatchActions();
     const {updateLocationToBeAvailable} = useGlobalocketEvents();
     const {postRequest} = useHttpRequest();
@@ -40,7 +39,7 @@ export const AcceptRideBtn: FC<Props> = ({canGoBack}) => {
     }
     
     const handleNewRideRequest = async (accepted: boolean) => {
-        const location = await getLatLngCurrentPosition();
+        const location = await Coords.getLatLngCurrentPosition();
         if (!location) return;
         canGoBack.current = true;
         if (accepted) {

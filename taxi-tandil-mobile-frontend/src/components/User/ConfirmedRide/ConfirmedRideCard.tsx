@@ -1,6 +1,6 @@
 import { FC, useContext, useMemo, useState } from "react";
 import { StyleSheet, Text, TouchableHighlight, View } from "react-native";
-import { useMapDispatchActions } from "../../hooks/useMapDispatchActions";
+import { useMapDispatchActions } from "../../hooks/slices/useMapDispatchActions";
 import { useNavigation } from "@react-navigation/native";
 import { SocketContext } from "../../hooks/useSocketContext";
 import { LinearGradient } from "expo-linear-gradient";

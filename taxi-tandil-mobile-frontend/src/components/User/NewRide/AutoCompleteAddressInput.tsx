@@ -4,7 +4,7 @@ import { GooglePlacesAutocomplete, GooglePlacesAutocompleteRef } from "react-nat
 import constants from "../../constants";
 import { GOOGLE_MAPS_API_KEY } from "@env";
 import { AutoCompleteRow } from "./AutoCompleteRow";
-import { useMapDispatchActions } from "../../hooks/useMapDispatchActions";
+import { useMapDispatchActions } from "../../hooks/slices/useMapDispatchActions";
 import { CurrentLocationInBetweenCompo } from "./CurrentLocationInBetweenCompo";
 import { SelectInMapInBetweenCompo } from "./SelectInMapInBetweenCompo";
 
@@ -88,7 +88,7 @@ export const AutoCompleteAddressInput: FC<AutoCompleteAddressInputProps> = ({pla
           setLocation(null, set);
       }}
       query={{
-        key: GOOGLE_MAPS_API_KEY,
+        key: process.env.EXPO_PUBLIC_GOOGLE_MAPS_API_KEY,
         language: "es",
         components: 'country:ar',
         types: 'address',

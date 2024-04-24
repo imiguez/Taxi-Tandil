@@ -1,9 +1,11 @@
-import { Button, Linking, Modal, StyleSheet, Text, View } from 'react-native'
+import { Linking, Modal, StyleSheet, Text, View } from 'react-native'
 import * as ExpoLocation from 'expo-location';
 import { AppState, AppStateStatus } from 'react-native';
 import { FC, useEffect, useMemo, useRef, useState } from 'react';
 import GenericCancelBtn from './GenericCancelBtn';
 import PermissionsBtn from './PermissionsBtn';
+import { LocationPermissions } from '../../utils/LocationPermissions';
+import { useTaxiDispatchActions } from '../../hooks/slices/useTaxiDispatchActions';
 
 type PermissionsPopUpProps = {
     close: () => void,
@@ -17,6 +19,7 @@ type PermissionsPopUpProps = {
 const PermissionsPopUp: FC<PermissionsPopUpProps> = ({close, text, permissionType}) => {
     const appState = useRef(AppState.currentState);
     const [locationStatus, setLocationStatus] = useState<ExpoLocation.LocationPermissionResponse>();
+    const { setPopUp } = useTaxiDispatchActions();
 
     useEffect(() => {
         const subscription = AppState.addEventListener('change', handleAppStateChange);
@@ -46,21 +49,33 @@ const PermissionsPopUp: FC<PermissionsPopUpProps> = ({close, text, permissionTyp
         }
     }, [locationStatus]);
 
+    const onActivatePermissions = async () => {
+        try {
+            const fgPermissions = await LocationPermissions.requestForegroundPermissions();
+            if (fgPermissions.granted) {
+                const bgPermissions = await LocationPermissions.requestBackgroundPermissions();
+                if (bgPermissions.granted) {
+                    if (await LocationPermissions.requestGpsEnable()) 
+                        setPopUp(false);
+                    else 
+                        return;
+                }
+            }
+
+            await Linking.openSettings();
+
+        } catch (error) {
+            console.log('catch', error);
+        }
+    }
+
   return (
     <Modal animationType='slide' transparent onRequestClose={close}>
         <View style={styles.cardContainer}>
             <Text style={styles.text}>{text}</Text>
             <View style={styles.btnsContainer}>
                 <GenericCancelBtn onPress={close}/>
-                <PermissionsBtn onPress={async () => {
-                    try {
-                        let gpsActivated = await ExpoLocation.hasServicesEnabledAsync();
-                        if (gpsActivated)
-                            await Linking.openSettings()
-                        else
-                            await ExpoLocation.getCurrentPositionAsync().catch();
-                    } catch(e) {}
-                }} text='Activar permisos'/>
+                <PermissionsBtn onPress={onActivatePermissions} text='Activar permisos'/>
             </View>
         </View>
     </Modal>

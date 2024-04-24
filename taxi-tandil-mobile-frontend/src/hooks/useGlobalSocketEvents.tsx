@@ -1,19 +1,19 @@
 import { useContext } from "react";
-import { useCoords } from "./useCoords";
 import { SocketContext } from "./useSocketContext";
-import { useTaxiDispatchActions } from "./useTaxiDispatchActions";
+import { useTaxiDispatchActions } from "./slices/useTaxiDispatchActions";
 import { useExpoTaskManager } from "./useExpoTaskManager";
 import { Ride } from "../types/Location";
 import { BACKGROUND_LOCATION_TASK_NAME } from "../constants";
 import * as TaskManager from "expo-task-manager";
 import * as ExpoLocation from 'expo-location';
 import { useNavigation } from "@react-navigation/native";
-import { useMapDispatchActions } from "./useMapDispatchActions";
+import { useMapDispatchActions } from "./slices/useMapDispatchActions";
 import RootStackParamList from "../types/RootStackParamList";
 import { StackNavigationProp } from "@react-navigation/stack";
 import { useHttpRequest } from "./useHttpRequest";
 import { useSocketConnectionEvents } from "./useSocketConnectionEvents";
 import { useCommonSlice } from "./slices/useCommonSlice";
+import { Coords } from "../utils/Coords";
 
 export const useGlobalocketEvents = () => {
     const {socket} = useContext(SocketContext)!;
@@ -23,7 +23,6 @@ export const useGlobalocketEvents = () => {
     const setTaxiRideStatus = useTaxiDispatchActions().setRideStatus;
     const taxiCleanUp = useTaxiDispatchActions().cleanUp;
     const {startBackgroundUpdate, stopBackgroundUpdate, startForegroundUpdate, stopForegroundUpdate} = useExpoTaskManager();
-    const {getLatLngCurrentPosition} = useCoords();
     const navigation = useNavigation<StackNavigationProp<RootStackParamList>>();
     const {putRequest} = useHttpRequest();
     const {reconnect} = useSocketConnectionEvents();
@@ -47,7 +46,7 @@ export const useGlobalocketEvents = () => {
         if (role === 'taxi') {
             setRide(ride, foreingId, null);
             setTaxiRideStatus(arrived ? 'arrived' : 'accepted');
-            const coords = await getLatLngCurrentPosition();
+            const coords = await Coords.getLatLngCurrentPosition();
             setCurrentLocation(coords!);
             navigation.navigate('Main', {screen: 'Taxi', params: {screen: 'AcceptedRide'}});
         }
@@ -58,7 +57,7 @@ export const useGlobalocketEvents = () => {
 //-------------------------------------- Taxis Functions ------------------------------------
 
     const onUpdateTaxisLocation = async (userId: string, username: string) => {
-        const taxiCoords = await getLatLngCurrentPosition();
+        const taxiCoords = await Coords.getLatLngCurrentPosition();
         if (!taxiCoords) {
             setPopUp(true);
             return;
@@ -95,7 +94,7 @@ export const useGlobalocketEvents = () => {
     }
 
     const updateLocationToBeAvailable = async () => {
-        const taxiCoords = await getLatLngCurrentPosition();
+        const taxiCoords = await Coords.getLatLngCurrentPosition();
         socket!.emit('location-updated-to-be-available', {location: taxiCoords});
         console.log('emmitting location-updated-to-be-available');
     }

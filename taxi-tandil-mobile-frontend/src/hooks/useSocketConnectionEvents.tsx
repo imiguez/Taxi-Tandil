@@ -1,13 +1,13 @@
 import { useContext } from 'react';
 import { Socket, io } from 'socket.io-client';
-import { useAuthDispatchActions } from './useAuthDispatchActions';
+import { useAuthDispatchActions } from './slices/useAuthDispatchActions';
 import { useHttpRequest } from './useHttpRequest';
 import { SocketContext } from './useSocketContext';
 import { useNavigation } from '@react-navigation/native';
 import { LatLng, Ride } from '../types/Location';
-import { useTaxiDispatchActions } from './useTaxiDispatchActions';
+import { useTaxiDispatchActions } from './slices/useTaxiDispatchActions';
 import { useCommonSlice } from './slices/useCommonSlice';
-import { useMapDispatchActions } from './useMapDispatchActions';
+import { useMapDispatchActions } from './slices/useMapDispatchActions';
 
 interface ConnectionOptions {
   transports: string[],
@@ -30,7 +30,7 @@ export const useSocketConnectionEvents = () => {
   const { getNewAccessToken } = useHttpRequest();
   const { userId } = useTaxiDispatchActions();
   const { setRideStatus } = useMapDispatchActions();
-  const { setError } = useCommonSlice();
+  const { setError, removeNotification } = useCommonSlice();
 
   const connectionOptions = {
     transports: ['websocket'],
@@ -91,8 +91,12 @@ export const useSocketConnectionEvents = () => {
       },
     };
     const s = io(process.env.EXPO_PUBLIC_BASE_URL!, options);
-    onConnectionSuccess(s, onSuccess);
-    onConnectionError(s, options, onSuccess, onError);
+    const onConnect = () => {
+      onSuccess();
+      removeNotification('Taxi connection failed');
+    }
+    onConnectionSuccess(s, onConnect);
+    onConnectionError(s, options, onConnect, onError);
   };
 
   const connectAsUser = (ride: Ride) => {

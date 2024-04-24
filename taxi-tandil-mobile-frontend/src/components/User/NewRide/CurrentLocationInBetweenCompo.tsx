@@ -1,8 +1,8 @@
 import { FC } from "react";
 import { Keyboard, Linking, StyleSheet, Text, TouchableHighlight } from "react-native";
-import { useMapDispatchActions } from "../../hooks/useMapDispatchActions";
+import { useMapDispatchActions } from "../../hooks/slices/useMapDispatchActions";
 import * as ExpoLocation from 'expo-location';
-import { useCoords } from "../../hooks/useCoords";
+import { Coords } from "../../utils/Coords";
 
 type CurrentLocationInBetweenCompoProps = {
     set: 'origin' | 'destination',
@@ -14,7 +14,6 @@ export const CurrentLocationInBetweenCompo: FC<CurrentLocationInBetweenCompoProp
 
     const {setLocation} = useMapDispatchActions();
     const [status, requestPermission, getForegroundPermissions] = ExpoLocation.useForegroundPermissions();
-    const {getFullCurrentPosition} = useCoords();
 
     const onPressedBtn = async () => {
         Keyboard.dismiss();
@@ -31,7 +30,7 @@ export const CurrentLocationInBetweenCompo: FC<CurrentLocationInBetweenCompoProp
             console.log('Permission to access location was denied');
             return;
             }
-            let location = await getFullCurrentPosition();
+            let location = await Coords.getFullCurrentPosition();
             if (location == null) {
                 console.log(`Error: Current Location is null`);
                 return;

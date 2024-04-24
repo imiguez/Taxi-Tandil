@@ -1,10 +1,8 @@
 import * as ExpoLocation from 'expo-location';
 import { LatLng } from "../types/Location";
 
-
-export const useCoords = () => {
-
-    const reverseGeocode = async (coord: LatLng) => {
+export class Coords {
+    public static reverseGeocode = async (coord: LatLng) => {
         try {
             let value = await ExpoLocation.reverseGeocodeAsync(coord);
             let longStringLocationValue = `${value[0].street} ${value[0].streetNumber}, ${value[0].city}, ${value[0].region}, ${value[0].country}`;
@@ -18,7 +16,7 @@ export const useCoords = () => {
         }
     }
 
-    const getLatLngCurrentPosition = async () => {
+    public static getLatLngCurrentPosition = async () => {
         try {
             const {latitude, longitude} = (await ExpoLocation.getCurrentPositionAsync({accuracy: ExpoLocation.Accuracy.Highest})).coords;
             return {
@@ -30,8 +28,8 @@ export const useCoords = () => {
         }
     }
 
-    const getFullCurrentPosition = async () => {
-        let currentLocation = await getLatLngCurrentPosition();
+    public static getFullCurrentPosition = async () => {
+        let currentLocation = await this.getLatLngCurrentPosition();
         if (currentLocation == undefined) {
             console.log(`getFullCurrentPosition: currentLocation is undefined`);
             return;
@@ -40,7 +38,7 @@ export const useCoords = () => {
             latitude: currentLocation.latitude, 
             longitude: currentLocation.longitude
         };
-        let location = await reverseGeocode(param);
+        let location = await this.reverseGeocode(param);
         if (location == undefined) {
             console.log(`getFullCurrentPosition: reverse geocode return undefined`);
             return;
@@ -49,20 +47,20 @@ export const useCoords = () => {
         return location;
     }
 
-    const calculateIntermediateCoord = (coord1: LatLng, coord2: LatLng) => {
+    public static calculateIntermediateCoord = (coord1: LatLng, coord2: LatLng) => {
         let lat1 = coord1.latitude;
         let lon1 = coord1.longitude;
         let lat2 = coord2.latitude;
         let lon2 = coord2.longitude;
 
         // Calculate deltas
-        let {latitudeDelta, longitudeDelta} = calculateDeltas(lat1, lon1, lat2, lon2);
+        let {latitudeDelta, longitudeDelta} = this.calculateDeltas(lat1, lon1, lat2, lon2);
 
         // Convert degrees to radians
-        lat1 = degToRad(lat1);
-        lon1 = degToRad(lon1);
-        lat2 = degToRad(lat2);
-        lon2 = degToRad(lon2);
+        lat1 = this.degToRad(lat1);
+        lon1 = this.degToRad(lon1);
+        lat2 = this.degToRad(lat2);
+        lon2 = this.degToRad(lon2);
       
         // Calculate cartesian coords for lat/long
         const x1 = Math.cos(lat1) * Math.cos(lon1);
@@ -84,14 +82,14 @@ export const useCoords = () => {
         const lat3 = Math.atan2(z3, hip);
       
         // Convert radians to degrees
-        const latitude = radToDeg(lat3);
-        const longitude = radToDeg(lon3);
+        const latitude = this.radToDeg(lat3);
+        const longitude = this.radToDeg(lon3);
       
         return {latitude, longitude, latitudeDelta, longitudeDelta};
     }
 
 
-    const calculateDistances = (location1: LatLng, location2: LatLng) => {
+    public static calculateDistances = (location1: LatLng, location2: LatLng) => {
         const lat1 = location1.latitude;
         const lon1 = location1.longitude;
         const lat2 = location2.latitude;
@@ -99,10 +97,10 @@ export const useCoords = () => {
         // Earth radius in km
         const earthRad = 6371;
     
-        const latitud1Rad = degToRad(lat1);
-        const longitud1Rad = degToRad(lon1);
-        const latitud2Rad = degToRad(lat2);
-        const longitud2Rad = degToRad(lon2);
+        const latitud1Rad = this.degToRad(lat1);
+        const longitud1Rad = this.degToRad(lon1);
+        const latitud2Rad = this.degToRad(lat2);
+        const longitud2Rad = this.degToRad(lon2);
     
         const difLatitud = latitud2Rad - latitud1Rad;
         const difLongitud = longitud2Rad - longitud1Rad;
@@ -118,7 +116,7 @@ export const useCoords = () => {
         return distance;
     }
 
-    const calculateDeltas = (lat1: number, lon1: number, lat2: number, lon2: number, margen = 0.01) => {
+    public static calculateDeltas = (lat1: number, lon1: number, lat2: number, lon2: number, margen = 0.01) => {
         // Find the max & min lat
         const minLat = Math.min(lat1, lat2);
         const maxLat = Math.max(lat1, lat2);
@@ -134,16 +132,12 @@ export const useCoords = () => {
         return { latitudeDelta, longitudeDelta };
       }
       
-    const degToRad = (degrees: number) => {
+    public static degToRad = (degrees: number) => {
         return (degrees * Math.PI) / 180;
     }
     
-    const radToDeg = (radians: number) => {
+    public static radToDeg = (radians: number) => {
         return (radians * 180) / Math.PI;
     }
 
-    return {
-        calculateIntermediateCoord, reverseGeocode, calculateDistances,
-        getLatLngCurrentPosition, getFullCurrentPosition
-    };
-};
+}

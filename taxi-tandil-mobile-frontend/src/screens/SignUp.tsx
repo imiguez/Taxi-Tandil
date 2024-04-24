@@ -2,7 +2,7 @@ import { KeyboardAvoidingView, Platform, ScrollView, StyleSheet, Text, TextInput
 import React, { useState } from 'react';
 import { useNavigation } from '@react-navigation/native';
 import { useHttpRequest } from '../hooks/useHttpRequest';
-import { useAuthDispatchActions } from '../hooks/useAuthDispatchActions';
+import { useAuthDispatchActions } from '../hooks/slices/useAuthDispatchActions';
 import { input, emptyInput } from '../types/Auth';
 import { initialAuthSliceStateType } from '../types/slices/authSliceTypes';
 import { StackNavigationProp } from '@react-navigation/stack';
@@ -15,7 +15,7 @@ export const SignUp = () => {
   const [formEmail, setFormEmail] = useState<input>(emptyInput);
   const [formPassword, setFormPassword] = useState<input>(emptyInput);
   const [formConfirmPassword, setFormConfirmPassword] = useState<input>(emptyInput);
-  const { setUserAuthData } = useAuthDispatchActions();
+  const { setUserAuthData, storeAuthentication } = useAuthDispatchActions();
   const { postRequest } = useHttpRequest();
   const [serverMsg, setServerMsg] = useState<string>('');
 
@@ -71,6 +71,7 @@ export const SignUp = () => {
       setFormConfirmPassword(emptyInput);
       setServerMsg('');
       setUserAuthData(data);
+      storeAuthentication(data);
       navigation.navigate('Main', { screen: 'Home', params: { screen: 'NewRide' } });
     } catch (error: any) {
       console.log(`error from catch: ${error}`);

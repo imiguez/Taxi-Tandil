@@ -1,6 +1,5 @@
 import { useDispatch, useSelector } from "react-redux";
-import { LatLng, Ride } from "../types/Location";
-import { useCoords } from "./useCoords";
+import { LatLng, Ride } from "../../types/Location";
 import { selectCurrentLocation, selectRide, selectUserId, setUserId, selectAvailable,
     setRide as setRideFromTaxiRideSlice, 
     setCurrentLocation as setCurrentLocationFromTaxiRideSlice, 
@@ -8,11 +7,11 @@ import { selectCurrentLocation, selectRide, selectUserId, setUserId, selectAvail
     setRideStatus as setRideStatusFromTaxiRideSlice, 
     setPopUp as setPopUpFromTaxiRideSlice,
     selectRideStatus, setUsername, selectUsername, selectPopUp,
-} from "../../slices/taxiRideSlice";
-import { initialTaxiRideSliceStateType } from "../types/slices/taxiRideSliceTypes";
+} from "../../../slices/taxiRideSlice";
+import { initialTaxiRideSliceStateType } from "../../types/slices/taxiRideSliceTypes";
+import { Coords } from "../../utils/Coords";
 
 export const useTaxiDispatchActions = () => {
-    const {reverseGeocode} = useCoords();
     const dispatch = useDispatch();
     const ride = useSelector(selectRide);
     const userId = useSelector(selectUserId);
@@ -37,8 +36,8 @@ export const useTaxiDispatchActions = () => {
             dispatch(setUsername(null));
             return;
         }
-        let origin = await reverseGeocode(ride.origin);
-        let destination = await reverseGeocode(ride.destination);
+        let origin = await Coords.reverseGeocode(ride.origin);
+        let destination = await Coords.reverseGeocode(ride.destination);
         dispatch(setRideFromTaxiRideSlice({
             origin: origin,
             destination: destination

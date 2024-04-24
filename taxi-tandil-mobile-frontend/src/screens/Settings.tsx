@@ -1,6 +1,6 @@
 import { FC, useRef, useState } from "react";
 import { StyleSheet, Text, TouchableOpacity, View } from "react-native";
-import { useAuthDispatchActions } from "../hooks/useAuthDispatchActions";
+import { useAuthDispatchActions } from "../hooks/slices/useAuthDispatchActions";
 import { Ionicons, FontAwesome } from '@expo/vector-icons';
 import WorkWithUsModal from "../components/Common/Settings/WorkWithUsModal";
 import LogoutModal from "../components/Common/Settings/LogoutModal";

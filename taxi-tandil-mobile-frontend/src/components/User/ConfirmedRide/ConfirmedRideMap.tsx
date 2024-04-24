@@ -1,15 +1,14 @@
 import { FC, useContext, useEffect, useState } from "react";
 import { StyleSheet, View } from "react-native";
 import MapView, { Marker, PROVIDER_GOOGLE } from "react-native-maps";
-import { useCoords } from "../../hooks/useCoords";
-import { useMapDispatchActions } from "../../hooks/useMapDispatchActions";
+import { useMapDispatchActions } from "../../hooks/slices/useMapDispatchActions";
 import { SocketContext } from "../../hooks/useSocketContext";
 import { LatLng } from "../../types/Location";
+import { Coords } from "../../utils/Coords";
 
 export const ConfirmedRideMap: FC = () => {
     const {origin, destination} = useMapDispatchActions();
     const {socket} = useContext(SocketContext)!;
-    const {calculateIntermediateCoord} = useCoords();
     const [taxi, setTaxi] = useState<{
         location: LatLng,
         name: string,
@@ -44,7 +43,7 @@ export const ConfirmedRideMap: FC = () => {
         longitude: destination?.location.longitude!,
     };
 
-    let middleCoord = calculateIntermediateCoord(originCoord, destinationCoord);
+    let middleCoord = Coords.calculateIntermediateCoord(originCoord, destinationCoord);
 
     let initialRegion = {
         latitude: middleCoord.latitude,
