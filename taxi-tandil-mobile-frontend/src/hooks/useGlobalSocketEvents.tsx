@@ -1,6 +1,5 @@
 import { useContext } from "react";
 import * as TaskManager from "expo-task-manager";
-import * as ExpoLocation from 'expo-location';
 import { useNavigation } from "@react-navigation/native";
 import { StackNavigationProp } from "@react-navigation/stack";
 import { SocketContext } from "./useSocketContext";
@@ -11,15 +10,16 @@ import { useHttpRequest } from "./useHttpRequest";
 import { useSocketConnectionEvents } from "./useSocketConnectionEvents";
 import { useCommonSlice } from "./slices/useCommonSlice";
 import { BACKGROUND_LOCATION_TASK_NAME } from "constants/index";
-import { Ride } from "types/Location";
+import { LatLng, Ride } from "types/Location";
 import RootStackParamList from "types/RootStackParamList";
 import { Coords } from "utils/Coords";
+import { LocationPermissions } from "@utils/LocationPermissions";
 
 export const useGlobalocketEvents = () => {
     const {socket} = useContext(SocketContext)!;
     const {setRideStatus, setTaxiInfo, rideStatus, setLocation} = useMapDispatchActions();
     const mapCleanUp = useMapDispatchActions().cleanUp;
-    const {setRide, userId, ride, setCurrentLocation, popUp, setPopUp} = useTaxiDispatchActions();
+    const {setRide, userId, ride, setCurrentLocation, popUp, setPopUp, setAvailable} = useTaxiDispatchActions();
     const setTaxiRideStatus = useTaxiDispatchActions().setRideStatus;
     const taxiCleanUp = useTaxiDispatchActions().cleanUp;
     const {startBackgroundUpdate, stopBackgroundUpdate, startForegroundUpdate, stopForegroundUpdate} = useExpoTaskManager();
@@ -80,12 +80,7 @@ export const useGlobalocketEvents = () => {
 
     const onPressRideRequest = async () => {
         try {
-            if (!(await ExpoLocation.hasServicesEnabledAsync())) {
-                // Trigger the Android pop up for gps.
-                await ExpoLocation.getCurrentPositionAsync({accuracy: ExpoLocation.Accuracy.Highest});
-                if (!(await ExpoLocation.hasServicesEnabledAsync()))
-                    return;
-            }
+            if (!(await LocationPermissions.requestGpsEnable())) return;
             await startForegroundUpdate();
             navigation.navigate('Main', {screen: 'Taxi', params: {screen: 'AcceptedRide'}});
         } catch (error) {
@@ -94,9 +89,27 @@ export const useGlobalocketEvents = () => {
     }
 
     const updateLocationToBeAvailable = async () => {
-        const taxiCoords = await Coords.getLatLngCurrentPosition();
+        setAvailable('loading');
+        let taxiCoords: undefined | LatLng;
+        
+        let timeout = setTimeout(() => {
+            if (taxiCoords === undefined) {
+                setAvailable(false);
+                addNotification('Taxi connection failed');
+            }
+        }, 10000);
+        
+        const onResponseReceived = () => {
+            clearTimeout(timeout);
+            setAvailable(true);
+            socket?.off('location-updated-to-be-available-received', this);
+        }
+        
+        socket?.on('location-updated-to-be-available-received', onResponseReceived);
+
+        taxiCoords = await Coords.getLatLngCurrentPosition();
+
         socket!.emit('location-updated-to-be-available', {location: taxiCoords});
-        console.log('emmitting location-updated-to-be-available');
     }
 
     const onUserCancelRide = async () => {

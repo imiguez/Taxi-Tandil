@@ -4,7 +4,6 @@ import { useNavigation } from '@react-navigation/native';
 import { useAuthDispatchActions } from './slices/useAuthDispatchActions';
 import { useHttpRequest } from './useHttpRequest';
 import { SocketContext } from './useSocketContext';
-import { useTaxiDispatchActions } from './slices/useTaxiDispatchActions';
 import { useCommonSlice } from './slices/useCommonSlice';
 import { useMapDispatchActions } from './slices/useMapDispatchActions';
 import { LatLng, Ride } from 'types/Location';
@@ -25,10 +24,9 @@ interface ConnectionOptions {
 
 export const useSocketConnectionEvents = () => {
   const navigation = useNavigation();
-  const { setSocket } = useContext(SocketContext)!;
+  const { setSocket, socket } = useContext(SocketContext)!;
   const { firstName, lastName, accessToken, id, setNewAccessToken } = useAuthDispatchActions();
   const { getNewAccessToken } = useHttpRequest();
-  const { userId } = useTaxiDispatchActions();
   const { setRideStatus } = useMapDispatchActions();
   const { setError, removeNotification } = useCommonSlice();
 
@@ -39,6 +37,7 @@ export const useSocketConnectionEvents = () => {
   };
 
   const reconnectionCheck = () => {
+    if (socket != undefined) return;
     if (id == undefined) return;
     // In case of reconnection, the backend checks the role with which has to authenticate and return it on reconnect-after-reconnection-check event.
     const options: ConnectionOptions = {
@@ -52,7 +51,9 @@ export const useSocketConnectionEvents = () => {
     };
     const s = io(process.env.EXPO_PUBLIC_BASE_URL!, options);
     const onConnect = (socket: Socket) => {
-      socket.on('disconnect', () => console.log('reconnection disconnect!'));
+      socket.on('disconnect', () => {
+        setSocket(undefined);
+      });
     }
 
     onConnectionSuccess(s, onConnect);
@@ -72,7 +73,7 @@ export const useSocketConnectionEvents = () => {
     };
     const s = io(process.env.EXPO_PUBLIC_BASE_URL!, options);
     const onReconnect = (socket: Socket) => {
-      socket.emit(`${role}-reconnect`, {userApiId: role == 'user' ? id : userId});
+      socket.emit(`${role}-reconnect`);
     }
     onConnectionSuccess(s, onReconnect),
     onConnectionError(s, options, onReconnect);
@@ -127,7 +128,6 @@ export const useSocketConnectionEvents = () => {
 
   const onConnectionSuccess = (s: Socket, onConnectionSuccess: (s: Socket) => void) => {
     s.on('connect', () => {
-      console.log('socket connected');
       setSocket(s);
       onConnectionSuccess(s);
     });
@@ -152,8 +152,8 @@ export const useSocketConnectionEvents = () => {
       if (onError != undefined) onError();
 
       if (error.message == 'There is already a connection with the same id') {
-        setError(`Su usuario ya tiene una conexión activa, esto puede suceder porque un usuario intenta conectarse desde dos dispositivos simultaneamente o puede ser un error de la aplicación. 
-Pruebe cerrando y abriendo la aplicación de nuevo. En caso de que persista el error y crea que no hay otro usuario usando su cuenta, debe comunicarse con soporte en Configuraciones.`);
+        setError(`Su usuario ya tiene una conexión activa, esto puede suceder porque un usuario intenta conectarse desde dos dispositivos simultaneamente o la aplicación en segundo plano fue cerrada durante un viaje. 
+Intente cerrar la aplicación en segundo plano y luego abrir la app. En caso de que persista el error y crea que no hay otro usuario usando su cuenta, debe comunicarse con soporte en Configuraciones.`);
       }
     });
   }

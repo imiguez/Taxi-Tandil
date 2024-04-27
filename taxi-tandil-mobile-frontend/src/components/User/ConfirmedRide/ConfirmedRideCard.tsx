@@ -29,7 +29,7 @@ export const ConfirmedRideCard: FC = () => {
         let newMsg = '';
         switch (rideStatus) {
             case 'accepted':
-                newMsg = `${taxi?.username} acepto tu viaje!`;
+                newMsg = taxi?.username === null || taxi?.username === undefined ? '' : `${taxi?.username} acepto tu viaje!`;
             break;
             case 'no-taxis-available':
                 newMsg = 'Actualmente no hay taxis disponibles.';
@@ -38,7 +38,7 @@ export const ConfirmedRideCard: FC = () => {
                 newMsg = 'Ningun taxi disponible tomo el viaje.';
             break;
             case 'arrived':
-                newMsg = `${taxi?.username} ya llegó!`;
+                newMsg = taxi?.username === null || taxi?.username === undefined  ? '' : `${taxi?.username} ya llegó!`;
             break;
             default:
                 newMsg = 'Esperando taxi...';

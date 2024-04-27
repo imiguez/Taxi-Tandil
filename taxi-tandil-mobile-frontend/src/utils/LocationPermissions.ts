@@ -35,6 +35,6 @@ export class LocationPermissions {
             // Trigger the Android pop up for gps. If its set off, it will throw an error
             await ExpoLocation.getCurrentPositionAsync({accuracy: ExpoLocation.Accuracy.Highest});
         }
-        return provider;
+        return provider ?? await ExpoLocation.hasServicesEnabledAsync();
     }
 }

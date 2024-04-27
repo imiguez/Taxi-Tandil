@@ -62,24 +62,21 @@ export const AcceptRideBtn: FC<Props> = ({canGoBack}) => {
     }
 
     const handleTaxiArrive = async () => {
-        // TODO this should disconnect the socket and update the ride arrived timestamp
+        // TODO this should update the ride arrived timestamp
         socket!.emit("taxi-arrived", {userApiId: userId});
         setRideStatus('arrived');
-        // Wait 10s until stop the location update to the user.
-        setTimeout(async () => {
-            await stopBackgroundUpdate();
-        }, 10000);
+        await stopBackgroundUpdate();
     }
 
     const handleRideCompleted = async () => {
         // TODO this should check the taxi its less than 100m near the destination
         // and update the ride completed timestamp
         await stopForegroundUpdate();
-        socket!.emit('join-room', 'taxis-available');
         socket!.emit('ride-completed', userId);
+        await updateLocationToBeAvailable();
         setRideStatus(null);
         setRide(null, null, null);
-        navigation.goBack();
+        navigation.navigate('Main', {screen: 'Taxi', params: {screen: 'TaxiHome'}});
     }
 
     return (

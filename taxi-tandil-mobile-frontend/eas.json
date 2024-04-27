@@ -6,7 +6,7 @@
     "base": {
       "node": "16.12.0"
     },
-    "development": {
+    "dev-aws-url": {
       "extends": "base",
       "distribution": "internal",
       "android": {
@@ -17,6 +17,15 @@
       },
       "ios": {
         "simulator": true
+      }
+    },
+    "dev-local-url": {
+      "extends": "dev-aws-url",
+      "android": {
+        "buildType": "apk",
+        "env": {
+          "EXPO_PUBLIC_BASE_URL": "https://glowworm-light-infinitely.ngrok-free.app"
+        }
       }
     },
     "production": {

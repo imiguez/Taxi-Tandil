@@ -84,7 +84,7 @@ export const useExpoTaskManager = () => {
   const stopForegroundUpdate = () => {
     if (sub.current)
       sub.current.remove();
-    console.log("Foreground location tracking stopped");
+    // console.log("Foreground location tracking stopped");
   };
 
   const startBackgroundUpdate = async () => {
@@ -123,6 +123,7 @@ export const useExpoTaskManager = () => {
           deferredUpdatesDistance: 50,
           showsBackgroundLocationIndicator: true,
           foregroundService: {
+            killServiceOnDestroy: true,
             notificationTitle: "Location",
             notificationBody: "Location tracking in background",
             notificationColor: "#fff",

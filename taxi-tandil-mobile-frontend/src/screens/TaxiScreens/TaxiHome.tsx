@@ -10,7 +10,7 @@ import { useGlobalocketEvents } from 'hooks/useGlobalSocketEvents';
 
 const TaxiHome = () => {
     const {
-        popUp, setPopUp,
+        popUp, setPopUp, socket,
         ride,
         onPressRideRequest,
     } = useGlobalocketEvents();
@@ -20,14 +20,14 @@ const TaxiHome = () => {
     <View style={styles.mainContainer}>
         {popUp && <PermissionsPopUp permissionType="background" close={() => setPopUp(false)} text="Para estar disponible se requiere tener la ubicación activada y otorgar el permiso: 'Permitir todo el tiempo'."/>}
         
-        {ride && <RideRequestBtn onPress={onPressRideRequest}/>}
+        {ride && socket != undefined && <RideRequestBtn onPress={onPressRideRequest}/>}
 
-        {notifications != undefined && 
+        {notifications !== undefined &&
             notifications.map((notification, key) => {
                 if (notification == 'User cancelled ride')
-                    return <BasicNotification key={key} text={NotificationsMap.get('User cancelled ride') ?? ''} onClose={() => removeNotification('User cancelled ride')} additionalStyles={{backgroundColor: '#f9595980'}}/>
+                    return <BasicNotification key={key} text={NotificationsMap.get('User cancelled ride') ?? ''} onClose={() => removeNotification('User cancelled ride')} additionalStyles={{backgroundColor: '#ff6b6b'}}/>
                 if (notification == 'Taxi connection failed')
-                    return <BasicNotification key={key} text={NotificationsMap.get('Taxi connection failed') ?? ''} onClose={() => removeNotification('Taxi connection failed')} additionalStyles={{backgroundColor: '#f9595980'}}/>;
+                    return <BasicNotification key={key} text={NotificationsMap.get('Taxi connection failed') ?? ''} onClose={() => removeNotification('Taxi connection failed')} additionalStyles={{backgroundColor: '#ff6b6b'}}/>;
             })
         }
 

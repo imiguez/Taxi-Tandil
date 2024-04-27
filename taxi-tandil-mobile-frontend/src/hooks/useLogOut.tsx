@@ -9,6 +9,7 @@ import { useTaxiDispatchActions } from './slices/useTaxiDispatchActions';
 import { useCommonSlice } from './slices/useCommonSlice';
 import { SecureStoreItems } from 'constants/index';
 import RootStackParamList from 'types/RootStackParamList';
+import { useExpoTaskManager } from './useExpoTaskManager';
 
 export const useLogOut = () => {
   const navigation = useNavigation<StackNavigationProp<RootStackParamList>>();
@@ -17,9 +18,11 @@ export const useLogOut = () => {
   const taxiCleanUp = useTaxiDispatchActions().cleanUp;
   const mapCleanUp = useMapDispatchActions().cleanUp;
   const commonCleanUp = useCommonSlice().cleanUp;
+  const { stopAllTaks } = useExpoTaskManager();
 
   return {
     async logOut() {
+      await stopAllTaks();
       if (roles.find((role) => role.name == 'taxi')) taxiCleanUp();
       mapCleanUp();
       if (socket) {

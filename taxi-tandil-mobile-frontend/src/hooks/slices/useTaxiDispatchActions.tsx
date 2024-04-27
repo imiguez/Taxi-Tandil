@@ -26,7 +26,7 @@ export const useTaxiDispatchActions = () => {
         dispatch(setPopUpFromTaxiRideSlice(popUp));
     }
 
-    const setAvailable = (isAvailable: boolean) => {
+    const setAvailable = (isAvailable: initialTaxiRideSliceStateType['available']) => {
         dispatch(setAvailableFromTaxiRideSlice(isAvailable));
     }
 

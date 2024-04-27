@@ -83,14 +83,11 @@ export class MainGateway implements OnGatewayInit, OnGatewayConnection, OnGatewa
         this.activeRides.forEach((activeRide, userApiId) => {
           // If exists an active ride with the user api id equals to current connection id.
           if (apiId == userApiId) {
-            // if (activeRide.taxi)
-              // this.server.to(activeRide.taxi).emit('user-reconnect');
             this.server.to(client.id).emit('reconnect-after-reconnection-check', 'user', activeRide.ride, activeRide.arrived, activeRide.taxi);
             return;
           }
           // If exists an active ride with the taxi api id equals to current connection id.
           if (apiId == activeRide.taxi) {
-            // this.server.to(userApiId).emit('taxi-reconnect');
             this.server.to(client.id).emit('reconnect-after-reconnection-check', 'taxi', activeRide.ride, activeRide.arrived, userApiId);
             return;
           }
@@ -189,19 +186,24 @@ export class MainGateway implements OnGatewayInit, OnGatewayConnection, OnGatewa
   // ---------------------------------------------------- Handling Taxis Events ----------------------------------------------------
 
   @SubscribeMessage('taxi-reconnect')
-  taxiReconnect(@MessageBody() data: { userApiId: string }) {
-    const {userApiId} = data;
-    const userSocketId = MainGateway.connections.get(userApiId);
-    if (userSocketId != undefined)
-      this.server.to(userSocketId).emit('taxi-reconnect');
-    else 
-      console.log('userSocketId its undefined');
+  taxiReconnect(@ConnectedSocket() client: Socket) {
+    this.activeRides.forEach((activeRide, key) => {
+      if (activeRide.taxi && activeRide.taxi === client.data.apiId) {
+        const userSocketId = MainGateway.connections.get(key);
+        if (userSocketId != undefined)
+          this.server.to(userSocketId).emit('taxi-reconnect');
+        else 
+          console.log('userSocketId its undefined');
+        return;
+      }
+    })
   }
 
 
   @SubscribeMessage('location-updated-to-be-available')
   locationUpdatedToBeAvailable(@MessageBody() data: { location: LatLng }, @ConnectedSocket() client: Socket) {
     const { location } = data;
+    this.server.to(client.id).emit('location-updated-to-be-available-received');
     this.onNewTaxiAvailable(client.data.apiId, client.id, location);
   }
 
@@ -413,8 +415,8 @@ export class MainGateway implements OnGatewayInit, OnGatewayConnection, OnGatewa
   // ---------------------------------------------------- Handling Users Events ----------------------------------------------------
 
   @SubscribeMessage('user-reconnect')
-  userReconnect(@MessageBody() data: { userApiId: string }) {
-    const {userApiId} = data;
+  userReconnect(@ConnectedSocket() client: Socket) {
+    const userApiId = client.data.apiId;
     const activeRide = this.activeRides.get(userApiId);
     if (activeRide != undefined && activeRide.taxi != undefined) {
       const taxiSocketId = MainGateway.connections.get(activeRide.taxi);

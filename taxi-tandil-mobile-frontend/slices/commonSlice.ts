@@ -4,7 +4,7 @@ import { initialCommonSliceStateType } from '../src/types/slices/commonSliceType
 export const initialState: initialCommonSliceStateType = {
   error: false,
   errorMessage: undefined,
-  notifications: undefined,
+  notifications: [],
 };
 
 export const commonSlice = createSlice({
