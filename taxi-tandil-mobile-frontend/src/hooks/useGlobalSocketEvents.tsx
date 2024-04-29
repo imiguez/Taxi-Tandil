@@ -9,8 +9,8 @@ import { useMapDispatchActions } from "./slices/useMapDispatchActions";
 import { useHttpRequest } from "./useHttpRequest";
 import { useSocketConnectionEvents } from "./useSocketConnectionEvents";
 import { useCommonSlice } from "./slices/useCommonSlice";
-import { BACKGROUND_LOCATION_TASK_NAME } from "constants/index";
-import { LatLng, Ride } from "types/Location";
+import { BACKGROUND_LOCATION_TASK_NAME, GOOGLE_REVERSE_GEOCODE_API_URL } from "constants/index";
+import { GoogleReverseGeocodeApiResponse, LatLng, Ride } from "types/Location";
 import RootStackParamList from "types/RootStackParamList";
 import { Coords } from "utils/Coords";
 import { LocationPermissions } from "@utils/LocationPermissions";
@@ -22,7 +22,7 @@ export const useGlobalocketEvents = () => {
     const {setRide, userId, ride, setCurrentLocation, popUp, setPopUp, setAvailable} = useTaxiDispatchActions();
     const setTaxiRideStatus = useTaxiDispatchActions().setRideStatus;
     const taxiCleanUp = useTaxiDispatchActions().cleanUp;
-    const {startBackgroundUpdate, stopBackgroundUpdate, startForegroundUpdate, stopForegroundUpdate} = useExpoTaskManager();
+    const {startBackgroundUpdate, stopBackgroundUpdate, startForegroundUpdate, stopForegroundUpdate, checkForegroundPermissions} = useExpoTaskManager();
     const navigation = useNavigation<StackNavigationProp<RootStackParamList>>();
     const {putRequest} = useHttpRequest();
     const {reconnect} = useSocketConnectionEvents();
@@ -33,15 +33,48 @@ export const useGlobalocketEvents = () => {
     
     const onReconnect = async (role: 'user' | 'taxi', ride: Ride, arrived: boolean, foreingId: string) => {
         socket?.disconnect();
-        // TODO handle ride info on user reconnect.
         if (role === 'user') {
             setTaxiInfo({id: foreingId, username: null});
             setRideStatus(arrived ? 'arrived' : 'accepted');
-            // const origin = await reverseGeocode(ride.origin);
-            // setLocation(origin!, 'origin');
-            // const destination = await reverseGeocode(ride.destination);
-            // setLocation(destination!, 'destination');
             navigation.navigate('Main', {screen: 'Home', params: {screen: 'ConfirmedRide'}});
+            if (await checkForegroundPermissions()) {
+                const origin = await Coords.reverseGeocode(ride.origin);
+                const destination = await Coords.reverseGeocode(ride.destination);
+                setLocation(origin!, 'origin');
+                setLocation(destination!, 'destination');
+            } else {
+                try {
+                    const originFetch = await fetch(`${GOOGLE_REVERSE_GEOCODE_API_URL}latlng=${ride.origin.latitude},${ride.origin.longitude}&lenguage=es&location_type=ROOFTOP&result_type=street_address&key=${process.env.EXPO_PUBLIC_GOOGLE_MAPS_API_KEY}`);
+                    const origin: GoogleReverseGeocodeApiResponse = await originFetch.json();
+                    const destinationFetch = await fetch(`${GOOGLE_REVERSE_GEOCODE_API_URL}latlng=${ride.destination.latitude},${ride.destination.longitude}&lenguage=es&location_type=ROOFTOP&result_type=street_address&key=${process.env.EXPO_PUBLIC_GOOGLE_MAPS_API_KEY}`);
+                    const destination: GoogleReverseGeocodeApiResponse = await destinationFetch.json();
+                    if (origin.status !== "OK" || destination.status !== "OK") throw new Error(`Status: ${origin.status}, ${destination.status}.`);
+
+                    setLocation({
+                        "location": ride.origin,
+                        "longStringLocation": origin.results[0].formatted_address!,
+                        "shortStringLocation": origin.results[0].address_components[1].long_name+origin.results[0].address_components[0].long_name,
+                    }, 'origin');
+
+                    setLocation({
+                        "location": ride.destination,
+                        "longStringLocation": destination.results[0].formatted_address!,
+                        "shortStringLocation": destination.results[0].address_components[1].long_name+destination.results[0].address_components[0].long_name,
+                    }, 'destination');
+                } catch (error) {
+                    console.log(error);
+                    setLocation({
+                        "location": ride.origin,
+                        "longStringLocation": '',
+                        "shortStringLocation": '',
+                    }, 'origin');
+                    setLocation({
+                        "location": ride.destination,
+                        "longStringLocation": '',
+                        "shortStringLocation": '',
+                    }, 'destination');
+                }
+            }
         }
         if (role === 'taxi') {
             setRide(ride, foreingId, null);

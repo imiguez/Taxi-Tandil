@@ -1,4 +1,4 @@
-import { FC, useEffect, useRef, useState } from "react";
+import { FC, useEffect, useRef } from "react";
 import { StyleSheet, Text, View } from "react-native";
 import { LinearGradient } from "expo-linear-gradient";
 import { useNavigation } from "@react-navigation/native";
@@ -6,12 +6,8 @@ import { windowHeight } from "constants/index";
 import { AcceptRideBtn } from "components/Taxi/Ride/AcceptRideBtn";
 import { TaxiRideMap } from "components/Taxi/Ride/TaxiRideMap";
 import { useTaxiDispatchActions } from "hooks/slices/useTaxiDispatchActions";
-import { LocationWithName } from "types/Location";
-import { Coords } from "utils/Coords";
 
 export const AcceptedRide: FC = () => {
-    const [origin, setOrigin] = useState<LocationWithName | null>();
-    const [destination, setDestination] = useState<LocationWithName | null>();
     const {ride, username, rideStatus} = useTaxiDispatchActions();
     const {currentLocation} = useTaxiDispatchActions();
     const navigation = useNavigation();
@@ -23,12 +19,6 @@ export const AcceptedRide: FC = () => {
             if (canGoBack.current) return;
             e.preventDefault();
         });
-        const rideReverseGeocoding = async () => {
-            // Can be optimized storing the location once in redux state
-            setOrigin(await Coords.reverseGeocode(ride?.origin?.location!));
-            setDestination(await Coords.reverseGeocode(ride?.destination?.location!));
-        }
-        rideReverseGeocoding();
         return () => {
             navigation.removeListener('beforeRemove', (e) => {
                 if (canGoBack.current) return;
@@ -49,11 +39,11 @@ export const AcceptedRide: FC = () => {
             <View style={styles.cardContainer}>
                 <View>
                     <Text numberOfLines={1} style={styles.addressText}>
-                        {origin ? origin.longStringLocation : 'Cargando direccion...'}</Text>
+                        {ride?.origin ? ride.origin.longStringLocation : 'Cargando direccion...'}</Text>
                     <Text numberOfLines={1} style={styles.addressText}>
-                        {destination ? destination.longStringLocation : 'Cargando direccion...'}</Text>
+                        {ride?.destination ? ride.destination.longStringLocation : 'Cargando direccion...'}</Text>
                 </View>
-                <Text>{username != null ? `Ride from: ${username}` : ''}</Text>
+                <Text>{username ? `Viaje a pedido de: ${username}` : ''}</Text>
                 <AcceptRideBtn canGoBack={canGoBack}/>
             </View>
         </>

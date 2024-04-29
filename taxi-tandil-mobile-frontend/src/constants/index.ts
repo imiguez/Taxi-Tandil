@@ -56,3 +56,5 @@ export const SecureStoreItems = [
     'access_token',
     'refresh_token',
 ];
+
+export const GOOGLE_REVERSE_GEOCODE_API_URL = 'https://maps.googleapis.com/maps/api/geocode/json?';
