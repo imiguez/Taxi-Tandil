@@ -7,9 +7,9 @@ export default ({ config }: ConfigContext): ExpoConfig => ({
   android: {
     package: "com.ride",
     config: {
-        googleMaps: {
-            apiKey: process.env.EXPO_PUBLIC_GOOGLE_MAPS_API_KEY
-        }
+      googleMaps: {
+        apiKey: process.env.EXPO_PUBLIC_GOOGLE_MAPS_API_KEY
+      }
     }
   }
 });

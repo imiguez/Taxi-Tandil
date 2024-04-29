@@ -12,5 +12,5 @@
       "@utils/*": ["utils/*"]
     },
   },
-  "include": ["src"]
+  "include": ["src", "slices"],
 }

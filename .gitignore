@@ -32,7 +32,7 @@ yarn-error.*
 # local env files
 .env
 .env*.local
-taxi-tandil-mobile-frontend/.env
+frontend/.env
 
 # typescript
 *.tsbuildinfo
@@ -45,41 +45,41 @@ taxi-tandil-mobile-frontend/.env
 # Learn more https://docs.github.com/en/get-started/getting-started-with-git/ignoring-files
 
 # dependencies
-taxi-tandil-mobile-frontend/node_modules/
+frontend/node_modules/
 
 # Expo
-taxi-tandil-mobile-frontend/.expo/
-taxi-tandil-mobile-frontend/dist/
-taxi-tandil-mobile-frontend/web-build/
+frontend/.expo/
+frontend/dist/
+frontend/web-build/
 
 # Native
-taxi-tandil-mobile-frontend/*.orig.*
-taxi-tandil-mobile-frontend/*.jks
-taxi-tandil-mobile-frontend/*.p8
-taxi-tandil-mobile-frontend/*.p12
-taxi-tandil-mobile-frontend/*.key
-taxi-tandil-mobile-frontend/*.mobileprovision
+frontend/*.orig.*
+frontend/*.jks
+frontend/*.p8
+frontend/*.p12
+frontend/*.key
+frontend/*.mobileprovision
 
 # Metro
-taxi-tandil-mobile-frontend/.metro-health-check*
+frontend/.metro-health-check*
 
 # debug
-taxi-tandil-mobile-frontend/npm-debug.*
-taxi-tandil-mobile-frontend/yarn-debug.*
-taxi-tandil-mobile-frontend/yarn-error.*
+frontend/npm-debug.*
+frontend/yarn-debug.*
+frontend/yarn-error.*
 
 # macOS
-taxi-tandil-mobile-frontend/.DS_Store
-taxi-tandil-mobile-frontend/*.pem
+frontend/.DS_Store
+frontend/*.pem
 
 # local env files
-taxi-tandil-mobile-frontend/.env*.local
+frontend/.env*.local
 
 # typescript
-taxi-tandil-mobile-frontend/*.tsbuildinfo
+frontend/*.tsbuildinfo
 
 # android folder
-taxi-tandil-mobile-frontend/android/*
+frontend/android/*
 
 # ----------------------------------------------- BACKEND FOLDER ------------------------------------------------------
 

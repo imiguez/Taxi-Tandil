@@ -6,6 +6,7 @@ import Routes from './Routes';
 import { SocketContext  } from './src/hooks/useSocketContext';
 import { useState } from 'react';
 import { Socket } from 'socket.io-client';
+import React from 'react';
 
 export default function App() {
 
