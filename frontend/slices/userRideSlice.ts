@@ -8,7 +8,7 @@ const initialState: initialUserRideSliceStateType = {
   lastModified: null,
   selectInMap: false,
   rideStatus: null,
-  taxi: null,
+  taxi: undefined,
 }
 
 export const userRideSlice = createSlice({

@@ -1,4 +1,4 @@
-import { RideWithAddress } from "../Location";
+import { LatLng, RideWithAddress } from "../Location";
 
 export type focusInput = {
     focusInput: 'origin' | 'destination',
@@ -14,10 +14,11 @@ export type rideStatusType = {
 }
 
 export type taxiInfo = {
-    taxi: null | {
+    taxi: {
         id: string | null,
         username: string | null,
-    }
+        location: LatLng | null,
+    } | null | undefined
 }
 
 export type initialUserRideSliceStateType = {

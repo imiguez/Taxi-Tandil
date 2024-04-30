@@ -15,6 +15,7 @@ import { JwtAuthGuard } from 'src/auth/guards/jwt-auth.guard';
 import { LatLng, Ride } from 'src/Types/Location.type';
 import { calculateDistances } from './Utils';
 import { SocketDoubleConnectionMiddleWare } from './middlewares/double-connection-middleware';
+import { RidesService } from 'src/rides/rides.service';
 
 export type activeRideType = {
   ride: Ride;
@@ -49,6 +50,8 @@ export class MainGateway implements OnGatewayInit, OnGatewayConnection, OnGatewa
   private frequencyToCheckLastUpdate = 15;
   private taxisAvailable: Map<string, string> = new Map<string, string>();
   private beingRequested: Map<string, string> = new Map<string, string>();
+  
+  constructor(private readonly ridesService: RidesService) {}
 
   @WebSocketServer()
   server: Server;
@@ -235,11 +238,12 @@ export class MainGateway implements OnGatewayInit, OnGatewayConnection, OnGatewa
   @SubscribeMessage('taxi-arrived')
   taxiArrived(@MessageBody() data: { userApiId: string }, @ConnectedSocket() client: Socket) {
     const { userApiId } = data;
-    const userSocketId = MainGateway.connections.get(userApiId)!;
-    this.server.to(userSocketId).emit('taxi-arrived');
     let ride = this.activeRides.get(userApiId)!;
+    this.ridesService.update(ride.rideId!, {arrivedTimestamp: new Date()});
     ride.arrived = true;
     this.activeRides.set(userApiId, ride);
+    const userSocketId = MainGateway.connections.get(userApiId)!;
+    this.server.to(userSocketId).emit('taxi-arrived');
   }
 
   @SubscribeMessage('cancel-ride-because-user-disconnect')
@@ -260,8 +264,9 @@ export class MainGateway implements OnGatewayInit, OnGatewayConnection, OnGatewa
   }
 
   @SubscribeMessage('ride-completed')
-  rideCompleted(@MessageBody() data: { userApiId: string }) {
+  async rideCompleted(@MessageBody() data: { userApiId: string }) {
     const { userApiId } = data;
+    await this.ridesService.update(this.activeRides.get(userApiId)?.rideId!, {finishedTimestamp: new Date()});
     this.activeRides.delete(userApiId);
     const userSocketId = MainGateway.connections.get(userApiId)!;
     this.server.to(userSocketId).emit('ride-completed');
@@ -357,7 +362,7 @@ export class MainGateway implements OnGatewayInit, OnGatewayConnection, OnGatewa
     return nearestTaxi;
   }
 
-  handleRideResponse(accepted: boolean, taxiApiId: string, taxiName: string, userApiId: string, username: string) {
+  async handleRideResponse(accepted: boolean, taxiApiId: string, taxiName: string, userApiId: string, username: string) {
     const activeRide = this.activeRides.get(userApiId)!;
     activeRide.currentRequested = undefined;
     this.beingRequested.delete(taxiApiId);
@@ -373,9 +378,21 @@ export class MainGateway implements OnGatewayInit, OnGatewayConnection, OnGatewa
       const taxiLocation = this.taxisLocation.get(taxiApiId)?.location;
       this.server.to(MainGateway.connections.get(userApiId)!).emit('taxi-confirmed-ride', taxiApiId, taxiName, taxiLocation);
 
-      this.activeRides.set(userApiId, activeRide);
-      this.taxisAvailable.delete(taxiApiId);
-      this.taxisLocation.delete(taxiApiId);
+      try {
+        const response = await this.ridesService.insert({
+          user_id: Number(userApiId), driver_id: Number(taxiApiId),
+          originLatitude: activeRide.ride.origin.latitude, originLongitude: activeRide.ride.origin.longitude, 
+          destinationLatitude: activeRide.ride.destination.latitude, destinationLongitude: activeRide.ride.destination.longitude, 
+        });
+        activeRide.rideId = response.id;
+        this.activeRides.set(userApiId, activeRide);
+        this.taxisLocation.delete(taxiApiId);
+      } catch (error) {
+        this.activeRides.delete(userApiId);
+        this.server.to(MainGateway.connections.get(userApiId)!).emit('taxi-cancelled-ride'); // Its not actually a cancelled ride event.
+        this.server.to(MainGateway.connections.get(taxiApiId)!).emit('user-cancelled-ride'); // Its not actually a cancelled ride event.
+      }
+      
     } else {
       if (activeRide.alreadyRequesteds.length == this.taxisAvailable.size) {
         this.activeRides.delete(userApiId);

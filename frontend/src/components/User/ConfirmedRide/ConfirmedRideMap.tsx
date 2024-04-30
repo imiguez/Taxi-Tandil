@@ -1,31 +1,12 @@
 import { useMapDispatchActions } from "hooks/slices/useMapDispatchActions";
-import { SocketContext } from "hooks/useSocketContext";
-import { FC, useContext, useEffect, useState } from "react";
+import { FC } from "react";
 import { StyleSheet, View } from "react-native";
-import MapView, { LatLng, Marker, PROVIDER_GOOGLE } from "react-native-maps";
+import MapView, { Marker, PROVIDER_GOOGLE } from "react-native-maps";
 import { Coords } from "utils/Coords";
 
 export const ConfirmedRideMap: FC = () => {
-    const {origin, destination} = useMapDispatchActions();
-    const {socket} = useContext(SocketContext)!;
-    const [taxi, setTaxi] = useState<{
-        location: LatLng,
-        name: string,
-    } | null>(null);
+    const {origin, destination, taxi} = useMapDispatchActions();
 
-    useEffect(() => {
-        const onTaxiUpdate = (location: LatLng, name: string) => {
-            setTaxi({
-                location: location,
-                name: name
-            });
-        }
-        socket!.on('location-update-from-taxi', onTaxiUpdate);
-        
-        return () => {
-            socket!.off('location-update-from-taxi', onTaxiUpdate);
-        }
-    }, []);
 
     if (origin == null || destination == null) {
         // It should only occur when the app is in the background, 
@@ -74,9 +55,7 @@ export const ConfirmedRideMap: FC = () => {
                     }} title={destination.shortStringLocation}/>
                 }
 
-                {taxi && <Marker coordinate={taxi.location} title={taxi.name} />
-
-                }
+                {taxi && taxi.location && <Marker coordinate={taxi.location} title={taxi.username ?? 'Rider'} />}
 
             </MapView>
         </View>

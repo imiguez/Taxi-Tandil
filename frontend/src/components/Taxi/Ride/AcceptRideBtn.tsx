@@ -5,7 +5,6 @@ import { useAuthDispatchActions } from "hooks/slices/useAuthDispatchActions";
 import { useTaxiDispatchActions } from "hooks/slices/useTaxiDispatchActions";
 import { useExpoTaskManager } from "hooks/useExpoTaskManager";
 import { useGlobalocketEvents } from "hooks/useGlobalSocketEvents";
-import { useHttpRequest } from "hooks/useHttpRequest";
 import { SocketContext } from "hooks/useSocketContext";
 import { Coords } from "utils/Coords";
 
@@ -17,26 +16,10 @@ export const AcceptRideBtn: FC<Props> = ({canGoBack}) => {
     const {socket} = useContext(SocketContext)!;
     const {startBackgroundUpdate, stopBackgroundUpdate, stopForegroundUpdate} = useExpoTaskManager();
     const navigation = useNavigation();
-    const {userId, username, ride, setRide, setRideStatus, rideStatus, cleanUp} = useTaxiDispatchActions();
+    const {userId, username, setRide, setRideStatus, rideStatus, cleanUp} = useTaxiDispatchActions();
     const {firstName, lastName, id} = useAuthDispatchActions();
     const {updateLocationToBeAvailable} = useGlobalocketEvents();
-    const {postRequest} = useHttpRequest();
 
-    const createRide = async () => {
-        let body = {
-            originLatitude: ride?.origin?.location.latitude,
-            originLongitude: ride?.origin?.location.longitude,
-            destinationLatitude: ride?.destination?.location.latitude,
-            destinationLongitude: ride?.destination?.location.longitude,
-            user_id: userId,
-            driver_id: id,
-        }
-        try {
-            await postRequest('rides', body);
-        } catch (error) {
-            console.log(error);
-        }
-    }
     
     const handleNewRideRequest = async (accepted: boolean) => {
         const location = await Coords.getLatLngCurrentPosition();
@@ -50,7 +33,6 @@ export const AcceptRideBtn: FC<Props> = ({canGoBack}) => {
                 username: username, 
                 taxiName: `${firstName} ${lastName}`,
             });
-            await createRide();
             socket!.emit('location-update-for-user', {location: location, userId: userId});
             await startBackgroundUpdate();
         } else {
@@ -62,7 +44,6 @@ export const AcceptRideBtn: FC<Props> = ({canGoBack}) => {
     }
 
     const handleTaxiArrive = async () => {
-        // TODO this should update the ride arrived timestamp
         socket!.emit("taxi-arrived", {userApiId: userId});
         setRideStatus('arrived');
         await stopBackgroundUpdate();
@@ -70,9 +51,8 @@ export const AcceptRideBtn: FC<Props> = ({canGoBack}) => {
 
     const handleRideCompleted = async () => {
         // TODO this should check the taxi its less than 100m near the destination
-        // and update the ride completed timestamp
         await stopForegroundUpdate();
-        socket!.emit('ride-completed', userId);
+        socket!.emit('ride-completed', {userApiId: userId});
         await updateLocationToBeAvailable();
         setRideStatus(null);
         setRide(null, null, null);

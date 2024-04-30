@@ -29,11 +29,13 @@ const TabBar: FC<TabBarInterface> = ({ state, descriptors, navigation }) => {
     onRideRequest,
     onUserDisconnect,
     onUserCancelRide, 
+    onTaxiCancelRide,
     onTaxiConfirmedRide,
+    onTaxiUpdateLocation,
     onNoTaxisAvailable,
     onAllTaxisReject,
     onTaxiArrived,
-    onRideCompleted,
+    onRideCompleted
   } = useGlobalocketEvents();
   const { roles } = useAuthDispatchActions();
   const {origin, destination, rideStatus, taxi} = useMapDispatchActions();
@@ -98,9 +100,11 @@ const TabBar: FC<TabBarInterface> = ({ state, descriptors, navigation }) => {
         socket.on('user-cancel-ride', onUserCancelRide);
         socket.on('user-disconnect', onUserDisconnect);
       }
-      socket.on('taxi-confirmed-ride', onTaxiConfirmedRide);
       socket.on('no-taxis-available', onNoTaxisAvailable);
       socket.on('all-taxis-reject', onAllTaxisReject);
+      socket.on('taxi-confirmed-ride', onTaxiConfirmedRide);
+      socket.on('location-update-from-taxi', onTaxiUpdateLocation);
+      socket.on('taxi-cancelled-ride', onTaxiCancelRide);
       socket.on('taxi-arrived', onTaxiArrived);
       socket.on('ride-completed', onRideCompleted);
 

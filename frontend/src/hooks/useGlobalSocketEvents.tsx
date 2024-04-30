@@ -16,8 +16,8 @@ import { Coords } from "utils/Coords";
 import { LocationPermissions } from "@utils/LocationPermissions";
 
 export const useGlobalocketEvents = () => {
-    const {socket} = useContext(SocketContext)!;
-    const {setRideStatus, setTaxiInfo, rideStatus, setLocation} = useMapDispatchActions();
+    const {socket, setSocket} = useContext(SocketContext)!;
+    const {setRideStatus, setTaxiInfo, taxi, rideStatus, setLocation} = useMapDispatchActions();
     const mapCleanUp = useMapDispatchActions().cleanUp;
     const {setRide, userId, ride, setCurrentLocation, popUp, setPopUp, setAvailable} = useTaxiDispatchActions();
     const setTaxiRideStatus = useTaxiDispatchActions().setRideStatus;
@@ -34,7 +34,7 @@ export const useGlobalocketEvents = () => {
     const onReconnect = async (role: 'user' | 'taxi', ride: Ride, arrived: boolean, foreingId: string) => {
         socket?.disconnect();
         if (role === 'user') {
-            setTaxiInfo({id: foreingId, username: null});
+            setTaxiInfo({id: foreingId, username: null, location: null});
             setRideStatus(arrived ? 'arrived' : 'accepted');
             navigation.navigate('Main', {screen: 'Home', params: {screen: 'ConfirmedRide'}});
             if (await checkForegroundPermissions()) {
@@ -204,39 +204,47 @@ export const useGlobalocketEvents = () => {
 //-------------------------------------- User Functions ------------------------------------
 
     const onTaxiConfirmedRide = async (taxiId: string, taxiName: string) => {
-        setTaxiInfo({id: taxiId, username: taxiName});
+        setTaxiInfo({id: taxiId, username: taxiName, location: null});
         setRideStatus('accepted');
         navigation.navigate('Main', {screen: 'Home', params: {screen: 'ConfirmedRide'}});
     };
 
-    //TODO
+    const onTaxiUpdateLocation = (location: LatLng) => {
+        if (!taxi) return;
+        setTaxiInfo({...taxi, location: location});
+    }
+
     const onTaxiCancelRide = async () => {
         addNotification('Taxi cancelled ride');
+        navigation.navigate('Main', {screen: 'Home', params: {screen: 'NewRide'}});
+        socket?.disconnect();
+        setSocket(undefined);
     }
 
     const onNoTaxisAvailable = () => {
         setRideStatus('no-taxis-available');
-        socket!.disconnect();
         navigation.navigate('Main', {screen: 'Home', params: {screen: 'ConfirmedRide'}});
+        socket!.disconnect();
+        setSocket(undefined);
     }
 
     const onAllTaxisReject = () => {
         setRideStatus('all-taxis-reject');
-        socket!.disconnect();
         navigation.navigate('Main', {screen: 'Home', params: {screen: 'ConfirmedRide'}});
+        socket!.disconnect();
+        setSocket(undefined);
     }
 
     const onTaxiArrived = () => {
         setRideStatus('arrived');
         navigation.navigate('Main', {screen: 'Home', params: {screen: 'ConfirmedRide'}});
-        socket!.disconnect();
     }
 
     const onRideCompleted = () => {
-        if (!navigation.isFocused())
-            navigation.popToTop();
         mapCleanUp();
+        navigation.navigate('Main', {screen: 'Home', params: {screen: 'NewRide'}});
         socket!.disconnect();
+        setSocket(undefined);
     }
 
     return {
@@ -245,7 +253,8 @@ export const useGlobalocketEvents = () => {
         onReconnect,
         onUpdateTaxisLocation, onRideRequest, onPressRideRequest, onUserDisconnect, 
         updateLocationToBeAvailable, onUserCancelRide, defineBackgroundTask,
-        onTaxiConfirmedRide, onNoTaxisAvailable, onAllTaxisReject,
+        onTaxiUpdateLocation,
+        onTaxiConfirmedRide, onNoTaxisAvailable, onAllTaxisReject, onTaxiCancelRide,
         onTaxiArrived, onRideCompleted
     }
 }

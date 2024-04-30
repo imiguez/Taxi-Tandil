@@ -21,7 +21,6 @@ export const ConfirmedRideCard: FC = () => {
     }
 
     const onGoBack = () => {
-        setRideStatus(null);
         navigation.goBack();
     }
 
