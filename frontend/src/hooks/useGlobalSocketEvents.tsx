@@ -125,10 +125,9 @@ export const useGlobalocketEvents = () => {
         setAvailable('loading');
         let taxiCoords: undefined | LatLng;
         
-        let timeout = setTimeout(() => {
+        let timeout = setTimeout(async () => {
             if (taxiCoords === undefined) {
-                setAvailable(false);
-                addNotification('Taxi connection failed');
+                await updateLocationToBeAvailable();
             }
         }, 10000);
         
