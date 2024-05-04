@@ -15,7 +15,7 @@ type AvailableBtnProps = {
 export const AvailableBtn: FC<AvailableBtnProps> = ({setShowPopUp}) => {
     const {socket, setSocket} = useContext(SocketContext)!;
     const {stopBackgroundUpdate} = useExpoTaskManager();
-    const {available, setAvailable} = useTaxiDispatchActions();
+    const {available, setAvailable, setRide, rideStatus} = useTaxiDispatchActions();
     const { connectAsTaxi } = useSocketConnectionEvents();
     const { addNotification, removeNotification } = useCommonSlice();
 
@@ -41,6 +41,7 @@ export const AvailableBtn: FC<AvailableBtnProps> = ({setShowPopUp}) => {
                 setSocket(undefined);
                 setAvailable(false)
             });
+            setRide(null, null, null);
             socket!.disconnect();
             await stopBackgroundUpdate();
             clearTimeout(timeout);
@@ -97,7 +98,7 @@ export const AvailableBtn: FC<AvailableBtnProps> = ({setShowPopUp}) => {
         <View style={styles.container}>
             <TouchableOpacity style={[styles.btn, {
                 backgroundColor: available === true ? '#f95959' :  '#a5a5a5', //: '#42b883',
-            }]} onPress={() => handleDisp(!available)} disabled={available==='loading'}>
+            }]} onPress={() => handleDisp(!available)} disabled={available==='loading' || rideStatus != null}>
                 <Text>{available==='loading' ? 'Cargando...' : 'Disponible'}</Text>
             </TouchableOpacity>
         </View>

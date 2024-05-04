@@ -16,6 +16,7 @@ interface ConnectionOptions {
     token: string,
     apiId: string,
     role: string,
+    username: string,
     reconnectionCheck: boolean,
     location?: LatLng,
     // [key: string]: any,
@@ -46,6 +47,7 @@ export const useSocketConnectionEvents = () => {
         token: `Bearer ${accessToken}`,
         apiId: id,
         role: 'user',
+        username: `${firstName} ${lastName}`,
         reconnectionCheck: true,
       },
     };
@@ -68,6 +70,7 @@ export const useSocketConnectionEvents = () => {
         token: `Bearer ${accessToken}`,
         apiId: id,
         role: role,
+        username: `${firstName} ${lastName}`,
         reconnectionCheck: false,
       },
     };
@@ -87,6 +90,7 @@ export const useSocketConnectionEvents = () => {
         token: `Bearer ${accessToken}`,
         apiId: id,
         role: 'taxi',
+        username: `${firstName} ${lastName}`,
         location: location,
         reconnectionCheck: false,
       },
@@ -108,12 +112,13 @@ export const useSocketConnectionEvents = () => {
         token: `Bearer ${accessToken}`,
         apiId: id,
         role: 'user',
+        username: `${firstName} ${lastName}`,
         reconnectionCheck: false,
       }
     };
     const s = io(process.env.EXPO_PUBLIC_BASE_URL!, options);
     const onConnect = (socket: Socket) => {
-      socket.emit('new-ride', { ride: ride, username: `${firstName} ${lastName}` });
+      socket.emit('new-ride', { ride: ride });
       setRideStatus('emmited');
       navigation.navigate('Main', { screen: 'Home', params: { screen: 'ConfirmedRide' } });
     }
