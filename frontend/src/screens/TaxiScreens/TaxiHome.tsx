@@ -22,7 +22,7 @@ const TaxiHome = () => {
         
         {ride && socket != undefined && <RideRequestBtn onPress={onPressRideRequest}/>}
 
-        {notifications !== undefined &&
+        {notifications !== undefined && notifications.length > 0 &&
             notifications.map((notification, key) => {
                 if (notification == 'User cancelled ride')
                     return <BasicNotification key={key} text={NotificationsMap.get('User cancelled ride') ?? ''} onClose={() => removeNotification('User cancelled ride')} additionalStyles={{backgroundColor: '#ff6b6b'}}/>

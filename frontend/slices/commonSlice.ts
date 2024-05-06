@@ -18,7 +18,21 @@ export const commonSlice = createSlice({
       state.errorMessage = action.payload;
     },
     setNotifications: (state, action) => {
-      state.notifications = action.payload;
+      const {element, type} = action.payload;
+      switch (type) {
+        case 'ADD':
+          state.notifications.push(element);
+          break;
+        case 'REMOVE':
+          let i = state.notifications.indexOf(element);
+          if (i > -1) {
+            state.notifications.splice(i, 1);
+          }
+          break;
+        default:
+          state.notifications = [];
+          break;
+      }
     },
   },
 });
