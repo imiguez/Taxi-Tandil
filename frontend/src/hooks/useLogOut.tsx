@@ -31,9 +31,9 @@ export const useLogOut = () => {
       }
       commonCleanUp();
       cleanUp();
-      for (const item in SecureStoreItems) {
+      SecureStoreItems.forEach(async item => {
         await SecureStore.deleteItemAsync(item);
-      }
+      });
       // Scaling up in navigations to execute popToTop and navigate to Login screen
       let nav = navigation;
       let i = true;
