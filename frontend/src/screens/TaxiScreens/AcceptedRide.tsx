@@ -1,31 +1,14 @@
-import { FC, useEffect, useRef } from "react";
+import { FC } from "react";
 import { StyleSheet, Text, View } from "react-native";
 import { LinearGradient } from "expo-linear-gradient";
-import { useNavigation } from "@react-navigation/native";
 import { windowHeight } from "constants/index";
 import { AcceptRideBtn } from "components/Taxi/Ride/AcceptRideBtn";
 import { TaxiRideMap } from "components/Taxi/Ride/TaxiRideMap";
 import { useTaxiDispatchActions } from "hooks/slices/useTaxiDispatchActions";
 
 export const AcceptedRide: FC = () => {
-    const {ride, username, rideStatus} = useTaxiDispatchActions();
+    const {ride, username} = useTaxiDispatchActions();
     const {currentLocation} = useTaxiDispatchActions();
-    const navigation = useNavigation();
-    const canGoBack = useRef<boolean>(rideStatus!=null);
-
-
-    useEffect(() => {
-        navigation.addListener('beforeRemove', (e) => {
-            if (canGoBack.current) return;
-            e.preventDefault();
-        });
-        return () => {
-            navigation.removeListener('beforeRemove', (e) => {
-                if (canGoBack.current) return;
-                e.preventDefault();
-            });
-        }
-    }, []);
 
     return (
         <>
@@ -44,7 +27,7 @@ export const AcceptedRide: FC = () => {
                         {ride?.destination ? ride.destination.longStringLocation : 'Cargando direccion...'}</Text>
                 </View>
                 <Text>{username ? `Viaje a pedido de: ${username}` : ''}</Text>
-                <AcceptRideBtn canGoBack={canGoBack}/>
+                <AcceptRideBtn />
             </View>
         </>
     );
