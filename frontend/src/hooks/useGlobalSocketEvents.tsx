@@ -89,7 +89,7 @@ export const useGlobalocketEvents = () => {
 
 //-------------------------------------- Taxis Functions ------------------------------------
 
-    const onUpdateTaxisLocation = async (userId: string, username: string) => {
+    const onUpdateTaxisLocation = async () => {
         const taxiCoords = await Coords.getLatLngCurrentPosition();
         if (!taxiCoords) {
             setPopUp(true);
@@ -98,11 +98,7 @@ export const useGlobalocketEvents = () => {
             setPopUp(false);
 
         console.log('emitted: taxi-location-updated');
-        socket!.volatile.emit('taxi-location-updated', {
-            location: taxiCoords, 
-            userApiId: userId, 
-            username: username
-        });
+        socket!.volatile.emit('taxi-location-updated', {location: taxiCoords});
     };
 
     const onRideRequest = (ride: Ride, userId: string, username: string) => {

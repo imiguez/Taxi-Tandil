@@ -1,43 +1,32 @@
-import { FC, MutableRefObject, useContext } from "react";
+import { FC, useContext } from "react";
 import { StyleSheet, Text, TouchableHighlight } from "react-native";
 import { useNavigation } from "@react-navigation/native";
-import { useAuthDispatchActions } from "hooks/slices/useAuthDispatchActions";
 import { useTaxiDispatchActions } from "hooks/slices/useTaxiDispatchActions";
 import { useExpoTaskManager } from "hooks/useExpoTaskManager";
 import { useGlobalocketEvents } from "hooks/useGlobalSocketEvents";
 import { SocketContext } from "hooks/useSocketContext";
 import { Coords } from "utils/Coords";
 
-type Props = {
-    canGoBack: MutableRefObject<boolean>
-}
 
-export const AcceptRideBtn: FC<Props> = ({canGoBack}) => {
+export const AcceptRideBtn: FC = () => {
     const {socket} = useContext(SocketContext)!;
     const {startBackgroundUpdate, stopBackgroundUpdate, stopForegroundUpdate} = useExpoTaskManager();
     const navigation = useNavigation();
-    const {userId, username, setRide, setRideStatus, rideStatus, cleanUp} = useTaxiDispatchActions();
-    const {firstName, lastName, id} = useAuthDispatchActions();
+    const {userId, setRide, setRideStatus, rideStatus, cleanUp} = useTaxiDispatchActions();
     const {updateLocationToBeAvailable} = useGlobalocketEvents();
 
     
     const handleNewRideRequest = async (accepted: boolean) => {
         const location = await Coords.getLatLngCurrentPosition();
         if (!location) return;
-        canGoBack.current = true;
         if (accepted) {
             setRideStatus('accepted');
-            socket!.emit('ride-response', {
-                accepted: true, 
-                userApiId: userId, 
-                username: username, 
-                taxiName: `${firstName} ${lastName}`,
-            });
+            socket!.emit('ride-response', { accepted: true, userApiId: userId });
             socket!.emit('location-update-for-user', {location: location, userId: userId});
             await startBackgroundUpdate();
         } else {
             cleanUp(); // Delete the ride and userId from the redux state
-            socket!.emit('ride-response', {accepted: false, userApiId: userId, username: username, taxiName: `${firstName} ${lastName}`});
+            socket!.emit('ride-response', { accepted: false, userApiId: userId });
             navigation.goBack();
             await updateLocationToBeAvailable();
         }

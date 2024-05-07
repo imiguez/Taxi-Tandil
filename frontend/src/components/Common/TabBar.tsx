@@ -13,6 +13,7 @@ import { useTaxiDispatchActions } from 'hooks/slices/useTaxiDispatchActions';
 import { useGlobalocketEvents } from 'hooks/useGlobalSocketEvents';
 import { useSocketConnectionEvents } from 'hooks/useSocketConnectionEvents';
 import { MainTabParamList } from 'types/RootStackParamList';
+import { screenWidth } from '@constants/index';
 
 interface TabBarInterface {
   state: TabNavigationState<MainTabParamList>;
@@ -32,6 +33,7 @@ const TabBar: FC<TabBarInterface> = ({ state, descriptors, navigation }) => {
     onTaxiCancelRide,
     onTaxiConfirmedRide,
     onTaxiUpdateLocation,
+    updateLocationToBeAvailable,
     onNoTaxisAvailable,
     onAllTaxisReject,
     onTaxiArrived,
@@ -39,11 +41,12 @@ const TabBar: FC<TabBarInterface> = ({ state, descriptors, navigation }) => {
   } = useGlobalocketEvents();
   const { roles } = useAuthDispatchActions();
   const {origin, destination, rideStatus, taxi} = useMapDispatchActions();
-  const {ride, userId, username, available} = useTaxiDispatchActions();
+  const {ride, userId, username, available, cleanUp} = useTaxiDispatchActions();
   const taxiRideStatus = useTaxiDispatchActions().rideStatus;
   const {reconnectionCheck} = useSocketConnectionEvents();
   const [showTab, setShowTab] = useState<boolean>(true);
   const { error, errorMessage, cleanError } = useCommonSlice();
+  const [countdown, setCountdown] = useState<number|null>(null);
 
   const onKeyboardShow = () => setShowTab(false);
   const onKeyboardNotShow = () => setShowTab(true);
@@ -108,6 +111,17 @@ const TabBar: FC<TabBarInterface> = ({ state, descriptors, navigation }) => {
       socket.on('taxi-arrived', onTaxiArrived);
       socket.on('ride-completed', onRideCompleted);
 
+      socket.on('countdown', (c) => setCountdown(c));
+      socket.on('countdown-finished', async (timeout?: 'timeout') => {
+        console.log('countdown-finished')
+        setCountdown(null);
+        if (timeout) {
+          cleanUp(); // Delete the ride and userId from the redux state
+          navigation.navigate('Main', {screen: 'Taxi', params: {screen: 'TaxiHome'}});
+          await updateLocationToBeAvailable();
+        }
+      });
+
       socket.on('reconnect-after-reconnection-check', onReconnect);
     }
   }, [socket]);
@@ -116,6 +130,13 @@ const TabBar: FC<TabBarInterface> = ({ state, descriptors, navigation }) => {
     <>
       {error && errorMessage != undefined &&
         <WarningModal close={cleanError} text={errorMessage} />
+      }
+
+      {countdown &&
+        <View style={[styles.linearGradient, {
+          backgroundColor: countdown > 5 ? '#8ded8e' : '#f95959',
+          transform: [{translateX: ((screenWidth/20)*countdown) - screenWidth}]
+        }]}/>
       }
 
       <LinearGradient
