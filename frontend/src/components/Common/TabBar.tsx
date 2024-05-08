@@ -32,6 +32,7 @@ const TabBar: FC<TabBarInterface> = ({ state, descriptors, navigation }) => {
     onUserCancelRide, 
     onTaxiCancelRide,
     onTaxiConfirmedRide,
+    onTaxiDisconnect,
     onTaxiUpdateLocation,
     updateLocationToBeAvailable,
     onNoTaxisAvailable,
@@ -108,6 +109,7 @@ const TabBar: FC<TabBarInterface> = ({ state, descriptors, navigation }) => {
       socket.on('taxi-confirmed-ride', onTaxiConfirmedRide);
       socket.on('location-update-from-taxi', onTaxiUpdateLocation);
       socket.on('taxi-cancelled-ride', onTaxiCancelRide);
+      socket.on('taxi-disconnect', onTaxiDisconnect);
       socket.on('taxi-arrived', onTaxiArrived);
       socket.on('ride-completed', onRideCompleted);
 

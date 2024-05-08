@@ -1,28 +1,18 @@
-import { FC, useContext, useMemo, useState } from "react";
-import { StyleSheet, Text, TouchableHighlight, View } from "react-native";
-import { useNavigation } from "@react-navigation/native";
-import { LinearGradient } from "expo-linear-gradient";
-import { StackNavigationProp } from "@react-navigation/stack";
+import { FC, useMemo, useState } from "react";
+import { StyleSheet, Text, View } from "react-native";
 import { useMapDispatchActions } from "hooks/slices/useMapDispatchActions";
-import { SocketContext } from "hooks/useSocketContext";
-import RootStackParamList from "types/RootStackParamList";
+import { useCommonSlice } from "@hooks/slices/useCommonSlice";
+import { NotificationsMap } from "@constants/index";
+import RideCard from "@components/Common/Ride/RideCard";
+import RideCardBtnsContainer from "@components/Common/Ride/RideCardBtnsContainer";
+import ConfirmedRideBtn from "./ConfirmedRideBtn";
 
 
 export const ConfirmedRideCard: FC = () => {
-    const {socket} = useContext(SocketContext)!;
-    const {origin, destination, setRideStatus, rideStatus, taxi} = useMapDispatchActions();
-    const navigation = useNavigation<StackNavigationProp<RootStackParamList>>();
+    const {origin, destination, rideStatus, taxi} = useMapDispatchActions();
+    const { notifications } = useCommonSlice();
     const [msg, setMsg] = useState<string>("Esperando taxi...");
-
-    const onCancel = () => {
-        socket!.emit('user-cancel-ride');
-        setRideStatus('canceled');
-        navigation.goBack();
-    }
-
-    const onGoBack = () => {
-        navigation.goBack();
-    }
+    const [taxiDisconnected, setTaxiDisconnected] = useState<boolean>(false);
 
     useMemo(() => {
         let newMsg = '';
@@ -46,54 +36,33 @@ export const ConfirmedRideCard: FC = () => {
         setMsg(newMsg);
     }, [rideStatus]);
 
+    useMemo(() => {
+        let showCancelBtnBecauseTaxiDisconnect = false;
+        notifications.forEach(notification => {
+            if (notification === 'Taxi disconnected') showCancelBtnBecauseTaxiDisconnect = true;
+        });
+        setTaxiDisconnected(showCancelBtnBecauseTaxiDisconnect);
+    }, [notifications]);
+
     return (
-        <View style={styles.mainContainer}>
-            <LinearGradient style={styles.shadow}
-                locations={[0, 1]}
-                colors={['transparent', '#0000006b']}
-            />
-            <View style={styles.cardContainer}>
-                <View>
-                    <Text numberOfLines={1} style={styles.addressText}>{origin?.longStringLocation}</Text>
-                    <Text numberOfLines={1} style={styles.addressText}>{destination?.longStringLocation}</Text>
-                </View>
-
-                <View >
-                    <Text>{msg}</Text>
-                </View>
-
-                {rideStatus && (rideStatus == 'emmited' || rideStatus == 'accepted') &&
-                    <TouchableHighlight style={styles.button} onPress={onCancel} >
-                        <Text style={styles.btnText}>Cancelar viaje</Text>
-                    </TouchableHighlight>
-                }
-                {!(rideStatus == 'emmited' || rideStatus == 'accepted') &&
-                    <TouchableHighlight style={styles.button} onPress={onGoBack} >
-                        <Text style={styles.btnText}>Volver atras</Text>
-                    </TouchableHighlight>
-                }
+        <RideCard>
+            <View>
+                <Text numberOfLines={1} style={styles.addressText}>{origin?.longStringLocation}</Text>
+                <Text numberOfLines={1} style={styles.addressText}>{destination?.longStringLocation}</Text>
             </View>
-        </View>
+
+            <View >
+                <Text>{ taxiDisconnected ? NotificationsMap.get('Taxi disconnected') : msg }</Text>
+            </View>
+
+            <RideCardBtnsContainer>
+                <ConfirmedRideBtn taxiDisconnected={taxiDisconnected} />
+            </RideCardBtnsContainer>
+        </RideCard>
     );
 };
 
 const styles = StyleSheet.create({
-    mainContainer: {
-        height: '35%',
-        minHeight: 250,
-        width: '100%',
-        position: 'absolute',
-        bottom: 0,
-    },
-    cardContainer: {
-        height: '100%',
-        position: 'relative',
-        backgroundColor: 'white',
-        paddingTop: 30,
-        paddingHorizontal: 30,
-        borderTopLeftRadius: 30,
-        borderTopRightRadius: 30,
-    },
     addressText: {
         backgroundColor: '#d1d1d18f',
         borderWidth: 1,
@@ -105,26 +74,4 @@ const styles = StyleSheet.create({
         fontSize: 16,
         marginBottom: 10,
     },
-    button: {
-        position: 'absolute',
-        bottom: 20,
-        marginHorizontal: 30,
-        width: '100%',
-        height: 70,
-        backgroundColor: 'white',
-        borderRadius: 5,
-        elevation: 8,
-        alignItems: 'center',
-        justifyContent: 'center'
-    },
-    btnText: {
-        fontSize: 22,
-        fontWeight: '700',
-    },
-    shadow: {
-        width: '100%', 
-        height: 40, 
-        position: 'absolute', 
-        top: -10, // this height (40) - card border radius (30) = 10. Negative to go up.
-    }
 });

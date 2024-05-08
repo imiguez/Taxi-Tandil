@@ -43,6 +43,8 @@ export const NotificationsMap: Map<notificationKeyType, string> = new Map<notifi
     ['User cancelled ride', 'El usuario canceló el viaje' ],
     ['Taxi cancelled ride', 'El taxi/remis canceló el viaje.'],
     ['Taxi connection failed', 'Hubo un error, intente nuevamente.'],
+    ['Taxi disconnected', 'El taxi/remis perdió la conexión por más de 5 minutos, si desea puede cancelar el viaje.'],
+    ['User disconnected', 'El usuario perdió la conexión por más de 5 minutos, si desea puede cancelar el viaje.'],
 ]);
 
 export const BACKGROUND_LOCATION_TASK_NAME = "BACKGROUND_LOCATION_TASK";

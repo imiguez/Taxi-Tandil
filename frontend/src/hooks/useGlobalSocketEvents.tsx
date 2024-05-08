@@ -163,14 +163,13 @@ export const useGlobalocketEvents = () => {
         }
 
         const timeout = setTimeout(async () => {
-            navigation.navigate('Main', {screen: 'Taxi', params: {screen: 'TaxiHome'}});
-            socket!.emit('cancel-ride-because-user-disconnect', {userApiId: userId, rideId: rideId});
-            await putRequest(`rides/${rideId}`, {wasCancelled: true, cancellationReason: "User lost connection"});
-            await updateLocationToBeAvailable();
-        }, 2*30*1000);
+            navigation.navigate('Main', {screen: 'Taxi', params: {screen: 'AcceptedRide'}});
+            addNotification('User disconnected');
+        }, 5*60*1000);
 
-        socket!.on('user-reconnect', async () => {
+        socket!.once('user-reconnect', async () => {
             clearTimeout(timeout);
+            removeNotification('User disconnected');
             await startForegroundUpdate();
             await startBackgroundUpdate();
         });
@@ -216,6 +215,18 @@ export const useGlobalocketEvents = () => {
         setSocket(undefined);
     }
 
+    const onTaxiDisconnect = () => {
+        const timeout = setTimeout( () => {
+            navigation.navigate('Main', {screen: 'Home', params: {screen: 'ConfirmedRide'}});
+            addNotification('Taxi disconnected');
+        }, 5*60*1000);
+
+        socket!.once('taxi-reconnect', () => {
+            clearTimeout(timeout);
+            removeNotification('Taxi disconnected');
+        });
+    }
+
     const onNoTaxisAvailable = () => {
         setRideStatus('no-taxis-available');
         navigation.navigate('Main', {screen: 'Home', params: {screen: 'ConfirmedRide'}});
@@ -249,7 +260,7 @@ export const useGlobalocketEvents = () => {
         onUpdateTaxisLocation, onRideRequest, onPressRideRequest, onUserDisconnect, 
         updateLocationToBeAvailable, onUserCancelRide, defineBackgroundTask,
         onTaxiUpdateLocation,
-        onTaxiConfirmedRide, onNoTaxisAvailable, onAllTaxisReject, onTaxiCancelRide,
+        onTaxiConfirmedRide, onNoTaxisAvailable, onAllTaxisReject, onTaxiCancelRide, onTaxiDisconnect,
         onTaxiArrived, onRideCompleted
     }
 }
