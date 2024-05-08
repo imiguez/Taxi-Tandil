@@ -101,7 +101,7 @@ export const useExpoTaskManager = () => {
       BACKGROUND_LOCATION_TASK_NAME
     );
     if (!isTaskDefined) {
-      console.log("Tasks werent defined");
+      console.log("Task wasn't defined");
       return false;
     }
 
@@ -138,6 +138,15 @@ export const useExpoTaskManager = () => {
   };
 
   const stopBackgroundUpdate = async () => {
+    // Make sure the task is defined otherwise do not start tracking
+    const isTaskDefined = await TaskManager.isTaskDefined(
+      BACKGROUND_LOCATION_TASK_NAME
+    );
+    if (!isTaskDefined) {
+      console.log("Task wasn't defined");
+      return false;
+    }
+
     const hasStarted = await ExpoLocation.hasStartedLocationUpdatesAsync(
       BACKGROUND_LOCATION_TASK_NAME
     );

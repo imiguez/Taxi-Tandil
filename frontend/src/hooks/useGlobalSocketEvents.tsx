@@ -127,13 +127,10 @@ export const useGlobalocketEvents = () => {
             }
         }, 10000);
         
-        const onResponseReceived = () => {
+        socket?.once('location-updated-to-be-available-received', () => {
             clearTimeout(timeout);
             setAvailable(true);
-            socket?.off('location-updated-to-be-available-received', this);
-        }
-        
-        socket?.on('location-updated-to-be-available-received', onResponseReceived);
+        });
 
         taxiCoords = await Coords.getLatLngCurrentPosition();
 
