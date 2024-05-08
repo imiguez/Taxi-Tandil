@@ -119,7 +119,7 @@ export const useSocketConnectionEvents = () => {
     const s = io(process.env.EXPO_PUBLIC_BASE_URL!, options);
     const onConnect = (socket: Socket) => {
       socket.emit('new-ride', { ride: ride });
-      setRideStatus('emmited');
+      setRideStatus('emitted');
       navigation.navigate('Main', { screen: 'Home', params: { screen: 'ConfirmedRide' } });
     }
 

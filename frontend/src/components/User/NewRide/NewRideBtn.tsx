@@ -18,7 +18,7 @@ const NewRideBtn: FC = () => {
     setConfirmBtn(
       origin != null &&
         destination != null &&
-        (rideStatus == null || (rideStatus != 'emmited' && rideStatus != 'accepted' && rideStatus != 'arrived'))
+        (rideStatus == null || (rideStatus != 'emitted' && rideStatus != 'accepted' && rideStatus != 'arrived'))
     );
   }, [rideStatus, origin, destination]);
 

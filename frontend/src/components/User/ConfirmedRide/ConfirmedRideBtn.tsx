@@ -39,14 +39,14 @@ const ConfirmedRideBtn: FC<ConfirmedRideBtnInterface> = ({ taxiDisconnected }) =
       <RideCardBtn
         text="Volver atras"
         onClick={onGoBack}
-        btnStyles={{ width: !taxiDisconnected && (!rideStatus || (rideStatus !== 'emmited' && rideStatus !== 'accepted')) ? '100%' : 'auto' }}
+        btnStyles={{ width: !taxiDisconnected && (!rideStatus || (rideStatus !== 'emitted' && rideStatus !== 'accepted')) ? '100%' : 'auto' }}
       />
 
-      {rideStatus && (rideStatus == 'emmited' || rideStatus == 'accepted') && (
+      {rideStatus && (rideStatus == 'emitted' || rideStatus == 'accepted') && (
         <RideCardBtn text="Cancelar viaje" onClick={taxiDisconnected ? onCancelRideBecauseTaxiDisconnect : onCancel} />
       )}
 
-      {taxiDisconnected && !(rideStatus == 'emmited' || rideStatus == 'accepted') && (
+      {taxiDisconnected && !(rideStatus == 'emitted' || rideStatus == 'accepted') && (
         <RideCardBtn text="Cancelar viaje" onClick={onCancelRideBecauseTaxiDisconnect} />
       )}
     </>
