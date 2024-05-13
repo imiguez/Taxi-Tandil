@@ -3,9 +3,9 @@ import { StyleSheet, Text, View } from "react-native";
 import { useMapDispatchActions } from "hooks/slices/useMapDispatchActions";
 import { useCommonSlice } from "@hooks/slices/useCommonSlice";
 import { NotificationsMap } from "@constants/index";
-import RideCard from "@components/Common/Ride/RideCard";
-import RideCardBtnsContainer from "@components/Common/Ride/RideCardBtnsContainer";
 import ConfirmedRideBtn from "./ConfirmedRideBtn";
+import RideCard from "@components/Common/Cards/RideCard";
+import RideCardBtnsContainer from "@components/Common/Cards/RideCardBtnsContainer";
 
 
 export const ConfirmedRideCard: FC = () => {

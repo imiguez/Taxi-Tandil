@@ -5,8 +5,8 @@ import { useExpoTaskManager } from 'hooks/useExpoTaskManager';
 import { useGlobalocketEvents } from 'hooks/useGlobalSocketEvents';
 import { SocketContext } from 'hooks/useSocketContext';
 import { Coords } from 'utils/Coords';
-import RideCardBtn from '@components/Common/Ride/RideCardBtn';
 import { useCommonSlice } from '@hooks/slices/useCommonSlice';
+import RideCardBtn from '@components/Common/Cards/RideCardBtn';
 
 interface AcceptRideBtnInterface {
   userDisconnected: boolean;

@@ -1,11 +1,11 @@
 import React, { FC, useContext } from 'react';
-import RideCardBtn from '@components/Common/Ride/RideCardBtn';
 import { useCommonSlice } from '@hooks/slices/useCommonSlice';
 import { useMapDispatchActions } from '@hooks/slices/useMapDispatchActions';
 import { SocketContext } from '@hooks/useSocketContext';
 import { useNavigation } from '@react-navigation/native';
 import { StackNavigationProp } from '@react-navigation/stack';
 import RootStackParamList from 'types/RootStackParamList';
+import RideCardBtn from '@components/Common/Cards/RideCardBtn';
 
 interface ConfirmedRideBtnInterface {
   taxiDisconnected: boolean;

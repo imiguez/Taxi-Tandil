@@ -4,8 +4,8 @@ import { NotificationsMap } from '@constants/index';
 import { useCommonSlice } from '@hooks/slices/useCommonSlice';
 import { useTaxiDispatchActions } from '@hooks/slices/useTaxiDispatchActions';
 import { AcceptRideBtn } from './AcceptRideBtn';
-import RideCard from '@components/Common/Ride/RideCard';
-import RideCardBtnsContainer from '@components/Common/Ride/RideCardBtnsContainer';
+import RideCard from '@components/Common/Cards/RideCard';
+import RideCardBtnsContainer from '@components/Common/Cards/RideCardBtnsContainer';
 
 const AcceptedRideCard = () => {
   const { ride, username } = useTaxiDispatchActions();
