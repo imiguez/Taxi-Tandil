@@ -19,13 +19,13 @@ export const useMapDispatchActions = () => {
     const taxi = useSelector(selectTaxi);
 
     const setLocation = (location: LocationWithName | null, set: initialUserRideSliceStateType['focusInput']) => {
+        dispatch(setLastModified(set));
         if (set == 'origin') {
             dispatch(setOrigin(location));
         }
         else {
             dispatch(setDestination(location));
         }
-        dispatch(setLastModified(set));
     };
 
     const invertLocations = () => {

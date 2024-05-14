@@ -1,5 +1,5 @@
 import { FC, useEffect, useRef, useState } from "react";
-import { Keyboard, StyleSheet, View } from "react-native";
+import { Keyboard, NativeSyntheticEvent, StyleSheet, TextInputChangeEventData, View } from "react-native";
 import { GooglePlacesAutocomplete, GooglePlacesAutocompleteRef } from "react-native-google-places-autocomplete";
 import { AutoCompleteRow } from "./AutoCompleteRow";
 import { CurrentLocationInBetweenCompo } from "./CurrentLocationInBetweenCompo";
@@ -70,6 +70,9 @@ export const AutoCompleteAddressInput: FC<AutoCompleteAddressInputProps> = ({pla
           setFocusInput(set);
         },
         onBlur: () => setIsFocus(false),
+        onChange: (e: NativeSyntheticEvent<TextInputChangeEventData>) => {
+          if (e.nativeEvent.text === '') setLocation(null, set);
+        },
       }}
       fetchDetails={true}
       onPress={(data, details = null) => {
