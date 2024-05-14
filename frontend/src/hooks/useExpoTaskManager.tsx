@@ -62,7 +62,7 @@ export const useExpoTaskManager = () => {
       {
         // For better logs, we set the accuracy to the most sensitive option
         accuracy: ExpoLocation.Accuracy.BestForNavigation,
-        distanceInterval: 100,
+        distanceInterval: 50,
         // timeInterval: 10000,
       },
       (location) => {
@@ -124,8 +124,8 @@ export const useExpoTaskManager = () => {
           showsBackgroundLocationIndicator: true,
           foregroundService: {
             killServiceOnDestroy: true,
-            notificationTitle: "Location",
-            notificationBody: "Location tracking in background",
+            notificationTitle: "Ubicación",
+            notificationBody: "Seguimiento de ubicación en segundo plano",
             notificationColor: "#fff",
           },
         }

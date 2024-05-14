@@ -13,19 +13,21 @@ interface ConfirmedRideBtnInterface {
 
 const ConfirmedRideBtn: FC<ConfirmedRideBtnInterface> = ({ taxiDisconnected }) => {
   const { socket } = useContext(SocketContext)!;
-  const { setRideStatus, rideStatus } = useMapDispatchActions();
+  const { setRideStatus, rideStatus, setTaxiInfo } = useMapDispatchActions();
   const navigation = useNavigation<StackNavigationProp<RootStackParamList>>();
   const { removeNotification } = useCommonSlice();
 
   const onCancel = () => {
     socket!.emit('user-cancel-ride');
     setRideStatus('canceled');
+    setTaxiInfo(null);
     navigation.goBack();
   };
 
   const onCancelRideBecauseTaxiDisconnect = () => {
     socket!.emit('cancel-ride-because-taxi-disconnect');
     setRideStatus('canceled');
+    setTaxiInfo(null);
     navigation.goBack();
     removeNotification('Taxi disconnected');
   };

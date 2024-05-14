@@ -15,7 +15,6 @@ export type rideStatusType = {
 
 export type taxiInfo = {
     taxi: {
-        id: string | null,
         username: string | null,
         location: LatLng | null,
     } | null | undefined

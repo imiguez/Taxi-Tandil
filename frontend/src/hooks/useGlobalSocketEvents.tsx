@@ -1,4 +1,4 @@
-import { useContext } from "react";
+import { useContext, useMemo, useRef } from "react";
 import * as TaskManager from "expo-task-manager";
 import { useNavigation } from "@react-navigation/native";
 import { StackNavigationProp } from "@react-navigation/stack";
@@ -6,7 +6,6 @@ import { SocketContext } from "./useSocketContext";
 import { useTaxiDispatchActions } from "./slices/useTaxiDispatchActions";
 import { useExpoTaskManager } from "./useExpoTaskManager";
 import { useMapDispatchActions } from "./slices/useMapDispatchActions";
-import { useHttpRequest } from "./useHttpRequest";
 import { useSocketConnectionEvents } from "./useSocketConnectionEvents";
 import { useCommonSlice } from "./slices/useCommonSlice";
 import { BACKGROUND_LOCATION_TASK_NAME, GOOGLE_REVERSE_GEOCODE_API_URL } from "constants/index";
@@ -14,27 +13,39 @@ import { GoogleReverseGeocodeApiResponse, LatLng, Ride } from "types/Location";
 import RootStackParamList from "types/RootStackParamList";
 import { Coords } from "utils/Coords";
 import { LocationPermissions } from "@utils/LocationPermissions";
+import { Socket } from "socket.io-client";
+import { useAuthDispatchActions } from "./slices/useAuthDispatchActions";
 
 export const useGlobalocketEvents = () => {
     const {socket, setSocket} = useContext(SocketContext)!;
-    const {setRideStatus, setTaxiInfo, taxi, rideStatus, setLocation} = useMapDispatchActions();
+    const {setRideStatus, setTaxiInfo, rideStatus, setLocation} = useMapDispatchActions();
     const mapCleanUp = useMapDispatchActions().cleanUp;
     const {setRide, userId, ride, setCurrentLocation, popUp, setPopUp, setAvailable} = useTaxiDispatchActions();
     const setTaxiRideStatus = useTaxiDispatchActions().setRideStatus;
     const taxiCleanUp = useTaxiDispatchActions().cleanUp;
     const {startBackgroundUpdate, stopBackgroundUpdate, startForegroundUpdate, stopForegroundUpdate, checkForegroundPermissions} = useExpoTaskManager();
     const navigation = useNavigation<StackNavigationProp<RootStackParamList>>();
-    const {putRequest} = useHttpRequest();
-    const {reconnect} = useSocketConnectionEvents();
+    const { reconnect } = useSocketConnectionEvents();
     const { addNotification, removeNotification } = useCommonSlice();
+    const { firstName, lastName } = useAuthDispatchActions();
+    const userIdRef = useRef<string | null>(null);
+    const socketRef = useRef<Socket | null>(null);
+
+    useMemo(() => {
+        userIdRef.current = userId;
+    }, [userId]);
+
+    useMemo(() => {
+        socketRef.current = socket ?? null;
+    }, [socket]);
 
 
 //-------------------------------------- Common Functions ------------------------------------
     
-    const onReconnect = async (role: 'user' | 'taxi', ride: Ride, arrived: boolean, foreingId: string) => {
+    const onReconnect = async (role: 'user' | 'taxi', ride: Ride, arrived: boolean, foreingName: string, foreingId: string) => {
         socket?.disconnect();
         if (role === 'user') {
-            setTaxiInfo({id: foreingId, username: null, location: null});
+            setTaxiInfo({username: foreingName, location: null});
             setRideStatus(arrived ? 'arrived' : 'accepted');
             navigation.navigate('Main', {screen: 'Home', params: {screen: 'ConfirmedRide'}});
             if (await checkForegroundPermissions()) {
@@ -77,7 +88,7 @@ export const useGlobalocketEvents = () => {
             }
         }
         if (role === 'taxi') {
-            setRide(ride, foreingId, null);
+            setRide(ride, foreingId, foreingName);
             setTaxiRideStatus(arrived ? 'arrived' : 'accepted');
             const coords = await Coords.getLatLngCurrentPosition();
             setCurrentLocation(coords!);
@@ -182,9 +193,9 @@ export const useGlobalocketEvents = () => {
                 latitude: latitude,
                 longitude: longitude,
                 };
-                if (location && userId != null && socket != undefined) {
-                    console.log('location-update-for-user to: '+userId);
-                    socket!.emit('location-update-for-user', {location: location, userApiId: userId});
+                if (location && userIdRef.current != null && socketRef.current != undefined) {
+                    console.log('location-update-for-user to: '+userIdRef.current);
+                    socketRef.current.emit('location-update-for-user', {username: `${firstName} ${lastName}`, location: location, userApiId: userIdRef.current});
                 }
             } catch (error) {
             console.error(`TaskManager: ${error}`);
@@ -194,15 +205,14 @@ export const useGlobalocketEvents = () => {
 
 //-------------------------------------- User Functions ------------------------------------
 
-    const onTaxiConfirmedRide = async (taxiId: string, taxiName: string) => {
-        setTaxiInfo({id: taxiId, username: taxiName, location: null});
+    const onTaxiConfirmedRide = async (taxiName: string, location: LatLng) => {
+        setTaxiInfo({username: taxiName, location: location});
         setRideStatus('accepted');
         navigation.navigate('Main', {screen: 'Home', params: {screen: 'ConfirmedRide'}});
     };
 
-    const onTaxiUpdateLocation = (location: LatLng) => {
-        if (!taxi) return;
-        setTaxiInfo({...taxi, location: location});
+    const onTaxiUpdateLocation = (username: string, location: LatLng) => {
+        setTaxiInfo({username: username, location: location});
     }
 
     const onTaxiCancelRide = async () => {

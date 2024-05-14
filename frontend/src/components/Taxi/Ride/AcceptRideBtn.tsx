@@ -26,7 +26,6 @@ export const AcceptRideBtn: FC<AcceptRideBtnInterface> = ({ userDisconnected }) 
     if (accepted) {
       setRideStatus('accepted');
       socket!.emit('ride-response', { accepted: true, userApiId: userId });
-      socket!.emit('location-update-for-user', { location: location, userId: userId });
       await startBackgroundUpdate();
     } else {
       cleanUp(); // Delete the ride and userId from the redux state

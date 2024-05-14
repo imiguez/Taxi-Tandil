@@ -100,18 +100,20 @@ export class MainGateway implements OnGatewayInit, OnGatewayConnection, OnGatewa
     } else {
       // Handle reconnection
       if (client.data.reconnectionCheck == true) {
-        this.activeRides.forEach((activeRide, userApiId) => {
+        for (const [userApiId, activeRide] of this.activeRides) {
           // If exists an active ride with the user api id equals to current connection id.
           if (apiId == userApiId) {
-            this.server.to(client.id).emit('reconnect-after-reconnection-check', 'user', activeRide.ride, activeRide.arrived, activeRide.taxi);
-            return;
+            let taxiName = null;
+            if (activeRide.taxi && MainGateway.connections.get(activeRide.taxi)) taxiName = MainGateway.connections.get(activeRide.taxi)?.username;
+            this.server.to(client.id).emit('reconnect-after-reconnection-check', 'user', activeRide.ride, activeRide.arrived, taxiName, ''); // Don't send taxi id on porpouse, because in the front its not used.
+            break;
           }
           // If exists an active ride with the taxi api id equals to current connection id.
           if (apiId == activeRide.taxi) {
-            this.server.to(client.id).emit('reconnect-after-reconnection-check', 'taxi', activeRide.ride, activeRide.arrived, userApiId);
-            return;
+            this.server.to(client.id).emit('reconnect-after-reconnection-check', 'taxi', activeRide.ride, activeRide.arrived, activeRide.issuer.username, userApiId);
+            break;
           }
-        });
+        }
         // If execution reach this point it means the client doesnt have to recconect, so close the connection until necessary.
         client.disconnect();
         return;
@@ -125,12 +127,12 @@ export class MainGateway implements OnGatewayInit, OnGatewayConnection, OnGatewa
 
     if (client.data.role == 'taxi') {
       let hasAnActiveRide = false;
-      this.activeRides.forEach((activeRide) => {
+      for (const [userApiId, activeRide] of this.activeRides) {
         if (activeRide.taxi == apiId) {
           hasAnActiveRide = true;
-          return;
+          break;
         }
-      });
+      }
 
       if (!hasAnActiveRide) {
         this.onNewTaxiAvailable(apiId, client.id, client.data.location);
@@ -249,10 +251,9 @@ export class MainGateway implements OnGatewayInit, OnGatewayConnection, OnGatewa
   }
 
   @SubscribeMessage('location-update-for-user')
-  locationUpdateForUser(@MessageBody() data: { location: LatLng; userApiId: string }, @ConnectedSocket() client: Socket) {
-    let { location, userApiId } = data;
-
-    this.server.to(MainGateway.connections.get(userApiId)?.socketId!).emit('location-update-from-taxi', location, client.id);
+  locationUpdateForUser(@MessageBody() data: { username: string, location: LatLng; userApiId: string }) {
+    const { username, location, userApiId } = data;
+    this.server.to(MainGateway.connections.get(userApiId)?.socketId!).emit('location-update-from-taxi', username, location);
   }
 
   @SubscribeMessage('ride-response')
@@ -355,7 +356,6 @@ export class MainGateway implements OnGatewayInit, OnGatewayConnection, OnGatewa
       };
 
       this.taxisAvailable.delete(nearestTaxi.id);
-      this.taxisLocation.delete(nearestTaxi.id);
       this.beingRequested.set(nearestTaxi.id, {
         issuerApiId: userApiId,
         issuerUsername: activeRide.issuer.username
@@ -442,7 +442,7 @@ export class MainGateway implements OnGatewayInit, OnGatewayConnection, OnGatewa
     if (accepted) {
       activeRide.taxi = taxiApiId;
       const taxiLocation = this.taxisLocation.get(taxiApiId)?.location;
-      this.server.to(MainGateway.connections.get(userApiId)?.socketId!).emit('taxi-confirmed-ride', taxiApiId, taxiUsername, taxiLocation);
+      this.server.to(MainGateway.connections.get(userApiId)?.socketId!).emit('taxi-confirmed-ride', taxiUsername, taxiLocation);
 
       try {
         const response = await this.ridesService.insert({
