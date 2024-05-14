@@ -14,7 +14,7 @@ type AutoCompleteAddressInputProps = {
 
 export const AutoCompleteAddressInput: FC<AutoCompleteAddressInputProps> = ({placeholder, set}) => {
   const ref = useRef<GooglePlacesAutocompleteRef>(null);
-  const {setLocation, origin, destination, selectInMap, setFocusInput} = useMapDispatchActions();
+  const {setLocation, origin, destination, selectInMap, setFocusInput, rideStatus} = useMapDispatchActions();
   const [isFocus, setIsFocus] = useState<boolean>(false);
 
   const setInputValue = (address: string) => {
@@ -73,6 +73,7 @@ export const AutoCompleteAddressInput: FC<AutoCompleteAddressInputProps> = ({pla
         onChange: (e: NativeSyntheticEvent<TextInputChangeEventData>) => {
           if (e.nativeEvent.text === '') setLocation(null, set);
         },
+        editable: (rideStatus !== 'emitted' && rideStatus !== 'accepted' && rideStatus !== 'arrived'),
       }}
       fetchDetails={true}
       onPress={(data, details = null) => {

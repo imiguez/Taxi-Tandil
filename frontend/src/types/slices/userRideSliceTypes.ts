@@ -10,7 +10,7 @@ export type lastModified = {
 
 export type rideStatusType = {
     rideStatus: 'emitted' | 'canceled' | 'accepted' | 'all-taxis-reject' 
-    | 'no-taxis-available' | 'arrived' | 'completed' | null,
+    | 'no-taxis-available' | 'arrived' | null,
 }
 
 export type taxiInfo = {
