@@ -1,7 +1,7 @@
 import { LatLng, RideWithAddress } from "../Location";
 
 export type rideStatusType = {
-    rideStatus: 'accepted' | 'arrived' | null,
+    rideStatus: 'rejected' | 'user-cancelled' | 'accepted' | 'arrived' | null,
 }
 
 export type initialTaxiRideSliceStateType = {

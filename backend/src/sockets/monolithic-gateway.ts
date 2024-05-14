@@ -25,10 +25,7 @@ export type activeRideType = {
   }
   ride: Ride;
   alreadyRequesteds: string[];
-  currentRequested: {
-    apiId: string,
-    state: 'emitted' | 'response-provided'
-  } | undefined;
+  currentRequested: string | undefined;
   taxi: string | undefined;
   arrived: boolean;
   rideId: number | undefined;
@@ -170,8 +167,8 @@ export class MainGateway implements OnGatewayInit, OnGatewayConnection, OnGatewa
         } else {
           // If the ride emitted isn't accepted yet
           if (activeRide.currentRequested != undefined) { // If exists a taxi who's being requested
-            const taxiConnection = MainGateway.connections.get(activeRide.currentRequested.apiId);
-            this.beingRequested.delete(activeRide.currentRequested.apiId);
+            const taxiConnection = MainGateway.connections.get(activeRide.currentRequested);
+            this.beingRequested.delete(activeRide.currentRequested);
             if (taxiConnection) {
               this.server.to(taxiConnection.socketId).emit('user-cancel-ride');
             }
@@ -263,9 +260,6 @@ export class MainGateway implements OnGatewayInit, OnGatewayConnection, OnGatewa
     const taxiUsername = client.data.username;
     const activeRide = this.activeRides.get(userApiId);
     if (!activeRide) return;
-    if (activeRide.currentRequested)
-      activeRide.currentRequested.state = 'response-provided';
-    
     console.log(`emmiting ride response from ${taxiUsername} to ${userApiId}`);
 
     this.handleRideResponse(accepted, taxiApiId, taxiUsername, userApiId);
@@ -350,12 +344,9 @@ export class MainGateway implements OnGatewayInit, OnGatewayConnection, OnGatewa
     if (nearestTaxi.id) {
       const taxiSocketId = this.taxisAvailable.get(nearestTaxi.id)!;
 
-      activeRide.currentRequested = {
-        apiId: nearestTaxi.id,
-        state: 'emitted',
-      };
-
+      activeRide.currentRequested = nearestTaxi.id;
       this.taxisAvailable.delete(nearestTaxi.id);
+
       this.beingRequested.set(nearestTaxi.id, {
         issuerApiId: userApiId,
         issuerUsername: activeRide.issuer.username
@@ -363,24 +354,6 @@ export class MainGateway implements OnGatewayInit, OnGatewayConnection, OnGatewa
 
       this.server.to(taxiSocketId).emit('ride-request', activeRide.ride, userApiId, activeRide.issuer.username);
       console.log('ride-request emitted to ' + nearestTaxi.id + ' !');
-
-      let countdown = 20;
-      const interval = setInterval(() => {
-        activeRide = this.activeRides.get(userApiId);
-        if (activeRide && activeRide.currentRequested && activeRide.currentRequested.state === 'emitted') {
-          if (countdown > 0) {
-            if (countdown-1 === 0) this.server.volatile.to(taxiSocketId).emit('countdown-finished', 'timeout');
-            else this.server.volatile.to(taxiSocketId).emit('countdown', countdown);
-          } else {
-            this.handleRideResponse(false, nearestTaxi.id!, MainGateway.connections.get(nearestTaxi.id!)?.socketId!, userApiId);
-            clearInterval(interval);
-          }
-        } else {
-          this.server.volatile.to(taxiSocketId).emit('countdown-finished');
-          clearInterval(interval);
-        }
-        countdown--;
-      }, 1000);
 
     } else {
       console.log('None of all taxis accept the request.');
@@ -577,7 +550,7 @@ export class MainGateway implements OnGatewayInit, OnGatewayConnection, OnGatewa
       }
     } else {
       // In case taxi've not accepted the ride yet
-      const taxiBeingRequestedApiId = activeRide.currentRequested?.apiId;
+      const taxiBeingRequestedApiId = activeRide.currentRequested;
       if (taxiBeingRequestedApiId != undefined) {
         const taxiBeingRequestedSocketId = MainGateway.connections.get(taxiBeingRequestedApiId)?.socketId;
         if (taxiBeingRequestedSocketId != undefined) {

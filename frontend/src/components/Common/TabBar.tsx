@@ -1,5 +1,5 @@
 import { AppState, AppStateStatus, Keyboard, StyleSheet, TouchableOpacity, View } from 'react-native';
-import React, { FC, useEffect, useMemo, useState } from 'react';
+import React, { FC, useEffect, useMemo, useRef, useState } from 'react';
 import { TabNavigationState } from '@react-navigation/native';
 import { EdgeInsets } from 'react-native-safe-area-context';
 import { Ionicons, Fontisto, MaterialIcons } from '@expo/vector-icons';
@@ -13,7 +13,8 @@ import { useTaxiDispatchActions } from 'hooks/slices/useTaxiDispatchActions';
 import { useGlobalocketEvents } from 'hooks/useGlobalSocketEvents';
 import { useSocketConnectionEvents } from 'hooks/useSocketConnectionEvents';
 import { MainTabParamList } from 'types/RootStackParamList';
-import { screenWidth } from '@constants/index';
+import { Ride } from 'types/Location';
+import CountdownBar from './CountdownBar';
 
 interface TabBarInterface {
   state: TabNavigationState<MainTabParamList>;
@@ -44,10 +45,12 @@ const TabBar: FC<TabBarInterface> = ({ state, descriptors, navigation }) => {
   const {origin, destination, rideStatus, taxi} = useMapDispatchActions();
   const {ride, userId, username, available, cleanUp} = useTaxiDispatchActions();
   const taxiRideStatus = useTaxiDispatchActions().rideStatus;
+  const setTaxiRideStatus = useTaxiDispatchActions().setRideStatus;
   const {reconnectionCheck} = useSocketConnectionEvents();
   const [showTab, setShowTab] = useState<boolean>(true);
   const { error, errorMessage, cleanError } = useCommonSlice();
-  const [countdown, setCountdown] = useState<number|null>(null);
+  const [countdown, setCountdown] = useState<boolean>(false);
+  const timeoutRef = useRef<NodeJS.Timeout | null>();
 
   const onKeyboardShow = () => setShowTab(false);
   const onKeyboardNotShow = () => setShowTab(true);
@@ -96,11 +99,23 @@ const TabBar: FC<TabBarInterface> = ({ state, descriptors, navigation }) => {
     };
   }, []);
 
+  const handleRideRequest = (ride: Ride, userId: string, username: string) => {
+    onRideRequest(ride, userId, username);
+    setCountdown(true);
+    timeoutRef.current = setTimeout(async () => {
+      socket!.emit('ride-response', { accepted: false, userApiId: userId });
+      navigation.navigate('Main', {screen: 'Taxi', params: {screen: 'TaxiHome'}});
+      setCountdown(false);
+      cleanUp();
+      await updateLocationToBeAvailable();
+    }, 20000);
+  }
+
   useMemo(() => {
     if (socket != undefined) {
       if (roles.find((role) => role.name === 'taxi')) {
         socket.on('update-taxi-location', onUpdateTaxisLocation);
-        socket.on('ride-request', onRideRequest);
+        socket.on('ride-request', handleRideRequest);
         socket.on('user-cancel-ride', onUserCancelRide);
         socket.on('user-disconnect', onUserDisconnect);
       }
@@ -113,20 +128,19 @@ const TabBar: FC<TabBarInterface> = ({ state, descriptors, navigation }) => {
       socket.on('taxi-arrived', onTaxiArrived);
       socket.on('ride-completed', onRideCompleted);
 
-      socket.on('countdown', (c) => setCountdown(c));
-      socket.on('countdown-finished', async (timeout?: 'timeout') => {
-        console.log('countdown-finished')
-        setCountdown(null);
-        if (timeout) {
-          cleanUp(); // Delete the ride and userId from the redux state
-          navigation.navigate('Main', {screen: 'Taxi', params: {screen: 'TaxiHome'}});
-          await updateLocationToBeAvailable();
-        }
-      });
-
       socket.on('reconnect-after-reconnection-check', onReconnect);
     }
   }, [socket]);
+
+  useMemo(() => {
+    if (countdown && !(taxiRideStatus === null || taxiRideStatus === 'arrived')) {
+      clearTimeout(timeoutRef.current ?? undefined);
+      setCountdown(false);
+      if (taxiRideStatus === 'rejected' || taxiRideStatus === 'user-cancelled') {
+        setTaxiRideStatus(null);
+      }
+    }
+  }, [taxiRideStatus]);
 
   return (
     <>
@@ -134,12 +148,7 @@ const TabBar: FC<TabBarInterface> = ({ state, descriptors, navigation }) => {
         <WarningModal close={cleanError} text={errorMessage} />
       }
 
-      {countdown &&
-        <View style={[styles.linearGradient, {
-          backgroundColor: countdown > 5 ? '#8ded8e' : '#f95959',
-          transform: [{translateX: ((screenWidth/20)*countdown) - screenWidth}]
-        }]}/>
-      }
+      {countdown && <CountdownBar/>}
 
       <LinearGradient
         style={[styles.linearGradient, !showTab ? { display: 'none' } : {}]}

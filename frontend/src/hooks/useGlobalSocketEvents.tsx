@@ -152,6 +152,7 @@ export const useGlobalocketEvents = () => {
         await stopBackgroundUpdate();
         await stopForegroundUpdate();
         taxiCleanUp();
+        setTaxiRideStatus('user-cancelled');
         addNotification('User cancelled ride');
         navigation.navigate('Main', {screen: 'Taxi', params: {screen: 'TaxiHome'}});
         await updateLocationToBeAvailable();
@@ -163,6 +164,7 @@ export const useGlobalocketEvents = () => {
         
         if (rideId == null) {
             taxiCleanUp();
+            setTaxiRideStatus('user-cancelled');
             // Change for a 'Ride cancelled because user disconnection' or something like that
             addNotification('User cancelled ride');
             navigation.navigate('Main', {screen: 'Taxi', params: {screen: 'TaxiHome'}});
