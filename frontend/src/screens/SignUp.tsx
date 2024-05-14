@@ -180,7 +180,7 @@ const styles = StyleSheet.create({
     backgroundColor: 'white',
   },
   textInput: {
-    minWidth: '80%',
+    width: '80%',
     height: 50,
     fontSize: 18,
     paddingVertical: 5,
