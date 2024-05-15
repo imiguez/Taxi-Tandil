@@ -98,7 +98,7 @@ const data: RideInterface[] = [
         was_cancelled: false,
         cancellation_reason: null,
     }
-]
+];
 
 const RidesList = () => {
     const [isLoading, setIsLoading] = useState<boolean>(true);
@@ -116,7 +116,7 @@ const RidesList = () => {
         <FlatList style={styles.flatList}
         contentContainerStyle={styles.flatListContent}
         scrollEnabled showsVerticalScrollIndicator 
-          data={data}
+          data={process.env.DEVELOPMENT_ENV ? data : []}
           renderItem={({item}) => <Ride {...item} />}
           keyExtractor={(item) => item.id.toString()}
         />
