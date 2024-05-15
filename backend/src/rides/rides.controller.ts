@@ -13,12 +13,12 @@ export class RidesController {
   }
   
   @Put(':id')
-  async updateRide(@Param('id') id: number, @Body() updateRideDto: UpdateRideDto) {
+  async updateRide(@Param('id') id: string, @Body() updateRideDto: UpdateRideDto) {
     return await this.ridesService.update(id, updateRideDto);
   }
 
   @Get(':id')
-  async findById(@Param('id') id: number) {
+  async findById(@Param('id') id: string) {
     return await this.ridesService.findById(id);
   }
 }

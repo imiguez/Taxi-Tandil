@@ -34,7 +34,7 @@ export class RidesService {
     }
   }
 
-  async update(id: number, ride: UpdateRideDto) {
+  async update(id: string, ride: UpdateRideDto) {
     try {
       const result = await this.ridesRepository
       .createQueryBuilder()
@@ -49,7 +49,7 @@ export class RidesService {
     }
   }
 
-  async findById(id: number) {
+  async findById(id: string) {
     try {
       return await this.ridesRepository.findOneByOrFail({id: id});
     } catch (error) {

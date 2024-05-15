@@ -28,7 +28,7 @@ export type activeRideType = {
   currentRequested: string | undefined;
   taxi: string | undefined;
   arrived: boolean;
-  rideId: number | undefined;
+  rideId: string | undefined;
 };
 
 type taxiLocationType = {
@@ -214,7 +214,7 @@ export class MainGateway implements OnGatewayInit, OnGatewayConnection, OnGatewa
     });
   }
 
-  updateRideId(userApiId: string, taxiApiId: string, rideId: number) {
+  updateRideId(userApiId: string, taxiApiId: string, rideId: string) {
     const taxiConnection = MainGateway.connections.get(taxiApiId);
     if (taxiConnection === undefined) throw new Error('Taxi socket id doesnt exists.');
     this.server.to(taxiConnection.socketId).emit('update-ride-id', rideId);
@@ -419,7 +419,7 @@ export class MainGateway implements OnGatewayInit, OnGatewayConnection, OnGatewa
 
       try {
         const response = await this.ridesService.insert({
-          user_id: Number(userApiId), driver_id: Number(taxiApiId),
+          user_id: userApiId, driver_id: taxiApiId,
           originLatitude: activeRide.ride.origin.latitude, originLongitude: activeRide.ride.origin.longitude, 
           destinationLatitude: activeRide.ride.destination.latitude, destinationLongitude: activeRide.ride.destination.longitude, 
         });

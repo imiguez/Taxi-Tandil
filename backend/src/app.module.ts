@@ -12,6 +12,8 @@ import { User } from './users/entities/user.entity';
 import { Role } from './users/entities/role.entity';
 import { RidesModule } from './rides/rides.module';
 import { Ride } from './rides/entities/ride.entity';
+import { TicketModule } from './ticket/ticket.module';
+import { Ticket } from './ticket/entities/ticket.entity';
 
 @Module({
   imports: [
@@ -23,11 +25,11 @@ import { Ride } from './rides/entities/ride.entity';
       username: process.env.POSTGRES_USER,
       password: process.env.POSTGRES_PASSWORD,
       database: process.env.POSTGRES_DB,
-      autoLoadEntities: false,
-      entities: [User, Role, Ride],
+      autoLoadEntities: true,
+      entities: [User, Role, Ride, Ticket],
       // synchronize: true, // Set to false in production env.
     }),
-    UsersModule, AuthModule, MainGatewayModule, RidesModule],
+    UsersModule, AuthModule, MainGatewayModule, RidesModule, TicketModule],
   controllers: [AppController],
   providers: [AppService, 
     {

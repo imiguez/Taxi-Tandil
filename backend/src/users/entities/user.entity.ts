@@ -2,6 +2,7 @@ import { Column, Entity, JoinTable, ManyToMany, OneToMany } from "typeorm";
 import { Role } from "./role.entity";
 import { Ride } from "src/rides/entities/ride.entity";
 import { BaseEntity } from "src/base-entity";
+import { Ticket } from "src/ticket/entities/ticket.entity";
 
 @Entity({name: 'users'})
 export class User extends BaseEntity {
@@ -27,4 +28,7 @@ export class User extends BaseEntity {
     @OneToMany(() => Ride, ride => ride.user, {lazy: true})
     @OneToMany(() => Ride, ride => ride.driver, {lazy: true})
     rides: Ride[];
+
+    @OneToMany(() => Ticket, ticket => ticket.issuer, {lazy: true})
+    tickets: Ticket[];
 }

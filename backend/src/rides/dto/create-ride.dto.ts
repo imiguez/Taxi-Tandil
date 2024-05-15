@@ -6,7 +6,7 @@ export class CreateRideDto extends PartialType(
     OmitType(Ride, ['wasCancelled', 'arrivedTimestamp', 'finishedTimestamp', 'updated_at'] as const),
 ) {
     @IsNotEmpty()
-    user_id: number;
+    user_id: string;
     @IsNotEmpty()
-    driver_id: number;
+    driver_id: string;
 }
