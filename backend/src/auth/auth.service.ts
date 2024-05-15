@@ -36,8 +36,8 @@ export class AuthService {
       .createQueryBuilder()
       .relation(User, "roles")
       .of(result.generatedMaps[0].id)
-      .add(1); // 1 is the id for user.
-      return await this.usersRepository.findOneByOrFail({id: result.generatedMaps[0].id});
+      .add('1e4057db-890c-41cb-8500-3b269cd0bb80'); // The id for the Role 'user'.
+      return await this.usersRepository.findOneByOrFail({id: result.generatedMaps[0].id});                      
     } catch (error) {
       if (error.message.includes('Could not find any entity'))
         throw new HttpException(`Error returning the created entity. ${error.message}`, HttpStatus.CREATED);

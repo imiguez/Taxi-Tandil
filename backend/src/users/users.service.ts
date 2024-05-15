@@ -23,7 +23,7 @@ export class UsersService {
     }
   }
 
-  async findById(id: number): Promise<User | null> {
+  async findById(id: string): Promise<User | null> {
     try {
       return await this.usersRepository
       .createQueryBuilder("user")
@@ -38,7 +38,7 @@ export class UsersService {
     return await this.usersRepository.find();
   }
 
-  async updateById(id: number, userDto: UpdateUserDto) {
+  async updateById(id: string, userDto: UpdateUserDto) {
     try {
       const result = await this.usersRepository
       .createQueryBuilder()

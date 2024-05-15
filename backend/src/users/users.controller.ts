@@ -11,12 +11,12 @@ export class UsersController {
   ) {}
 
   @Get(':id')
-  async getUser(@Param('id') id: number, @Res({ passthrough: true }) res: Response) {
+  async getUser(@Param('id') id: string, @Res({ passthrough: true }) res: Response) {
     return await this.usersService.findById(id);
   }
 
   @Put(':id')
-  async updateUser(@Res({ passthrough: true }) res: Response, @Param('id') id: number, @Body() userDto: UpdateUserDto) {
+  async updateUser(@Res({ passthrough: true }) res: Response, @Param('id') id: string, @Body() userDto: UpdateUserDto) {
     return await this.usersService.updateById(id, userDto);
   }
 }
