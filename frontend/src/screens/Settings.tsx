@@ -4,11 +4,14 @@ import { Ionicons, FontAwesome } from '@expo/vector-icons';
 import LogoutModal from "components/Common/Settings/LogoutModal";
 import WorkWithUsModal from "components/Common/Settings/WorkWithUsModal";
 import { useAuthDispatchActions } from "hooks/slices/useAuthDispatchActions";
+import { MaterialIcons } from '@expo/vector-icons';
+import CreateTicketModal from "@components/Common/Settings/CreateTicketModal";
 
 export const Settings: FC = () => {
     const {firstName, lastName} = useAuthDispatchActions();
     const [showLogoutPopUp, setShowLogoutPopUp] = useState<boolean>(false);
     const [showWorkWithUs, setShowWorkWithUs] = useState<boolean>(false);
+    const [showTicket, setShowTicket] = useState<boolean>(false);
     const settingsContainer = useRef<View>(null);
 
     const showPopUp = (setShow: (b: boolean) => void, show: boolean) => {
@@ -21,9 +24,18 @@ export const Settings: FC = () => {
         <View ref={settingsContainer} style={[styles.mainContainer, showWorkWithUs ? {opacity: 0.3} : {}]}>
             <Text style={styles.name}>{`${firstName} ${lastName}`}</Text>
             <View style={styles.card}>
+            
+                <TouchableOpacity style={styles.cardRow} onPress={() => setShowTicket(true)}>
+                    <MaterialIcons name="headset-mic" size={24} color="black" />
+                    <Text>Tuviste algún inconveniente?</Text>
+                </TouchableOpacity>
+                {showTicket && 
+                    <CreateTicketModal close={() => showPopUp(setShowTicket, false)} />
+                }
+
                 <TouchableOpacity style={styles.cardRow} onPress={() => showPopUp(setShowWorkWithUs, true)}>
                     <FontAwesome name="id-card-o" size={24} color="black" />
-                    <Text>¿Querés trabajar con nostros?</Text>
+                    <Text>Querés trabajar con nostros?</Text>
                 </TouchableOpacity>
                 {showWorkWithUs && 
                     <WorkWithUsModal close={() => showPopUp(setShowWorkWithUs, false)} />

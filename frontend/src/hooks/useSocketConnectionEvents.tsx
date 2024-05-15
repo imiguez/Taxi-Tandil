@@ -158,7 +158,7 @@ export const useSocketConnectionEvents = () => {
 
       if (error.message == 'There is already a connection with the same id') {
         setError(`Su usuario ya tiene una conexión activa, esto puede suceder porque un usuario intenta conectarse desde dos dispositivos simultáneamente o la aplicación en segundo plano fue cerrada durante un viaje. 
-Intente cerrar la aplicación en segundo plano y luego vuelva a abrir la app.`); //En caso de que persista el error y crea que no hay otro usuario usando su cuenta, debe comunicarse con soporte en Configuraciones.`);
+Intente cerrar la aplicación en segundo plano y luego vuelva a abrir la app. En caso de que persista el error y crea que no hay otro usuario usando su cuenta, debe comunicarse con soporte en Configuraciones.`);
       }
     });
   }
