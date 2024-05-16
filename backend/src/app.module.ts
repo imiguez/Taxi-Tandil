@@ -14,6 +14,7 @@ import { RidesModule } from './rides/rides.module';
 import { Ride } from './rides/entities/ride.entity';
 import { TicketModule } from './ticket/ticket.module';
 import { Ticket } from './ticket/entities/ticket.entity';
+import { AuthService } from './auth/auth.service';
 
 @Module({
   imports: [
@@ -31,7 +32,7 @@ import { Ticket } from './ticket/entities/ticket.entity';
     }),
     UsersModule, AuthModule, MainGatewayModule, RidesModule, TicketModule],
   controllers: [AppController],
-  providers: [AppService, 
+  providers: [AppService, AuthService,
     {
       provide: APP_GUARD,
       useClass: JwtAuthGuard,

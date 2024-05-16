@@ -26,11 +26,11 @@ export class Ride extends BaseEntity {
     @Column({name: 'finished_timestamp', type: 'timestamp without time zone', default: null, nullable: true})
     finishedTimestamp: Date;
     
-    @ManyToOne(() => User, (user) => user.rides, {nullable: false})
+    @ManyToOne(() => User, (user) => user.rides, {nullable: true, onDelete: 'SET NULL', onUpdate: 'CASCADE'})
     @JoinColumn({name: 'user_id', referencedColumnName: 'id'})
     user: User;
 
-    @ManyToOne(() => User, (user) => user.rides, {nullable: false})
+    @ManyToOne(() => User, (user) => user.rides, {nullable: true, onDelete: 'SET NULL', onUpdate: 'CASCADE'})
     @JoinColumn({name: 'driver_id', referencedColumnName: 'id'})
     driver: User;
 

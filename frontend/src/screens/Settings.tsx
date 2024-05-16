@@ -1,6 +1,7 @@
 import { FC, useRef, useState } from "react";
 import { StyleSheet, Text, TouchableOpacity, View } from "react-native";
 import { Ionicons, FontAwesome } from '@expo/vector-icons';
+import * as WebBrowser from 'expo-web-browser';
 import LogoutModal from "components/Common/Settings/LogoutModal";
 import WorkWithUsModal from "components/Common/Settings/WorkWithUsModal";
 import { useAuthDispatchActions } from "hooks/slices/useAuthDispatchActions";
@@ -13,6 +14,8 @@ export const Settings: FC = () => {
     const [showWorkWithUs, setShowWorkWithUs] = useState<boolean>(false);
     const [showTicket, setShowTicket] = useState<boolean>(false);
     const settingsContainer = useRef<View>(null);
+
+    const policyUrl = `${process.env.EXPO_PUBLIC_BASE_URL}/private-policy`;
 
     const showPopUp = (setShow: (b: boolean) => void, show: boolean) => {
         setShow(show);
@@ -47,6 +50,10 @@ export const Settings: FC = () => {
                 {showLogoutPopUp && 
                     <LogoutModal close={() => showPopUp(setShowLogoutPopUp, false)} />
                 }
+                <TouchableOpacity style={styles.cardRow} onPress={async () => await WebBrowser.openBrowserAsync(policyUrl)} >
+                    <MaterialIcons name="security" size={24} color="black" />
+                    <Text>Políticas de privacidad</Text>
+                </TouchableOpacity>
             </View>
         </View>
     );

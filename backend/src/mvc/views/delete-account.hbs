@@ -1,0 +1,55 @@
+<!DOCTYPE html>
+<html lang="en">
+    <head>
+        <meta charset="UTF-8">
+        <meta name="viewport" content="width=device-width, initial-scale=1.0">
+        <title>Delete Ride Account</title>
+    </head>
+    <body>
+        <h1>Delete Ride Account</h1>
+
+        <form id="form" >
+            <label for="email" >Email:</label>
+            <input type="email" name="email" id="email" />
+
+            <label for="password" >Password:</label>
+            <input type="password" name="password" id="password" />
+            <button type="submit">Delete</button>
+        </form>
+        <p id="status"></p>
+    </body>
+    <script>
+        window.addEventListener("DOMContentLoaded", function() {
+
+            const status = document.getElementById("status");
+            const form = document.getElementById("form");
+
+            form.addEventListener("submit", async (e) => {
+                e.preventDefault();
+                const email = document.getElementById("email");
+                const password = document.getElementById("password");
+                console.log(email.value, password.value)
+                try {
+                    const req = await fetch('https://www.taxistandil.online/delete-account', {
+                        method: "DELETE",
+                        headers: {"Content-Type": "application/json"},
+                        body: JSON.stringify({
+                            email: email.value,
+                            password: password.value,
+                        }),
+                    });
+                    if (req.ok) {
+                        status.innerText = "Account has been succesfully deleted.";
+                    } else {
+                        const error = await req.json();
+                        status.innerText = `An error has ocurred: ${error.message}`;
+                    }
+                } catch (error) {
+                    console.log(error)
+                    status.innerText = `An error has ocurred: ${error.msg ?? (error.message ?? '')}`;
+                }
+            });
+
+        });
+    </script>
+</html>

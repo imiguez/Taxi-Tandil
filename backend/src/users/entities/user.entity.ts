@@ -21,7 +21,7 @@ export class User extends BaseEntity {
     @Column({ name: 'phone_number', length: 20, nullable: true })
     phoneNumber: string;
 
-    @ManyToMany(() => Role, (role) => role.users, {eager: true})
+    @ManyToMany(() => Role, (role) => role.users, {eager: true, onDelete: 'CASCADE', onUpdate: 'CASCADE'})
     @JoinTable({name: 'users_roles'})
     roles: Role[];
 

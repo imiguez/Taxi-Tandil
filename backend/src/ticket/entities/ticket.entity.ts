@@ -14,7 +14,7 @@ export class Ticket extends BaseEntity {
     @Column({ name: 'description', length: 500 })
     description: string;
 
-    @ManyToOne(() => User, (user) => user.tickets, {nullable: false})
+    @ManyToOne(() => User, (user) => user.tickets, {nullable: true, onDelete: 'SET NULL', onUpdate: 'CASCADE'})
     @JoinColumn({name: 'issuer_id', referencedColumnName: 'id'})
     issuer: User;
 }

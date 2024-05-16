@@ -1,24 +1,27 @@
-import { Body, Controller, Get, Post, Request, UseGuards } from '@nestjs/common';
-import { AppService } from './app.service';
+import { Body, Controller, Delete, Get, Render } from '@nestjs/common';
 import { Public } from './custom-decorators';
+import { LoginDto } from './auth/dto/login.dto';
+import { AuthService } from './auth/auth.service';
 @Controller()
 export class AppController {
   constructor(
-    private readonly appService: AppService,
-    //private gateway: EventsGateway
+    private readonly authService: AuthService,
   ) {}
 
   @Public()
-  @Get()
-  base() {
-    //this.gateway.prueba();
-    return {message: 'connected to the base url!'}
-  }
+  @Get('private-policy')
+  @Render('private-policy')
+  getPrivatePolicy() {}
 
   @Public()
-  @Get('prueba')
-  prueba() {
-    //this.gateway.prueba();
-    return {message: 'connected!'}
+  @Get('delete-account')
+  @Render('delete-account')
+  getDeleteAccount() {}
+
+  @Public()
+  @Delete('delete-account')
+  async deleteAccount(@Body() loginDto: LoginDto) {
+    let user = await this.authService.validateUser(loginDto);
+    return await this.authService.deleteAccount(user);
   }
 }

@@ -36,7 +36,7 @@ export class AuthService {
       .createQueryBuilder()
       .relation(User, "roles")
       .of(result.generatedMaps[0].id)
-      .add('1e4057db-890c-41cb-8500-3b269cd0bb80'); // The id for the Role 'user'.
+      .add('3966e2eb-811d-4e52-8f64-dce46a6f2e21'); // The id for the Role 'user'.
       return await this.usersRepository.findOneByOrFail({id: result.generatedMaps[0].id});                      
     } catch (error) {
       if (error.message.includes('Could not find any entity'))
@@ -90,5 +90,20 @@ export class AuthService {
     return {
       access_token: sign({user: user, isRefreshToken: false}, `${process.env.JWT_SECRET}`, {expiresIn: this.accessTokenTime, issuer: this.iss, subject: user.id+''}),
     };
+  }
+
+  async deleteAccount(user: UserDto) {
+    try {
+      const response = await this.usersRepository
+        .createQueryBuilder("user")
+        .delete()
+        .from(User)
+        .where("id = :id", { id: user.id })
+        .execute();
+      return response.affected != null && response.affected != undefined;
+    } catch (error) {
+      console.log(error);
+      throw new HttpException(error.message, HttpStatus.INTERNAL_SERVER_ERROR);
+    }
   }
 }

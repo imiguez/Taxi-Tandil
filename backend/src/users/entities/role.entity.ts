@@ -7,6 +7,6 @@ export class Role extends BaseEntity {
     @Column({ length: 25 })
     name: string;
 
-    @ManyToMany(() => User, (user) => user.roles)
+    @ManyToMany(() => User, (user) => user.roles, {lazy: true, onDelete: 'CASCADE', onUpdate: 'CASCADE'})
     users: User[];
 }

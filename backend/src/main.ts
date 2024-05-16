@@ -3,6 +3,7 @@ import { AppModule } from './app.module';
 import { ValidationPipe } from '@nestjs/common';
 import { NestExpressApplication } from '@nestjs/platform-express';
 import { IoAdapter } from '@nestjs/platform-socket.io';
+import { resolve } from 'path';
 
 async function bootstrap() {
   const fs = require('fs');
@@ -22,6 +23,11 @@ async function bootstrap() {
   });
   app.useGlobalPipes(new ValidationPipe());
   app.useWebSocketAdapter(new IoAdapter(app));
-  await app.listen(443);
+  
+  app.useStaticAssets(resolve('./public'));
+  app.setBaseViewsDir(resolve('./src/mvc/views'));
+  app.setViewEngine('hbs');
+
+  await app.listen(process.env.DEVELOPMENT_ENV ? 2000: 433);
 }
 bootstrap();
