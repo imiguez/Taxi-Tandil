@@ -8,21 +8,27 @@ import { Repository } from 'typeorm';
 import { sign } from 'jsonwebtoken';
 import { passwordsMatch, passwordEncoder } from './utils/password.util';
 import { UserDto } from 'src/users/dtos/user.dto';
+import { Role } from 'src/users/entities/role.entity';
 
 @Injectable()
 export class AuthService {
-  private accessTokenTime: string = '1m';
-  private refreshTokenTime: string = '5m';
+  private accessTokenTime: string = process.env.DEVELOPMENT_ENV ? '1m' : '15m';
+  private refreshTokenTime: string = process.env.DEVELOPMENT_ENV ? '5m' : '7d';
   private iss = ''; // TODO: set to backend url.
 
   constructor(
     @InjectRepository(User)
     private usersRepository: Repository<User>,
+    @InjectRepository(Role)
+    private rolesRepository: Repository<Role>,
   ) {}
 
   async signUp(signUpDto: SignUpDto) {
     try {
       signUpDto.password = passwordEncoder(signUpDto.password);
+
+      const userRole = await this.rolesRepository.findOneByOrFail({name: 'user'});
+      
       const result = await this.usersRepository
       .createQueryBuilder().insert().into(User)
       .values({
@@ -31,13 +37,17 @@ export class AuthService {
         email: signUpDto.email,
         password: signUpDto.password,
       }).execute();
+
       if (result.generatedMaps[0] == null) throw new Error('Cant insert user into database.');
+
       await this.usersRepository
       .createQueryBuilder()
       .relation(User, "roles")
       .of(result.generatedMaps[0].id)
-      .add('3966e2eb-811d-4e52-8f64-dce46a6f2e21'); // The id for the Role 'user'.
-      return await this.usersRepository.findOneByOrFail({id: result.generatedMaps[0].id});                      
+      .add(userRole);
+
+      return await this.usersRepository.findOneByOrFail({id: result.generatedMaps[0].id});
+
     } catch (error) {
       if (error.message.includes('Could not find any entity'))
         throw new HttpException(`Error returning the created entity. ${error.message}`, HttpStatus.CREATED);
