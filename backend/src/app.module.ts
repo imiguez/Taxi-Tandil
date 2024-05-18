@@ -25,10 +25,10 @@ import { AuthService } from './auth/auth.service';
       port: parseInt(process.env.DB_PORT!),
       username: process.env.POSTGRES_USER,
       password: process.env.POSTGRES_PASSWORD,
-      database: process.env.POSTGRES_DB,
+      database: ((!process.env.DEVELOPMENT_ENV && process.env.POSTGRES_DB) ? process.env.POSTGRES_DB : 'ride-dev-env'),
       autoLoadEntities: true,
       entities: [User, Role, Ride, Ticket],
-      // synchronize: true, // Set to false in production env.
+      // synchronize: process.env.DEVELOPMENT_ENV, // Set to false in production env.
     }),
     UsersModule, AuthModule, MainGatewayModule, RidesModule, TicketModule],
   controllers: [AppController],

@@ -8,6 +8,7 @@ interface ClientData {
     location?: LatLng,
     reconnectionCheck: boolean,
     username: string,
+    isReviewer: boolean,
 }
 
 type SocketAuthMiddleWareReturnType = (client: Socket, next: (err?: Error) => void) => any;
@@ -15,13 +16,14 @@ type SocketAuthMiddleWareReturnType = (client: Socket, next: (err?: Error) => vo
 export const SocketAuthMiddleWare = (): SocketAuthMiddleWareReturnType => {
     return (client, next) => {
         try {
-            const {token, role, apiId, reconnectionCheck, username} = client.handshake.auth;
+            const { token, role, apiId, reconnectionCheck, username, isReviewer } = client.handshake.auth;
             JwtUtils.validateToken(token);
             let data: ClientData = {
                 apiId: apiId+'',
                 role: role+'',
                 reconnectionCheck: reconnectionCheck,
                 username: username+'',
+                isReviewer: !!isReviewer,
             }
             if (role == 'taxi' && client.handshake.auth.location != undefined) {
                 data = {
@@ -30,6 +32,7 @@ export const SocketAuthMiddleWare = (): SocketAuthMiddleWareReturnType => {
                     location: client.handshake.auth.location,
                     reconnectionCheck: reconnectionCheck,
                     username: username+'',
+                    isReviewer: !!isReviewer,
                 }
             }
             client.data = data;
@@ -38,7 +41,6 @@ export const SocketAuthMiddleWare = (): SocketAuthMiddleWareReturnType => {
             next();
         } catch (error: any) {
             // TODO: create a handler in order to dont let app crashes when an error occur.
-            console.log('Error in jwt-auth-middleware.ts');
             client._error(error);
             next(error);
         }

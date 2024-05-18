@@ -46,6 +46,11 @@ type beingRequestedType = {
   issuerUsername: string,
 }
 
+type reviewConnectionsType = {
+  socketId: string,
+  role: 'user' | 'taxi',
+}
+
 // On ubuntu the port should be higher than 1024 or the user who runs the app must be root priviliged
 @UseGuards(JwtAuthGuard)
 @WebSocketGateway({
@@ -64,6 +69,8 @@ export class MainGateway implements OnGatewayInit, OnGatewayConnection, OnGatewa
   private frequencyToCheckLastUpdate = 10;
   private taxisAvailable: Map<string, string> = new Map<string, string>();
   private beingRequested: Map<string, beingRequestedType> = new Map<string, beingRequestedType>();
+
+  private reviewConnections: Map<string, reviewConnectionsType> = new Map<string, reviewConnectionsType>();
   
   constructor(private readonly ridesService: RidesService) {}
 
@@ -89,12 +96,8 @@ export class MainGateway implements OnGatewayInit, OnGatewayConnection, OnGatewa
    */
   handleConnection(client: Socket) {
     const apiId: string = client.data.apiId;
-    console.log(client.id, apiId);
-    
 
-    if (client.recovered) {
-      console.log('RECOVERED!');
-    } else {
+    if (!client.recovered) {
       // Handle reconnection
       if (client.data.reconnectionCheck == true) {
         for (const [userApiId, activeRide] of this.activeRides) {
@@ -122,6 +125,13 @@ export class MainGateway implements OnGatewayInit, OnGatewayConnection, OnGatewa
       username: client.data.username
     }); // Example: ['2', { socketId: 'SGS345rGDS$w', username: 'Juan Ramirez' }]
 
+    if (client.data.isReviewer) {
+      this.reviewConnections.set(apiId, {
+        socketId: client.id,
+        role: client.data.role,
+      });
+    }
+
     if (client.data.role == 'taxi') {
       let hasAnActiveRide = false;
       for (const [userApiId, activeRide] of this.activeRides) {
@@ -143,13 +153,12 @@ export class MainGateway implements OnGatewayInit, OnGatewayConnection, OnGatewa
    * @param client
    */
   handleDisconnect(client: Socket) {
-    console.log('disconnecting user: ', client.data.apiId, client.id);
     let apiId: string | undefined;
     for (const entry of MainGateway.connections.entries()) {
       if (entry[1].socketId == client.id) apiId = entry[0];
     }
     if (apiId === undefined) {
-      console.log('Cant find apiId: ', apiId);
+      console.log(`Cant find apiId in MainGateway.connections: ${client.data.apiId}.`);
       return;
     }
     // TODO:
@@ -180,6 +189,8 @@ export class MainGateway implements OnGatewayInit, OnGatewayConnection, OnGatewa
 
     MainGateway.connections.delete(apiId);
 
+    if (client.data.isReviewer) this.reviewConnections.delete(apiId);
+
     if (client.data.role == 'taxi') {
       
       if (this.beingRequested.has(apiId)) {
@@ -199,14 +210,12 @@ export class MainGateway implements OnGatewayInit, OnGatewayConnection, OnGatewa
       
       this.taxisAvailable.delete(apiId);
       this.taxisLocation.delete(apiId);
-      console.log(`${apiId} deleted from connections, taxisAvailable and taxisLocation.`);
     }
   }
 
   // ---------------------------------------------------- Taxi Server-Side Only Functions -----------------------------------------------
 
   onNewTaxiAvailable(taxiApiId: string, taxiSocketId: string, location: LatLng) {
-    console.log('New taxi available: ', taxiApiId, location);
     this.taxisAvailable.set(taxiApiId, taxiSocketId);
     this.taxisLocation.set(taxiApiId, {
       location: location,
@@ -227,16 +236,19 @@ export class MainGateway implements OnGatewayInit, OnGatewayConnection, OnGatewa
 
   @SubscribeMessage('taxi-reconnect')
   taxiReconnect(@ConnectedSocket() client: Socket) {
-    this.activeRides.forEach((activeRide, key) => {
+    for (let [userId, activeRide] of this.activeRides) {
+
       if (activeRide.taxi && activeRide.taxi === client.data.apiId) {
-        const userConnection = MainGateway.connections.get(key);
+        const userConnection = MainGateway.connections.get(userId);
+        
         if (userConnection != undefined)
           this.server.to(userConnection.socketId).emit('taxi-reconnect');
         else 
-          console.log('userSocketId its undefined');
-        return;
+          console.log('On taxi-reconnect event, active ride was found but userSocketId its undefined when searching in MainGateway.connections.get(userId).');
+        
+        break;
       }
-    })
+    }
   }
 
 
@@ -250,7 +262,14 @@ export class MainGateway implements OnGatewayInit, OnGatewayConnection, OnGatewa
   @SubscribeMessage('location-update-for-user')
   locationUpdateForUser(@MessageBody() data: { username: string, location: LatLng; userApiId: string }) {
     const { username, location, userApiId } = data;
-    this.server.to(MainGateway.connections.get(userApiId)?.socketId!).emit('location-update-from-taxi', username, location);
+    const userConnection = MainGateway.connections.get(userApiId);
+    
+    if (!userConnection) {
+      console.log('On location-update-for-user event, MainGateway.connections.get(userApiId) returned undefined.');
+      return;
+    }
+
+    this.server.to(userConnection.socketId).emit('location-update-from-taxi', username, location);
   }
 
   @SubscribeMessage('ride-response')
@@ -259,8 +278,10 @@ export class MainGateway implements OnGatewayInit, OnGatewayConnection, OnGatewa
     const taxiApiId = client.data.apiId;
     const taxiUsername = client.data.username;
     const activeRide = this.activeRides.get(userApiId);
-    if (!activeRide) return;
-    console.log(`emmiting ride response from ${taxiUsername} to ${userApiId}`);
+    if (!activeRide) {
+      console.log(`On ride-response event, this.activeRides.get(userApiId) returned undefined.`);
+      return;
+    }
 
     this.handleRideResponse(accepted, taxiApiId, taxiUsername, userApiId);
   }
@@ -268,11 +289,28 @@ export class MainGateway implements OnGatewayInit, OnGatewayConnection, OnGatewa
   @SubscribeMessage('taxi-arrived')
   taxiArrived(@MessageBody() data: { userApiId: string }, @ConnectedSocket() client: Socket) {
     const { userApiId } = data;
-    let ride = this.activeRides.get(userApiId)!;
-    this.ridesService.update(ride.rideId!, {arrivedTimestamp: new Date()});
+    let ride = this.activeRides.get(userApiId);
+
+    if (!ride) {
+      console.log('On taxi-arrived event, this.activeRides.get(userApiId) returned undefined.');
+      return;
+    }
+
+    if (!ride.rideId) {
+      console.log('On taxi-arrived event, ride.rideId returned undefined.');
+      return;
+    }
+    
+    this.ridesService.update(ride.rideId, {arrivedTimestamp: new Date()});
     ride.arrived = true;
     this.activeRides.set(userApiId, ride);
-    const userConnection = MainGateway.connections.get(userApiId)!;
+    const userConnection = MainGateway.connections.get(userApiId);
+
+    if (!userConnection) {
+      console.log('On taxi-arrived event, MainGateway.connections.get(userApiId) returned undefined.');
+      return;
+    }
+
     this.server.to(userConnection.socketId).emit('taxi-arrived');
   }
 
@@ -305,20 +343,51 @@ export class MainGateway implements OnGatewayInit, OnGatewayConnection, OnGatewa
   @SubscribeMessage('taxi-cancel-ride')
   taxiCancelRide(@MessageBody() data: { userApiId: string }, @ConnectedSocket() client: Socket) {
     const { userApiId } = data;
+    const activeRide = this.activeRides.get(userApiId);
+
+    if (!activeRide) {
+      console.log('On taxi-cancel-ride event, this.activeRides.get(userApiId) returned undefined.');
+      return;
+    }
 
     // In the frontend it should never let the taxi cancel a ride if it has already arrived.
-    if (this.activeRides.get(userApiId)?.arrived) return;
+    if (activeRide.arrived) return;
 
     this.activeRides.delete(userApiId);
-    this.server.to(MainGateway.connections.get(userApiId)?.socketId!).emit('taxi-cancel-ride');
+    const userConnection = MainGateway.connections.get(userApiId);
+
+    if (!userConnection) {
+      console.log('On taxi-cancel-ride event, MainGateway.connections.get(userApiId) returned undefined.');
+      return;
+    }
+
+    this.server.to(userConnection.socketId).emit('taxi-cancel-ride');
   }
 
   @SubscribeMessage('ride-completed')
   async rideCompleted(@MessageBody() data: { userApiId: string }) {
     const { userApiId } = data;
-    await this.ridesService.update(this.activeRides.get(userApiId)?.rideId!, {finishedTimestamp: new Date()});
+    const activeRide = this.activeRides.get(userApiId);
+
+    if (!activeRide) {
+      console.log('On ride-completed event, this.activeRides.get(userApiId) returned undefined.');
+      return;
+    }
+
+    if (!activeRide.rideId) {
+      console.log('On ride-completed event, activeRide.rideId returned undefined.');
+      return;
+    }
+
+    await this.ridesService.update(activeRide.rideId, {finishedTimestamp: new Date()});
     this.activeRides.delete(userApiId);
-    const userConnection = MainGateway.connections.get(userApiId)!;
+    const userConnection = MainGateway.connections.get(userApiId);
+
+    if (!userConnection) {
+      console.log('On ride-completed event, MainGateway.connections.get(userApiId) returned undefined.');
+      return;
+    }
+
     this.server.to(userConnection.socketId).emit('ride-completed');
   }
 
@@ -335,14 +404,19 @@ export class MainGateway implements OnGatewayInit, OnGatewayConnection, OnGatewa
 
   resolveNewRideRequest(userApiId: string) {
     let activeRide = this.activeRides.get(userApiId);
-    if (activeRide == undefined) {
-      console.log('activeRides.get(' + userApiId + ') is undefined.');
+    if (!activeRide) {
+      console.log('On resolveNewRideRequest, this.activeRides.get(userApiId) returned undefined.');
       return;
     }
 
     const nearestTaxi = this.getNearestTaxi(activeRide.alreadyRequesteds, activeRide.ride);
     if (nearestTaxi.id) {
-      const taxiSocketId = this.taxisAvailable.get(nearestTaxi.id)!;
+      const taxiSocketId = this.taxisAvailable.get(nearestTaxi.id);
+
+      if (!taxiSocketId) {
+        console.log('On resolveNewRideRequest, this.taxisAvailable.get(nearestTaxi.id) returned undefined.');
+        return;
+      }
 
       activeRide.currentRequested = nearestTaxi.id;
       this.taxisAvailable.delete(nearestTaxi.id);
@@ -353,11 +427,16 @@ export class MainGateway implements OnGatewayInit, OnGatewayConnection, OnGatewa
       });
 
       this.server.to(taxiSocketId).emit('ride-request', activeRide.ride, userApiId, activeRide.issuer.username);
-      console.log('ride-request emitted to ' + nearestTaxi.id + ' !');
 
     } else {
-      console.log('None of all taxis accept the request.');
-      this.server.to(MainGateway.connections.get(userApiId)?.socketId!).emit('all-taxis-reject');
+      const userConnection = MainGateway.connections.get(userApiId);
+
+      if (!userConnection) {
+        console.log('On resolveNewRideRequest, MainGateway.connections.get(userApiId) returned undefined.');
+        return;
+      }
+
+      this.server.to(userConnection.socketId).emit('all-taxis-reject');
       this.activeRides.delete(userApiId);
     }
   }
@@ -378,16 +457,10 @@ export class MainGateway implements OnGatewayInit, OnGatewayConnection, OnGatewa
 
     this.taxisLocation.forEach((obj, id) => {
       // CHECK IF THE TAXI IS BEING REQUESTED AT THIS MOMENT
-      if (this.beingRequested.has(id)) {
-        console.log(`${id} is being requested.`);
-        return;
-      }
+      if (this.beingRequested.has(id)) return;
       // CHECK IF THE TAXI ALREADY WAS REQUESTED BY THIS RIDE
       const alreadyRequested = alreadyRequesteds.find((r) => r == id);
-      if (alreadyRequested) {
-        console.log(`${id} has been requested.`);
-        return;
-      }
+      if (alreadyRequested) return;
 
       let location = obj.location;
       const currentDistance = calculateDistances(ride.origin, location);
@@ -403,19 +476,25 @@ export class MainGateway implements OnGatewayInit, OnGatewayConnection, OnGatewa
   }
 
   async handleRideResponse(accepted: boolean, taxiApiId: string, taxiUsername: string, userApiId: string) {
-    const activeRide = this.activeRides.get(userApiId)!;
+    const activeRide = this.activeRides.get(userApiId);
     this.beingRequested.delete(taxiApiId);
 
-    if (activeRide == undefined) {
-      console.log(`The active ride from user ${userApiId} its undefined.`);
+    if (!activeRide) {
+      console.log('On handleRideResponse, this.activeRides.get(userApiId) returned undefined.');
       //this.server.to(taxiApiId).emit('notify-error-msg', `The active ride from user ${userApiId} its undefined.`);
+      return;
+    }
+    
+    const userConnection = MainGateway.connections.get(userApiId);
+    if (!userConnection) {
+      console.log('On handleRideResponse, MainGateway.connections.get(userApiId) returned undefined.');
       return;
     }
 
     if (accepted) {
       activeRide.taxi = taxiApiId;
       const taxiLocation = this.taxisLocation.get(taxiApiId)?.location;
-      this.server.to(MainGateway.connections.get(userApiId)?.socketId!).emit('taxi-confirmed-ride', taxiUsername, taxiLocation);
+      this.server.to(userConnection.socketId).emit('taxi-confirmed-ride', taxiUsername, taxiLocation);
 
       try {
         const response = await this.ridesService.insert({
@@ -423,25 +502,34 @@ export class MainGateway implements OnGatewayInit, OnGatewayConnection, OnGatewa
           originLatitude: activeRide.ride.origin.latitude, originLongitude: activeRide.ride.origin.longitude, 
           destinationLatitude: activeRide.ride.destination.latitude, destinationLongitude: activeRide.ride.destination.longitude, 
         });
+
         activeRide.rideId = response.id;
         this.activeRides.set(userApiId, activeRide);
         this.taxisLocation.delete(taxiApiId);
       } catch (error) {
         this.activeRides.delete(userApiId);
-        this.server.to(MainGateway.connections.get(userApiId)?.socketId!).emit('taxi-cancelled-ride'); // Its not actually a cancelled ride event.
-        this.server.to(MainGateway.connections.get(taxiApiId)?.socketId!).emit('user-cancelled-ride'); // Its not actually a cancelled ride event.
+        this.server.to(userConnection.socketId).emit('taxi-cancelled-ride'); // Its not actually a cancelled ride event.
+        const taxiConnection = MainGateway.connections.get(taxiApiId);
+        
+        if (!taxiConnection) {
+          console.log('On handleRideResponse, MainGateway.connections.get(taxiApiId) returned undefined.');
+          return;
+        }
+
+        this.server.to(taxiConnection.socketId).emit('user-cancelled-ride'); // Its not actually a cancelled ride event.
       }
       
     } else {
       activeRide.currentRequested = undefined;
-      if (activeRide.alreadyRequesteds.length == this.taxisAvailable.size) {
+      
+      const allTaxisHaveBeenRequested = activeRide.alreadyRequesteds.length == this.taxisAvailable.size;
+
+      if (allTaxisHaveBeenRequested) {
         this.activeRides.delete(userApiId);
-        console.log('None of all taxis was requested.');
-        this.server.to(MainGateway.connections.get(userApiId)?.socketId!).emit('all-taxis-reject');
+        this.server.to(userConnection.socketId).emit('all-taxis-reject');
         return;
       }
       activeRide.alreadyRequesteds.push(taxiApiId);
-      console.log(`searching new taxi, taxis availables already requested for this ride: ${activeRide.alreadyRequesteds.length}`);
 
       this.checkLastLocationUpdate(userApiId);
     }
@@ -456,7 +544,7 @@ export class MainGateway implements OnGatewayInit, OnGatewayConnection, OnGatewa
       if (cantRequestLocation) return;
 
       const lastUpdate = this.taxisLocation.get(taxiApiId)?.lastUpdate;
-      if (lastUpdate && lastUpdate < new Date(new Date().setSeconds((this.frequencyToCheckLastUpdate * -1) + (iteration === 2 ? 5 : 0)))) {
+      if (!lastUpdate || (lastUpdate < new Date(new Date().setSeconds((this.frequencyToCheckLastUpdate * -1) + (iteration === 2 ? 5 : 0))))) {
         this.server.to(taxiSocketId).emit('update-taxi-location');
         waitTaxisUpdateLocation = true;
       }
@@ -479,14 +567,25 @@ export class MainGateway implements OnGatewayInit, OnGatewayConnection, OnGatewa
   userReconnect(@ConnectedSocket() client: Socket) {
     const userApiId = client.data.apiId;
     const activeRide = this.activeRides.get(userApiId);
-    if (activeRide != undefined && activeRide.taxi != undefined) {
-      const taxiConnection = MainGateway.connections.get(activeRide.taxi);
-      if (taxiConnection != undefined)
-        this.server.to(taxiConnection.socketId).emit('user-reconnect');
-      else
-        console.log('The socket id from activeRide.taxi its undefined');
-    } else 
-      console.log('activeRide or activeRide.taxi its undefined');
+    
+    if (!activeRide) {
+      console.log('On user-reconnect event, this.activeRides.get(userApiId) returned undefined.');
+      return;
+    }
+
+    if (activeRide.taxi === undefined) {
+      console.log('On user-reconnect event, this.activeRides.get(userApiId).taxi was undefined.');
+      return;
+    }
+
+    const taxiConnection = MainGateway.connections.get(activeRide.taxi);
+
+    if (!taxiConnection) {
+      console.log('On user-reconnect event, MainGateway.connections.get(activeRide.taxi) returned undefined');
+      return;
+    }
+
+    this.server.to(taxiConnection.socketId).emit('user-reconnect');
   }
 
   @SubscribeMessage('new-ride')
@@ -506,13 +605,51 @@ export class MainGateway implements OnGatewayInit, OnGatewayConnection, OnGatewa
         ride.destination.longitude
       )
     ) {
-      console.log('The received ride from the server is undefined or has undefined attributes.');
+      console.log(`On new-ride event, the ride received from the frontend is undefined or has undefined attributes: ${ride}.`);
       // TODO: handle the following event in the user frontend side.
-      this.server.to(client.id).emit('notify-error-msg', 'The received ride from the server is undefined or has undefined attributes.');
+      // this.server.to(client.id).emit('notify-error-msg', 'The received ride from the server is undefined or has undefined attributes.');
       return;
     }
 
-    if (this.taxisAvailable.size === 0) {
+    // This handle reviewers ride requests.
+    if (client.data.isReviewer) {
+      let taxiSocketId;
+      let taxiApiId;
+      for (let [userId, reviewConnection] of this.reviewConnections) {
+        if (reviewConnection.role === 'taxi') {
+          taxiSocketId = reviewConnection.socketId;
+          taxiApiId = userId;
+          break;
+        }
+      }
+      if (taxiSocketId) {
+        this.activeRides.set(userApiId, {
+          issuer: {
+            socketId: client.id,
+            username: username,
+          },
+          ride: ride,
+          alreadyRequesteds: [],
+          currentRequested: taxiApiId,
+          taxi: undefined,
+          arrived: false,
+          rideId: undefined
+        });
+        this.server.to(taxiSocketId).emit('ride-request', ride, userApiId, username);
+      } else this.server.to(client.id).emit('no-taxis-available');
+      return;
+    }
+
+    let reviewersTaxiCount = 0;
+    for (let [userId, reviewConnection] of this.reviewConnections) {
+      if (reviewConnection.role === 'taxi') {
+        reviewersTaxiCount++;
+      }
+    }
+
+    const taxisAvailableWithoutReviewers = this.taxisAvailable.size - reviewersTaxiCount;
+
+    if (taxisAvailableWithoutReviewers === 0) {
       this.server.to(client.id).emit('no-taxis-available');
       return;
     }
@@ -552,11 +689,10 @@ export class MainGateway implements OnGatewayInit, OnGatewayConnection, OnGatewa
       // In case taxi've not accepted the ride yet
       const taxiBeingRequestedApiId = activeRide.currentRequested;
       if (taxiBeingRequestedApiId != undefined) {
-        const taxiBeingRequestedSocketId = MainGateway.connections.get(taxiBeingRequestedApiId)?.socketId;
-        if (taxiBeingRequestedSocketId != undefined) {
-          console.log(`${taxiBeingRequestedApiId} deleted from beingRequested.`);
+        const taxiBeingRequestedConnection = MainGateway.connections.get(taxiBeingRequestedApiId);
+        if (taxiBeingRequestedConnection != undefined) {
           this.beingRequested.delete(taxiBeingRequestedApiId);
-          this.server.to(taxiBeingRequestedSocketId).emit('user-cancel-ride');
+          this.server.to(taxiBeingRequestedConnection.socketId).emit('user-cancel-ride');
         }
       }
     }

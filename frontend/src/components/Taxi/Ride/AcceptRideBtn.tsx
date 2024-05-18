@@ -63,7 +63,7 @@ export const AcceptRideBtn: FC<AcceptRideBtnInterface> = ({ userDisconnected }) 
 
   return (
     <>
-      {!rideStatus && (
+      {(!rideStatus || (rideStatus !== 'accepted' && rideStatus !== 'arrived')) && (
         <>
           <RideCardBtn text="Aceptar" onClick={() => handleNewRideRequest(true)} />
           <RideCardBtn text="No Aceptar" onClick={() => handleNewRideRequest(false)} />

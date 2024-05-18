@@ -1,4 +1,4 @@
-import { useContext } from 'react';
+import { useContext, useMemo } from 'react';
 import { Socket, io } from 'socket.io-client';
 import { useNavigation } from '@react-navigation/native';
 import { useAuthDispatchActions } from './slices/useAuthDispatchActions';
@@ -7,6 +7,7 @@ import { SocketContext } from './useSocketContext';
 import { useCommonSlice } from './slices/useCommonSlice';
 import { useMapDispatchActions } from './slices/useMapDispatchActions';
 import { LatLng, Ride } from 'types/Location';
+import { ReviewersMockedEmails } from '@constants/index';
 
 interface ConnectionOptions {
   transports: string[],
@@ -18,6 +19,7 @@ interface ConnectionOptions {
     role: string,
     username: string,
     reconnectionCheck: boolean,
+    isReviewer: boolean,
     location?: LatLng,
     // [key: string]: any,
   },
@@ -26,10 +28,14 @@ interface ConnectionOptions {
 export const useSocketConnectionEvents = () => {
   const navigation = useNavigation();
   const { setSocket, socket } = useContext(SocketContext)!;
-  const { firstName, lastName, accessToken, id, setNewAccessToken } = useAuthDispatchActions();
+  const { firstName, lastName, accessToken, id, setNewAccessToken, email } = useAuthDispatchActions();
   const { getNewAccessToken } = useHttpRequest();
   const { setRideStatus } = useMapDispatchActions();
   const { setError, removeNotification } = useCommonSlice();
+
+  const isReviewer = useMemo(() => {
+    return (!!ReviewersMockedEmails.find(e => e === email));
+  }, [email]);
 
   const connectionOptions = {
     transports: ['websocket'],
@@ -49,6 +55,7 @@ export const useSocketConnectionEvents = () => {
         role: 'user',
         username: `${firstName} ${lastName}`,
         reconnectionCheck: true,
+        isReviewer: isReviewer,
       },
     };
     const s = io(process.env.EXPO_PUBLIC_BASE_URL!, options);
@@ -72,6 +79,7 @@ export const useSocketConnectionEvents = () => {
         role: role,
         username: `${firstName} ${lastName}`,
         reconnectionCheck: false,
+        isReviewer: isReviewer,
       },
     };
     const s = io(process.env.EXPO_PUBLIC_BASE_URL!, options);
@@ -93,6 +101,7 @@ export const useSocketConnectionEvents = () => {
         username: `${firstName} ${lastName}`,
         location: location,
         reconnectionCheck: false,
+        isReviewer: isReviewer,
       },
     };
     const s = io(process.env.EXPO_PUBLIC_BASE_URL!, options);
@@ -114,6 +123,7 @@ export const useSocketConnectionEvents = () => {
         role: 'user',
         username: `${firstName} ${lastName}`,
         reconnectionCheck: false,
+        isReviewer: isReviewer,
       }
     };
     const s = io(process.env.EXPO_PUBLIC_BASE_URL!, options);

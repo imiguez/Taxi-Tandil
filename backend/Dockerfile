@@ -5,4 +5,4 @@ COPY . .
 RUN npm i
 RUN npm run build
 EXPOSE 443/tcp
-CMD ["npm", "run", "start:prod"]
+CMD ["npm", "run", "start:prod", "--log-opt", "max-size 20m", "--log-opt", "max-file 20"]

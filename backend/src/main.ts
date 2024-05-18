@@ -11,8 +11,8 @@ async function bootstrap() {
   const certFile = fs.readFileSync(`./certificates/certificate.crt`);
   const ca = fs.readFileSync(`./certificates/ca_bundle.crt`);
 
-  const app = await NestFactory.create<NestExpressApplication>(AppModule, process.env.DEVELOPMENT_ENV ? {
-    httpsOptions: {
+  const app = await NestFactory.create<NestExpressApplication>(AppModule, {
+    httpsOptions: process.env.DEVELOPMENT_ENV ? {} : {
       key: keyFile,
       cert: certFile,
       ca: ca,
@@ -20,7 +20,8 @@ async function bootstrap() {
     cors: {
       origin: '*'
     }
-  } : {});
+  });
+
   app.useGlobalPipes(new ValidationPipe());
   app.useWebSocketAdapter(new IoAdapter(app));
   
