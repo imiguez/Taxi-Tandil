@@ -6,7 +6,7 @@ import SelectInMapErrorNotification from "./SelectInMapErrorNotification";
 import { tandilLocation, screenWidth, windowHeight, GOOGLE_REVERSE_GEOCODE_API_URL } from "constants/index";
 import PermissionsPopUp from "components/Common/PermissionsPopUp";
 import { useMapDispatchActions } from "hooks/slices/useMapDispatchActions";
-import { GoogleReverseGeocodeApiResponse, LocationWithName } from "types/Location";
+import { GoogleReverseGeocodeApiResponse, LocationWithAddresses } from "types/Location";
 
 export const RideMap: FC = () => {
 
@@ -126,13 +126,13 @@ export const RideMap: FC = () => {
                 return;
             } else if (reversedLocation.status !== "OK") throw new Error(`Status: ${reversedLocation.status}.`);
     
-            const location: LocationWithName = {
+            const location: LocationWithAddresses = {
                 location: {
                     latitude: markerCoords.latitude,
                     longitude: markerCoords.longitude
                 },
-                longStringLocation: reversedLocation.results[0].formatted_address,
-                shortStringLocation: reversedLocation.results[0].address_components[1].long_name+reversedLocation.results[0].address_components[0].long_name,
+                longAddress: reversedLocation.results[0].formatted_address,
+                shortAddress: reversedLocation.results[0].address_components[1].long_name+reversedLocation.results[0].address_components[0].long_name,
             }
             
             setLocation(location, focusInput);
@@ -162,11 +162,11 @@ export const RideMap: FC = () => {
                 onRegionChangeComplete={handleRegionChangeComplete} >
 
                 {origin?.location && !selectInMap && 
-                    <Marker coordinate={origin.location} title={origin.shortStringLocation}/>
+                    <Marker coordinate={origin.location} title={origin.shortAddress}/>
                 }
 
                 {destination?.location && !selectInMap &&
-                    <Marker coordinate={destination.location} title={destination.shortStringLocation}/>
+                    <Marker coordinate={destination.location} title={destination.shortAddress}/>
                 }
 
                 {selectInMap && <Marker ref={markerRef}

@@ -12,7 +12,7 @@ import { Server, Socket } from 'socket.io';
 import { UseGuards } from '@nestjs/common';
 import { SocketAuthMiddleWare } from './middlewares/jwt-auth-middleware';
 import { JwtAuthGuard } from 'src/auth/guards/jwt-auth.guard';
-import { LatLng, Ride } from 'src/Types/Location.type';
+import { LatLng, RideWithAddresses } from 'src/Types/Location.type';
 import { calculateDistances } from './Utils';
 import { SocketDoubleConnectionMiddleWare } from './middlewares/double-connection-middleware';
 import { RidesService } from 'src/rides/rides.service';
@@ -23,7 +23,7 @@ export type activeRideType = {
     socketId: string,
     username: string,
   }
-  ride: Ride;
+  ride: RideWithAddresses;
   alreadyRequesteds: string[];
   currentRequested: string | undefined;
   taxi: string | undefined;
@@ -265,7 +265,8 @@ export class MainGateway implements OnGatewayInit, OnGatewayConnection, OnGatewa
     const userConnection = MainGateway.connections.get(userApiId);
     
     if (!userConnection) {
-      console.log('On location-update-for-user event, MainGateway.connections.get(userApiId) returned undefined.');
+      // Console log commented since the user can be disconnected, when reconnects it should receive this state
+      // console.log('On location-update-for-user event, MainGateway.connections.get(userApiId) returned undefined.');
       return;
     }
 
@@ -307,7 +308,8 @@ export class MainGateway implements OnGatewayInit, OnGatewayConnection, OnGatewa
     const userConnection = MainGateway.connections.get(userApiId);
 
     if (!userConnection) {
-      console.log('On taxi-arrived event, MainGateway.connections.get(userApiId) returned undefined.');
+      // Console log commented since the user can be disconnected, when reconnects it should receive this state
+      // console.log('On taxi-arrived event, MainGateway.connections.get(userApiId) returned undefined.');
       return;
     }
 
@@ -384,7 +386,8 @@ export class MainGateway implements OnGatewayInit, OnGatewayConnection, OnGatewa
     const userConnection = MainGateway.connections.get(userApiId);
 
     if (!userConnection) {
-      console.log('On ride-completed event, MainGateway.connections.get(userApiId) returned undefined.');
+      // Console log commented since the user can be disconnected, when reconnects it should receive this state
+      // console.log('On ride-completed event, MainGateway.connections.get(userApiId) returned undefined.');
       return;
     }
 
@@ -446,7 +449,7 @@ export class MainGateway implements OnGatewayInit, OnGatewayConnection, OnGatewa
    * @param ride
    * @returns An object with null values or an object with taxi values.
    */
-  getNearestTaxi(alreadyRequesteds: string[], ride: Ride) {
+  getNearestTaxi(alreadyRequesteds: string[], ride: RideWithAddresses) {
     let nearestTaxi: {
       id: null | string;
       distance: null | number;
@@ -463,7 +466,7 @@ export class MainGateway implements OnGatewayInit, OnGatewayConnection, OnGatewa
       if (alreadyRequested) return;
 
       let location = obj.location;
-      const currentDistance = calculateDistances(ride.origin, location);
+      const currentDistance = calculateDistances(ride.origin.location, location);
       if (nearestTaxi.distance == null || nearestTaxi.distance > currentDistance) {
         nearestTaxi = {
           id: id,
@@ -499,8 +502,10 @@ export class MainGateway implements OnGatewayInit, OnGatewayConnection, OnGatewa
       try {
         const response = await this.ridesService.insert({
           user_id: userApiId, driver_id: taxiApiId,
-          originLatitude: activeRide.ride.origin.latitude, originLongitude: activeRide.ride.origin.longitude, 
-          destinationLatitude: activeRide.ride.destination.latitude, destinationLongitude: activeRide.ride.destination.longitude, 
+          originShortAddress: activeRide.ride.origin.shortAddress, originLongAddress: activeRide.ride.origin.longAddress,
+          originLatitude: activeRide.ride.origin.location.latitude, originLongitude: activeRide.ride.origin.location.longitude, 
+          destinationShortAddress: activeRide.ride.destination.shortAddress, destinationLongAddress: activeRide.ride.destination.longAddress,
+          destinationLatitude: activeRide.ride.destination.location.latitude, destinationLongitude: activeRide.ride.destination.location.longitude, 
         });
 
         activeRide.rideId = response.id;
@@ -589,7 +594,7 @@ export class MainGateway implements OnGatewayInit, OnGatewayConnection, OnGatewa
   }
 
   @SubscribeMessage('new-ride')
-  newRide(@MessageBody() data: { ride: Ride }, @ConnectedSocket() client: Socket) {
+  newRide(@MessageBody() data: { ride: RideWithAddresses }, @ConnectedSocket() client: Socket) {
     const { ride } = data;
     const userApiId: string = client.data.apiId;
     const username: string = client.data.username;
@@ -598,11 +603,11 @@ export class MainGateway implements OnGatewayInit, OnGatewayConnection, OnGatewa
       !(
         ride &&
         ride.origin &&
-        ride.origin.latitude &&
-        ride.origin.longitude &&
+        ride.origin.location.latitude &&
+        ride.origin.location.longitude &&
         ride.destination &&
-        ride.destination.latitude &&
-        ride.destination.longitude
+        ride.destination.location.latitude &&
+        ride.destination.location.longitude
       )
     ) {
       console.log(`On new-ride event, the ride received from the frontend is undefined or has undefined attributes: ${ride}.`);

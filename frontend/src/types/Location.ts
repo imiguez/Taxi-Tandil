@@ -10,10 +10,10 @@ export type LatLngDelta = {
   longitudeDelta: number;
 };
 
-export type LocationWithName = {
+export type LocationWithAddresses = {
   location: LatLng;
-  longStringLocation: string;
-  shortStringLocation: string;
+  longAddress: string;
+  shortAddress: string;
 };
 
 export type Ride = {
@@ -21,9 +21,9 @@ export type Ride = {
   destination: LatLng;
 };
 
-export type RideWithAddress = {
-  origin: LocationWithName | null;
-  destination: LocationWithName | null;
+export type RideWithAddresses = {
+  origin: LocationWithAddresses | null;
+  destination: LocationWithAddresses | null;
 };
 
 export type GoogleReverseGeocodeApiResponse = {

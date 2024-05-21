@@ -47,8 +47,8 @@ export const ConfirmedRideCard: FC = () => {
     return (
         <RideCard>
             <View>
-                <Text numberOfLines={1} style={styles.addressText}>{origin?.longStringLocation}</Text>
-                <Text numberOfLines={1} style={styles.addressText}>{destination?.longStringLocation}</Text>
+                <Text numberOfLines={1} style={styles.addressText}>{origin?.longAddress}</Text>
+                <Text numberOfLines={1} style={styles.addressText}>{destination?.longAddress}</Text>
             </View>
 
             <View >

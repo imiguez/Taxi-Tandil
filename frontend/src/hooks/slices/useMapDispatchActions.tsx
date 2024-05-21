@@ -5,7 +5,7 @@ import { selectDestination, selectOrigin, selectLastModified, selectSelectInMap,
     setSelectInMap as setSelectInMapFromRideSlice, 
     setRideStatus as setRideStatusFromRideSlice,
     selectTaxi, setTaxi } from "../../../slices/userRideSlice";
-import { LocationWithName } from "types/Location";
+import { LocationWithAddresses } from "types/Location";
 import { initialUserRideSliceStateType } from "types/slices/userRideSliceTypes";
 
 export const useMapDispatchActions = () => {
@@ -18,7 +18,7 @@ export const useMapDispatchActions = () => {
     const rideStatus = useSelector(selectRideStatus);
     const taxi = useSelector(selectTaxi);
 
-    const setLocation = (location: LocationWithName | null, set: initialUserRideSliceStateType['focusInput']) => {
+    const setLocation = (location: LocationWithAddresses | null, set: initialUserRideSliceStateType['focusInput']) => {
         dispatch(setLastModified(set));
         if (set == 'origin') {
             dispatch(setOrigin(location));

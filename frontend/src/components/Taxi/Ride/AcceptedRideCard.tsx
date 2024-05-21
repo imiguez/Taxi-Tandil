@@ -24,10 +24,10 @@ const AcceptedRideCard = () => {
     <RideCard>
       <View>
         <Text numberOfLines={1} style={styles.addressText}>
-          {ride?.origin ? ride.origin.longStringLocation : 'Cargando direccion...'}
+          {ride?.origin ? ride.origin.longAddress : 'Cargando direccion...'}
         </Text>
         <Text numberOfLines={1} style={styles.addressText}>
-          {ride?.destination ? ride.destination.longStringLocation : 'Cargando direccion...'}
+          {ride?.destination ? ride.destination.longAddress : 'Cargando direccion...'}
         </Text>
       </View>
 

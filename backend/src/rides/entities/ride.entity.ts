@@ -5,17 +5,17 @@ import { CancellationReason } from "./CancellationReason.enum";
 
 @Entity({name: 'rides'})
 export class Ride extends BaseEntity {
-    @Column({name: 'origin_lat', type: 'float8'})
-    originLatitude: number;
+    @Column({ name: 'origin_short_address', length: 100 })
+    originShortAddress: string;
 
-    @Column({name: 'origin_lng', type: 'float8'})
-    originLongitude: number;
+    @Column({ name: 'origin_long_address', length: 100 })
+    originLongAddress: string;
 
-    @Column({name: 'destination_lat', type: 'float8'})
-    destinationLatitude: number;
+    @Column({ name: 'destination_short_address', length: 100 })
+    destinationShortAddress: string;
 
-    @Column({name: 'destination_lng', type: 'float8'})
-    destinationLongitude: number;
+    @Column({ name: 'destination_long_address', length: 100 })
+    destinationLongAddress: string;
 
     @Column({name: 'accepted_timestamp', type: 'timestamp without time zone'})
     acceptedTimestamp: Date;
@@ -45,4 +45,16 @@ export class Ride extends BaseEntity {
         default: null,
     })
     cancellationReason: CancellationReason;
+
+    @Column({name: 'origin_lat', type: 'float8'})
+    originLatitude: number;
+
+    @Column({name: 'origin_lng', type: 'float8'})
+    originLongitude: number;
+
+    @Column({name: 'destination_lat', type: 'float8'})
+    destinationLatitude: number;
+
+    @Column({name: 'destination_lng', type: 'float8'})
+    destinationLongitude: number;
 }

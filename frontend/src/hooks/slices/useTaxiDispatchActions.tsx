@@ -8,9 +8,8 @@ import { selectCurrentLocation, selectRide, selectUserId, setUserId, selectAvail
     setPopUp as setPopUpFromTaxiRideSlice,
     selectRideStatus, setUsername, selectUsername, selectPopUp,
 } from "../../../slices/taxiRideSlice";
-import { Ride } from "types/Location";
+import { RideWithAddresses } from "types/Location";
 import { initialTaxiRideSliceStateType } from "types/slices/taxiRideSliceTypes";
-import { Coords } from "utils/Coords";
 
 export const useTaxiDispatchActions = () => {
     const dispatch = useDispatch();
@@ -30,19 +29,14 @@ export const useTaxiDispatchActions = () => {
         dispatch(setAvailableFromTaxiRideSlice(isAvailable));
     }
 
-    const setRide = async (ride: Ride | null, creatorId: string | null, creatorFullName: string | null) => {
+    const setRide = (ride: RideWithAddresses | null, creatorId: string | null, creatorFullName: string | null) => {
         if (!ride) {
             dispatch(setRideFromTaxiRideSlice(null));
             dispatch(setUserId(null));
             dispatch(setUsername(null));
             return;
         }
-        let origin = await Coords.reverseGeocode(ride.origin);
-        let destination = await Coords.reverseGeocode(ride.destination);
-        dispatch(setRideFromTaxiRideSlice({
-            origin: origin,
-            destination: destination
-        }));
+        dispatch(setRideFromTaxiRideSlice(ride));
         dispatch(setUserId(creatorId));
         dispatch(setUsername(creatorFullName));
     }

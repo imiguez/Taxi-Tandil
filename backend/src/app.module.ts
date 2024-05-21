@@ -28,7 +28,7 @@ import { AuthService } from './auth/auth.service';
       database: ((!process.env.DEVELOPMENT_ENV && process.env.POSTGRES_DB) ? process.env.POSTGRES_DB : 'ride-dev-env'),
       autoLoadEntities: true,
       entities: [User, Role, Ride, Ticket],
-      // synchronize: process.env.DEVELOPMENT_ENV, // Set to false in production env.
+      // synchronize: !!process.env.DEVELOPMENT_ENV, // Set to false in production env.
     }),
     UsersModule, AuthModule, MainGatewayModule, RidesModule, TicketModule],
   controllers: [AppController],

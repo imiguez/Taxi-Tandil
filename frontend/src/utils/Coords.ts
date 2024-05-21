@@ -5,11 +5,11 @@ export class Coords {
     public static reverseGeocode = async (coord: LatLng) => {
         try {
             let value = await ExpoLocation.reverseGeocodeAsync(coord);
-            let longStringLocationValue = `${value[0].street} ${value[0].streetNumber}, ${value[0].city}, ${value[0].region}, ${value[0].country}`;
+            let longAddressValue = `${value[0].street} ${value[0].streetNumber}, ${value[0].city}, ${value[0].region}, ${value[0].country}`;
             return {
                 location: coord,
-                longStringLocation: longStringLocationValue,
-                shortStringLocation: `${value[0].street} ${value[0].streetNumber}`,
+                longAddress: longAddressValue,
+                shortAddress: `${value[0].street} ${value[0].streetNumber}`,
             }
         } catch (e) {
             console.log("reverseGeocodeAsync: "+e);
@@ -43,7 +43,7 @@ export class Coords {
             console.log(`getFullCurrentPosition: reverse geocode return undefined`);
             return;
         }
-        location.shortStringLocation = "Ubicación actual";
+        location.shortAddress = "Ubicación actual";
         return location;
     }
 

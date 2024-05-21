@@ -6,7 +6,7 @@ import { useHttpRequest } from './useHttpRequest';
 import { SocketContext } from './useSocketContext';
 import { useCommonSlice } from './slices/useCommonSlice';
 import { useMapDispatchActions } from './slices/useMapDispatchActions';
-import { LatLng, Ride } from 'types/Location';
+import { LatLng, RideWithAddresses } from 'types/Location';
 import { ReviewersMockedEmails } from '@constants/index';
 
 interface ConnectionOptions {
@@ -113,7 +113,7 @@ export const useSocketConnectionEvents = () => {
     onConnectionError(s, options, onConnect, onError);
   };
 
-  const connectAsUser = (ride: Ride) => {
+  const connectAsUser = (ride: RideWithAddresses) => {
     if (id == undefined) return;
     const options: ConnectionOptions = {
       ...connectionOptions,

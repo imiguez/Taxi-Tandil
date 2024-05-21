@@ -45,14 +45,14 @@ export const ConfirmedRideMap: FC = () => {
                     <Marker coordinate={{
                         latitude: origin.location.latitude,
                         longitude: origin.location.longitude,
-                    }} title={origin.shortStringLocation}/>
+                    }} title={origin.shortAddress}/>
                 }
 
                 {destination?.location &&
                     <Marker coordinate={{
                         latitude: destination.location.latitude,
                         longitude: destination.location.longitude,
-                    }} title={destination.shortStringLocation}/>
+                    }} title={destination.shortAddress}/>
                 }
 
                 {taxi && taxi.location && <Marker coordinate={taxi.location} title={taxi.username ?? 'Rider'} />}

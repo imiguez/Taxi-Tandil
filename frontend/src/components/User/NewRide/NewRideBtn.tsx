@@ -33,14 +33,8 @@ const NewRideBtn: FC = () => {
       return;
     }
     const ride = {
-      origin: {
-        latitude: origin.location.latitude,
-        longitude: origin.location.longitude,
-      },
-      destination: {
-        latitude: destination.location.latitude,
-        longitude: destination.location.longitude,
-      },
+      origin: origin,
+      destination: destination
     };
     connectAsUser(ride);
   };

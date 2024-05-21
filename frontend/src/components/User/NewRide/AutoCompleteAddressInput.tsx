@@ -29,9 +29,9 @@ export const AutoCompleteAddressInput: FC<AutoCompleteAddressInputProps> = ({pla
         ref.current?.focus();
         setIsFocus(true);
       }
-      address = origin ? origin.longStringLocation : '';
+      address = origin ? origin.longAddress : '';
     } else {
-      address = destination ? destination.longStringLocation : '';
+      address = destination ? destination.longAddress : '';
       if (origin && destination) {
         Keyboard.dismiss();
       } else if (origin) {
@@ -83,8 +83,8 @@ export const AutoCompleteAddressInput: FC<AutoCompleteAddressInputProps> = ({pla
               latitude: details.geometry.location.lat,
               longitude: details.geometry.location.lng,
             }, 
-            longStringLocation: details.formatted_address,
-            shortStringLocation: details.address_components[1].long_name+" "+details.address_components[0].long_name,
+            longAddress: details.formatted_address,
+            shortAddress: details.address_components[1].long_name+" "+details.address_components[0].long_name,
           }, set);
           setInputValue(details.formatted_address);
         } else
