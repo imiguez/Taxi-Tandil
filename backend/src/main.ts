@@ -11,12 +11,14 @@ async function bootstrap() {
   const certFile = fs.readFileSync(`./certificates/certificate.crt`);
   const ca = fs.readFileSync(`./certificates/ca_bundle.crt`);
 
+  const httpsOptions = process.env.DEVELOPMENT_ENV ? undefined : {
+    key: keyFile,
+    cert: certFile,
+    ca: ca,
+  };
+
   const app = await NestFactory.create<NestExpressApplication>(AppModule, {
-    httpsOptions: process.env.DEVELOPMENT_ENV ? {} : {
-      key: keyFile,
-      cert: certFile,
-      ca: ca,
-    },
+    httpsOptions: httpsOptions,
     cors: {
       origin: '*'
     }
@@ -29,6 +31,6 @@ async function bootstrap() {
   app.setBaseViewsDir(resolve('./src/mvc/views'));
   app.setViewEngine('hbs');
 
-  await app.listen(process.env.DEVELOPMENT_ENV ? 2000: 443);
+  await app.listen(process.env.DEVELOPMENT_ENV ? 2000: 443, "127.0.0.1");
 }
 bootstrap();

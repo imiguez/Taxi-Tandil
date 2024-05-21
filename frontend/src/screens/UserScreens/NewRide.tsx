@@ -1,18 +1,25 @@
 import { FC, useEffect } from "react";
-import { StyleSheet, View } from "react-native";
+import { StatusBar, StyleSheet, View } from "react-native";
 import { LinearGradient } from "expo-linear-gradient";
 
 import NewRideBtn from "components/User/NewRide/NewRideBtn";
 import { RideMap } from "components/User/NewRide/RideMap";
 import { RideSelectLocations } from "components/User/NewRide/RideSelectLocations";
 import { useMapDispatchActions } from "hooks/slices/useMapDispatchActions";
+import { useNavigation } from "@react-navigation/native";
 
 export const NewRide: FC = () => {
     const {setSelectInMap} = useMapDispatchActions();
+    const navigation = useNavigation();
 
     useEffect(() => {
+        const focusSub = navigation.addListener('focus', () => StatusBar.setHidden(true));
+        const blurSub = navigation.addListener('blur', () => StatusBar.setHidden(false));
+      
         return () => {
             setSelectInMap(false);
+            focusSub();
+            blurSub();
         }
     }, []);
 

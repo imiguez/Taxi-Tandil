@@ -37,18 +37,20 @@
         "env": {
           "EXPO_PUBLIC_API_BASE_URL": "https://www.taxistandil.online"
         }
-      }
+      },
+      "channel": "production"
     },
-    "preview": {
+    "staging": {
+      "extends": "base",
+      "autoIncrement": "true",
+      "distribution": "store",
       "android": {
-        "gradleCommand": ":app:assembleRelease"
-      }
-    },
-    "preview2": {
-      "developmentClient": true
-    },
-    "preview3": {
-      "distribution": "internal"
+        "buildType": "app-bundle",
+        "env": {
+          "EXPO_PUBLIC_API_BASE_URL": "https://www.taxistandil.online"
+        }
+      },
+      "channel": "staging"
     }
   }
 }
