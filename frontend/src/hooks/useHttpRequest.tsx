@@ -89,10 +89,12 @@ export const useHttpRequest = () => {
      * @returns The json form of the response as any type.
      */
     const postRequest: (endpoint: string, body: object) => Promise<any> = async (endpoint: string, body: object) => {
+        // This previous verification is for avoid JSON errors due the body can be parsed again on the handleResponse.
+        let stringifiedBody = typeof body === 'string' ? body : JSON.stringify(body);
         let response = await fetch(`${process.env.EXPO_PUBLIC_BASE_URL}/${endpoint}`, {
             method: "POST",
             headers: headers,
-            body: JSON.stringify(body),
+            body: stringifiedBody,
         });
         return await handleResponse(response, async () => postRequest(endpoint, body));
     }
@@ -105,10 +107,12 @@ export const useHttpRequest = () => {
      * @returns The json form of the response as any type.
      */
     const putRequest: (endpoint: string, body: object) => Promise<any> = async (endpoint: string, body: object) => {
+        // This previous verification is for avoid JSON errors due the body can be parsed again on the handleResponse.
+        let stringifiedBody = typeof body === 'string' ? body : JSON.stringify(body);
         let response = await fetch(`${process.env.EXPO_PUBLIC_BASE_URL}/${endpoint}`, {
             method: "PUT",
             headers: headers,
-            body: JSON.stringify(body),
+            body: stringifiedBody,
         });
         return await handleResponse(response, async () => putRequest(endpoint, body));
     }

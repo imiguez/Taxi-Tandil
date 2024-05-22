@@ -31,6 +31,9 @@ async function bootstrap() {
   app.setBaseViewsDir(resolve('./src/mvc/views'));
   app.setViewEngine('hbs');
 
-  await app.listen(process.env.DEVELOPMENT_ENV ? 2000: 443, "127.0.0.1");
+  // On local development env have to indicate the hostname with the localhost ip.
+  if (!!process.env.DEVELOPMENT_ENV) await app.listen(2000, "127.0.0.1");
+  else await app.listen(443);
+
 }
 bootstrap();
