@@ -5,6 +5,7 @@ export default ({ config }: ConfigContext): ExpoConfig => ({
   name: config.name ?? "Ride",
   slug: config.slug ?? "Ride",
   android: {
+    versionCode: 1,
     permissions: [
       "android.permission.ACCESS_COARSE_LOCATION",
       "android.permission.ACCESS_FINE_LOCATION",
@@ -17,7 +18,7 @@ export default ({ config }: ConfigContext): ExpoConfig => ({
       foregroundImage: "./assets/adaptive-icon.png",
       backgroundColor: "#ffcf00"
     },
-    package: "com.imiguez.Ride",
+    package: "com.imiguez.ride",
     config: {
       googleMaps: {
         apiKey: process.env.EXPO_PUBLIC_GOOGLE_MAPS_API_KEY

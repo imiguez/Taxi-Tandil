@@ -90,6 +90,15 @@ export const AutoCompleteAddressInput: FC<AutoCompleteAddressInputProps> = ({pla
         } else
           setLocation(null, set);
       }}
+      requestUrl={{
+        useOnPlatform: 'all',
+        url:
+          'https://maps.googleapis.com/maps/api',
+        headers: {
+          "X-Android-Package": "com.imiguez.ride",
+          "X-Android-Cert": process.env.EXPO_PUBLIC_SHA_1!
+        },
+      }}
       query={{
         key: process.env.EXPO_PUBLIC_GOOGLE_MAPS_API_KEY,
         language: "es",
