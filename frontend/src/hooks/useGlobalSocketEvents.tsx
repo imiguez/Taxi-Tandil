@@ -139,7 +139,7 @@ export const useGlobalocketEvents = () => {
         const timeout = setTimeout(async () => {
             navigation.navigate('Main', {screen: 'Taxi', params: {screen: 'AcceptedRide'}});
             addNotification('User disconnected');
-        }, 5*60*1000);
+        }, process.env.DEVELOPMENT_ENV ? 20000 : 5*60*1000);
 
         socket!.once('user-reconnect', async () => {
             clearTimeout(timeout);
@@ -192,7 +192,7 @@ export const useGlobalocketEvents = () => {
         const timeout = setTimeout( () => {
             navigation.navigate('Main', {screen: 'Home', params: {screen: 'ConfirmedRide'}});
             addNotification('Taxi disconnected');
-        }, 5*60*1000);
+        }, process.env.DEVELOPMENT_ENV ? 20000 : 5*60*1000);
 
         socket!.once('taxi-reconnect', () => {
             clearTimeout(timeout);

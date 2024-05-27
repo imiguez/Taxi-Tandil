@@ -7,9 +7,11 @@ import { useState } from 'react';
 import { Socket } from 'socket.io-client';
 import React from 'react';
 import { NativeModules, Platform, SafeAreaView } from 'react-native';
+import { LogLevel, OneSignal } from 'react-native-onesignal';
 
 export default function App() {
-  
+  OneSignal.initialize(process.env.EXPO_PUBLIC_ONE_SIGNAL_APP_ID!);
+  if (process.env.DEVELOPMENT_ENV) OneSignal.Debug.setLogLevel(LogLevel.Verbose);
   const { StatusBarManager } = NativeModules;
   let [socket, setSocket] = useState<Socket>();
 

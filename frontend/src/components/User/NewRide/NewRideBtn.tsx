@@ -5,6 +5,7 @@ import { useCommonSlice } from 'hooks/slices/useCommonSlice';
 import { useMapDispatchActions } from 'hooks/slices/useMapDispatchActions';
 import { useSocketConnectionEvents } from 'hooks/useSocketConnectionEvents';
 import { SocketContext } from 'hooks/useSocketContext';
+import { OneSignal } from 'react-native-onesignal';
 
 const NewRideBtn: FC = () => {
   const navigation = useNavigation();
@@ -12,7 +13,7 @@ const NewRideBtn: FC = () => {
   const { origin, destination, rideStatus } = useMapDispatchActions();
   const [confirmBtn, setConfirmBtn] = useState<boolean>(false);
   const { connectAsUser } = useSocketConnectionEvents();
-  const { setError } = useCommonSlice();
+  const { setError, pushNotificationsPermissionAlreadyRequested, setPushNotificationsPermissionAlreadyRequested } = useCommonSlice();
 
   useMemo(() => {
     setConfirmBtn(
@@ -21,6 +22,22 @@ const NewRideBtn: FC = () => {
         (rideStatus == null || (rideStatus != 'emitted' && rideStatus != 'accepted' && rideStatus != 'arrived'))
     );
   }, [rideStatus, origin, destination]);
+
+  const beforeOnConfirmRide = async () => {
+    // Check the push notification permission
+    let hasPushNotificationPermissions = await OneSignal.Notifications.getPermissionAsync();
+    if (!hasPushNotificationPermissions && !pushNotificationsPermissionAlreadyRequested) {
+      OneSignal.InAppMessages.addTrigger("first_user_request_ride", "true");
+      setPushNotificationsPermissionAlreadyRequested(true);
+    } else {
+      if (hasPushNotificationPermissions) {
+        OneSignal.User.pushSubscription.optIn();
+      } else {
+        OneSignal.User.pushSubscription.optOut();
+      }
+      onConfirmRide();
+    }
+  }
 
   const onConfirmRide = () => {
     if (socket != undefined && socket.auth.role == 'taxi') {
@@ -45,7 +62,7 @@ const NewRideBtn: FC = () => {
         <TouchableHighlight
           style={styles.button}
           onPress={() => {
-            if (confirmBtn) onConfirmRide();
+            if (confirmBtn) beforeOnConfirmRide();
             else navigation.navigate('Main', {screen: 'Home', params: {screen: 'ConfirmedRide'}});
           }}
         >

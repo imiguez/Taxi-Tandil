@@ -10,6 +10,7 @@ import { useCommonSlice } from './slices/useCommonSlice';
 import { SecureStoreItems } from 'constants/index';
 import RootStackParamList from 'types/RootStackParamList';
 import { useExpoTaskManager } from './useExpoTaskManager';
+import { OneSignal } from 'react-native-onesignal';
 
 export const useLogOut = () => {
   const navigation = useNavigation<StackNavigationProp<RootStackParamList>>();
@@ -43,6 +44,7 @@ export const useLogOut = () => {
           nav = nav.getParent<StackNavigationProp<RootStackParamList>>();
       }
       nav.popToTop();
+      OneSignal.logout()
     },
   };
 };

@@ -4,6 +4,7 @@ import { ValidationPipe } from '@nestjs/common';
 import { NestExpressApplication } from '@nestjs/platform-express';
 import { IoAdapter } from '@nestjs/platform-socket.io';
 import { resolve } from 'path';
+import { OneSignalStaticClass } from './OneSignalStaticClass';
 
 async function bootstrap() {
   const fs = require('fs');
@@ -35,5 +36,6 @@ async function bootstrap() {
   if (!!process.env.DEVELOPMENT_ENV) await app.listen(2000, "127.0.0.1");
   else await app.listen(443);
 
+  OneSignalStaticClass.init();
 }
 bootstrap();

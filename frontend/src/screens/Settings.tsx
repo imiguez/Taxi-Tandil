@@ -5,8 +5,9 @@ import * as WebBrowser from 'expo-web-browser';
 import LogoutModal from "components/Common/Settings/LogoutModal";
 import WorkWithUsModal from "components/Common/Settings/WorkWithUsModal";
 import { useAuthDispatchActions } from "hooks/slices/useAuthDispatchActions";
-import { MaterialIcons } from '@expo/vector-icons';
+import { MaterialIcons, Entypo } from '@expo/vector-icons';
 import CreateTicketModal from "@components/Common/Settings/CreateTicketModal";
+import { OneSignal } from "react-native-onesignal";
 
 export const Settings: FC = () => {
     const {firstName, lastName} = useAuthDispatchActions();
@@ -28,6 +29,11 @@ export const Settings: FC = () => {
             <Text style={styles.name}>{`${firstName} ${lastName}`}</Text>
             <View style={styles.card}>
             
+                <TouchableOpacity style={styles.cardRow} onPress={async () => await OneSignal.Notifications.requestPermission(true)}>
+                    <Entypo name="notification" size={24} color="black" />
+                    <Text>Activar Notificaciones Push</Text>
+                </TouchableOpacity>
+
                 <TouchableOpacity style={styles.cardRow} onPress={() => setShowTicket(true)}>
                     <MaterialIcons name="headset-mic" size={24} color="black" />
                     <Text>Tuviste algún inconveniente?</Text>
@@ -43,6 +49,10 @@ export const Settings: FC = () => {
                 {showWorkWithUs && 
                     <WorkWithUsModal close={() => showPopUp(setShowWorkWithUs, false)} />
                 }
+                <TouchableOpacity style={styles.cardRow} onPress={async () => await WebBrowser.openBrowserAsync(policyUrl)} >
+                    <MaterialIcons name="security" size={24} color="black" />
+                    <Text>Políticas de privacidad</Text>
+                </TouchableOpacity>
                 <TouchableOpacity style={styles.cardRow} onPress={() => showPopUp(setShowLogoutPopUp, true)} >
                     <Ionicons name="log-out-outline" size={24} color="black" />
                     <Text>Cerrar sesión</Text>
@@ -50,10 +60,6 @@ export const Settings: FC = () => {
                 {showLogoutPopUp && 
                     <LogoutModal close={() => showPopUp(setShowLogoutPopUp, false)} />
                 }
-                <TouchableOpacity style={styles.cardRow} onPress={async () => await WebBrowser.openBrowserAsync(policyUrl)} >
-                    <MaterialIcons name="security" size={24} color="black" />
-                    <Text>Políticas de privacidad</Text>
-                </TouchableOpacity>
             </View>
         </View>
     );

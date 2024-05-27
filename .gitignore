@@ -44,6 +44,9 @@ frontend/.env
 
 # Learn more https://docs.github.com/en/get-started/getting-started-with-git/ignoring-files
 
+
+frontend/ride-423414-firebase-adminsdk-qoxh5-526f45cca7.json
+
 # dependencies
 frontend/node_modules/
 

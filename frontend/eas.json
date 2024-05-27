@@ -4,7 +4,7 @@
   },
   "build": {
     "base": {
-      "node": "16.12.0"
+      "node": "18.20.3"
     },
     "dev-aws-url": {
       "extends": "base",
@@ -32,11 +32,11 @@
       "extends": "base",
       "autoIncrement": "true",
       "distribution": "store",
+      "env": {
+        "EXPO_PUBLIC_BASE_URL": "https://www.taxistandil.online"
+      },
       "android": {
-        "buildType": "app-bundle",
-        "env": {
-          "EXPO_PUBLIC_API_BASE_URL": "https://www.taxistandil.online"
-        }
+        "buildType": "app-bundle"
       },
       "channel": "production"
     },
@@ -44,11 +44,11 @@
       "extends": "base",
       "autoIncrement": "true",
       "distribution": "store",
+      "env": {
+        "EXPO_PUBLIC_BASE_URL": "https://www.taxistandil.online"
+      },
       "android": {
-        "buildType": "app-bundle",
-        "env": {
-          "EXPO_PUBLIC_API_BASE_URL": "https://www.taxistandil.online"
-        }
+        "buildType": "app-bundle"
       },
       "channel": "staging"
     }

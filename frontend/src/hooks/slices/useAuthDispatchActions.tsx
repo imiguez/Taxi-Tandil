@@ -7,6 +7,7 @@ import { initialState, selectAccessToken, selectEmail, selectFirstName, selectId
 import { SecureStoreItems } from "constants/index";
 import RootStackParamList from "types/RootStackParamList";
 import { initialAuthSliceStateType } from "types/slices/authSliceTypes";
+import { OneSignal } from 'react-native-onesignal';
 
 export const useAuthDispatchActions = () => {
     const dispatch = useDispatch();
@@ -55,6 +56,7 @@ export const useAuthDispatchActions = () => {
 
 
     const storeAuthentication = async (data: any) => {
+        data.id ? OneSignal.login(data.id): '';
         await SecureStore.setItemAsync('id', data.id + '');
         await SecureStore.setItemAsync('firstName', data.firstName + '');
         await SecureStore.setItemAsync('lastName', data.lastName + '');

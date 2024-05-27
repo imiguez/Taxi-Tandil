@@ -7,6 +7,7 @@ import { useExpoTaskManager } from "hooks/useExpoTaskManager";
 import { useSocketConnectionEvents } from "hooks/useSocketConnectionEvents";
 import { SocketContext } from "hooks/useSocketContext";
 import { LocationPermissions } from "utils/LocationPermissions";
+import { OneSignal } from "react-native-onesignal";
 
 type AvailableBtnProps = {
     setShowPopUp: (show: boolean) => void
@@ -17,18 +18,41 @@ export const AvailableBtn: FC<AvailableBtnProps> = ({setShowPopUp}) => {
     const {stopBackgroundUpdate} = useExpoTaskManager();
     const {available, setAvailable, setRide, rideStatus} = useTaxiDispatchActions();
     const { connectAsTaxi } = useSocketConnectionEvents();
-    const { addNotification, removeNotification } = useCommonSlice();
+    const { addNotification, removeNotification, pushNotificationsPermissionAlreadyRequested, setPushNotificationsPermissionAlreadyRequested } = useCommonSlice();
 
     useEffect(() => {
         setAvailable(socket != undefined);
     }, [socket]);
 
+    const beforeHandleDisp = async (available: boolean) => {
+        setAvailable('loading');
+        if (!available) {
+            await handleDisp(available);
+            return;
+        }
+        // Check the push notification permission
+        let hasPushNotificationPermissions = await OneSignal.Notifications.getPermissionAsync();
+        console.log(hasPushNotificationPermissions, pushNotificationsPermissionAlreadyRequested, available);
+        if (!hasPushNotificationPermissions && !pushNotificationsPermissionAlreadyRequested) {
+          OneSignal.InAppMessages.addTrigger("driver_attempt_being_available", "true");
+          setPushNotificationsPermissionAlreadyRequested(true);
+          OneSignal.InAppMessages.addEventListener('click', (event) => {
+            setAvailable(false);
+          });
+        } else {
+          if (hasPushNotificationPermissions) {
+            OneSignal.User.pushSubscription.optIn();
+          } else {
+            OneSignal.User.pushSubscription.optOut();
+          }
+          await handleDisp(available);
+        }
+    }
+
     /**
      * @see link https://docs.expo.dev/versions/latest/sdk/location/#locationreversegeocodeasynclocation-options
      */
     const handleDisp = async (available: boolean) => {
-        setAvailable('loading');
-        
         if (!available) {
             let timeout = setTimeout(() => {
                 if (!available) {
@@ -98,7 +122,7 @@ export const AvailableBtn: FC<AvailableBtnProps> = ({setShowPopUp}) => {
         <View style={styles.container}>
             <TouchableOpacity style={[styles.btn, {
                 backgroundColor: available === true ? '#f95959' :  '#a5a5a5', //: '#42b883',
-            }]} onPress={() => handleDisp(!available)} disabled={available==='loading' || rideStatus != null}>
+            }]} onPress={() => beforeHandleDisp(!available)} disabled={available==='loading' || rideStatus != null}>
                 <Text>{available==='loading' ? 'Cargando...' : 'Disponible'}</Text>
             </TouchableOpacity>
         </View>
