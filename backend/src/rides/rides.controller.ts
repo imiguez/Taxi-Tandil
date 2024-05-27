@@ -21,4 +21,14 @@ export class RidesController {
   async findById(@Param('id') id: string) {
     return await this.ridesService.findById(id);
   }
+
+  @Get('/count/:userId') 
+  async countRidesByUserId(@Param('userId') userId: string) {
+    return await this.ridesService.countRidesByUserId(userId);
+  }
+
+  @Get('/:userId/:page') 
+  async findRidesByUserId(@Param('userId') userId: string, @Param('page') page: number) {
+    return await this.ridesService.findRidesByUserId(userId, page);
+  }
 }

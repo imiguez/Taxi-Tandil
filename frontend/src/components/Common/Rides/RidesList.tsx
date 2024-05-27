@@ -1,139 +1,98 @@
-import { ActivityIndicator, FlatList, StyleSheet, Text, View } from 'react-native'
-import React, { useEffect, useState } from 'react'
+import { ActivityIndicator, StyleSheet, Text, View } from 'react-native'
+import { FlashList } from '@shopify/flash-list'
+import React, { useCallback, useEffect, useState } from 'react'
 import Ride from './Ride'
 import { RideInterface } from 'types/Rides'
+import { useAuthDispatchActions } from '@hooks/slices/useAuthDispatchActions'
+import { useHttpRequest } from '@hooks/useHttpRequest'
+import ScreenHeader from '../ScreenHeader'
 
 
-const data: RideInterface[] = [
-    {
-        id: 1,
-        taxi_username: 'Jhon Jonnas',
-        origin_long_name: 'pepe 12',
-        origin_lat: -37.32427812304469,
-        origin_lng: -59.14159633219242,
-        destination_long_name: 'pasa 34',
-        destination_lat: -37.331554819241205,
-        destination_lng: -59.12714827805757,
-        created_at: new Date(),
-        accepted_timestamp: new Date(),
-        arrived_timestamp: new Date(),
-        finished_timestamp: new Date(),
-        was_cancelled: false,
-        cancellation_reason: null,
-    },
-    {
-        id: 2,
-        taxi_username: 'Jhon Jonnas',
-        origin_long_name: 'pepe 12',
-        origin_lat: -37.32427812304469,
-        origin_lng: -59.14159633219242,
-        destination_long_name: 'pasa 34',
-        destination_lat: -37.331554819241205,
-        destination_lng: -59.12714827805757,
-        created_at: new Date(),
-        accepted_timestamp: new Date(),
-        arrived_timestamp: new Date(),
-        finished_timestamp: new Date(),
-        was_cancelled: false,
-        cancellation_reason: null,
-    },
-    {
-        id: 3,
-        taxi_username: 'Jhon Jonnas',
-        origin_long_name: 'pepe 12',
-        origin_lat: -37.32427812304469,
-        origin_lng: -59.14159633219242,
-        destination_long_name: 'pasa 34',
-        destination_lat: -37.331554819241205,
-        destination_lng: -59.12714827805757,
-        created_at: new Date(),
-        accepted_timestamp: new Date(),
-        arrived_timestamp: new Date(),
-        finished_timestamp: new Date(),
-        was_cancelled: false,
-        cancellation_reason: null,
-    }, {
-        id: 4,
-        taxi_username: 'Jhon Jonnas',
-        origin_long_name: 'pepe 12',
-        origin_lat: -37.32427812304469,
-        origin_lng: -59.14159633219242,
-        destination_long_name: 'pasa 34',
-        destination_lat: -37.331554819241205,
-        destination_lng: -59.12714827805757,
-        created_at: new Date(),
-        accepted_timestamp: new Date(),
-        arrived_timestamp: new Date(),
-        finished_timestamp: new Date(),
-        was_cancelled: false,
-        cancellation_reason: null,
-    },    {
-        id: 5,
-        taxi_username: 'Jhon Jonnas',
-        origin_long_name: 'pepe 12',
-        origin_lat: -37.32427812304469,
-        origin_lng: -59.14159633219242,
-        destination_long_name: 'pasa 34',
-        destination_lat: -37.331554819241205,
-        destination_lng: -59.12714827805757,
-        created_at: new Date(),
-        accepted_timestamp: new Date(),
-        arrived_timestamp: new Date(),
-        finished_timestamp: new Date(),
-        was_cancelled: false,
-        cancellation_reason: null,
-    },    {
-        id: 6,
-        taxi_username: 'Jhon Jonnas',
-        origin_long_name: 'pepe 12',
-        origin_lat: -37.32427812304469,
-        origin_lng: -59.14159633219242,
-        destination_long_name: 'pasa 34',
-        destination_lat: -37.331554819241205,
-        destination_lng: -59.12714827805757,
-        created_at: new Date(),
-        accepted_timestamp: new Date(),
-        arrived_timestamp: new Date(),
-        finished_timestamp: new Date(),
-        was_cancelled: false,
-        cancellation_reason: null,
+const EmptyListMessage = () => (
+  <View style={styles.emptyListContainer}>
+    <Text style={styles.emptyListText}>No tenés viajes</Text>
+  </View>
+);
+
+  const RidesList = () => {
+  const { id } = useAuthDispatchActions();
+  const { getRequest } = useHttpRequest();
+  const [rides, setRides] = useState<RideInterface[]>([]);
+  const [isLoading, setIsLoading] = useState<boolean>(false);
+  const [hasMoreRides, setHasMoreRides] = useState<boolean>(true);
+  const [pageNumber, setPageNumber] = useState(0);
+  const [total, setTotal] = useState<undefined|number>(undefined);
+
+  useEffect(() => {
+    fetchPaginatedRides();
+    fetchTotalRides();
+  }, []);
+
+  const fetchTotalRides = async () => {
+    try {
+      const totalRides = await getRequest(`rides/count/${id}`);
+      setTotal(totalRides);
+    } catch (error) {
+      console.error('Error fetching data:', error);
     }
-];
+  }
 
-const RidesList = () => {
-    const [isLoading, setIsLoading] = useState<boolean>(true);
-    useEffect(() => {
-        setTimeout(() => {
-            setIsLoading(false);
-        }, 200);
-    }, []);
+  const fetchPaginatedRides = async () => {
+    if (isLoading || !hasMoreRides) return;
+    setIsLoading(true)
+    try {
+      const newRides = await getRequest(`rides/${id}/${pageNumber}`);
+      setRides([...rides, ...newRides]);
+      setPageNumber(pageNumber+1);
+      if (newRides.length < 10) setHasMoreRides(false);
+    } catch (error) {
+      console.error('Error fetching data:', error);
+    } finally {
+      setIsLoading(false)
+    }
+  };
+
+
+  const keyExtractor = useCallback((item: any, i: number) => `${i}-${item.id}`, []);
 
   return (
-    <View style={{ flex: 1 }}>
-      {isLoading ? (
-        <ActivityIndicator size="large" style={{ flex: 1, justifyContent: 'center' }} />
-      ) : (
-        <FlatList style={styles.flatList}
-        contentContainerStyle={styles.flatListContent}
-        scrollEnabled showsVerticalScrollIndicator 
-          data={process.env.DEVELOPMENT_ENV ? data : []}
-          renderItem={({item}) => <Ride {...item} />}
-          keyExtractor={(item) => item.id.toString()}
-        />
-      )}
-    </View>
+    <>
+      <ScreenHeader title='Viajes' >
+        <Text style={styles.text}>{total ? `Estas viendo ${rides.length} viajes de ${total}` : ''}</Text>
+      </ScreenHeader>
+
+      <FlashList scrollEnabled showsVerticalScrollIndicator 
+        data={rides}
+        renderItem={({item}) => <Ride {...item} />} 
+        keyExtractor={keyExtractor}
+        estimatedItemSize={(pageNumber+1)*10}
+        onEndReached={fetchPaginatedRides}
+        onEndReachedThreshold={0.1}
+        contentContainerStyle={{paddingTop: 20}}
+        ListEmptyComponent={isLoading ? <></> : <EmptyListMessage/>}
+        ListFooterComponent={() => (
+          isLoading ?
+            <ActivityIndicator style={{ marginVertical: 20 }} size="large" color="black" />
+            : null
+        )}
+      />
+    </>
   )
 }
 
 export default RidesList
 
 const styles = StyleSheet.create({
-    flatList: {
-        maxHeight: '100%',
-        paddingTop: 20,
-    },
-    flatListContent: {
-        alignItems: 'center',
-        paddingBottom: 30,
-    }
+  text: {
+    paddingTop: 10,
+    fontWeight: '500'
+  },
+  emptyListContainer: {
+    marginTop: '80%',
+    justifyContent: 'center',
+    alignItems: 'center'
+  },
+  emptyListText: {
+    fontSize: 16,
+  },
 });

@@ -8,6 +8,7 @@ import { useAuthDispatchActions } from "hooks/slices/useAuthDispatchActions";
 import { MaterialIcons, Entypo } from '@expo/vector-icons';
 import CreateTicketModal from "@components/Common/Settings/CreateTicketModal";
 import { OneSignal } from "react-native-onesignal";
+import ScreenHeader from "@components/Common/ScreenHeader";
 
 export const Settings: FC = () => {
     const {firstName, lastName} = useAuthDispatchActions();
@@ -26,6 +27,7 @@ export const Settings: FC = () => {
 
     return (
         <View ref={settingsContainer} style={[styles.mainContainer, showWorkWithUs ? {opacity: 0.3} : {}]}>
+            <ScreenHeader title="Configuraciones" />
             <Text style={styles.name}>{`${firstName} ${lastName}`}</Text>
             <View style={styles.card}>
             

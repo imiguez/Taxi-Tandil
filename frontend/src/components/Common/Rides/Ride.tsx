@@ -18,7 +18,7 @@ const Ride: FC<RideInterface> = (ride) => {
         <MaterialIcons name="local-taxi" size={50} color={'black'} />
 
         <View style={styles.addressContainer}>
-          <Text style={styles.addressText}>{ride.destination_long_name}</Text>
+          <Text style={styles.addressText}>{ride.destinationShortAddress}</Text>
           
           <ImageBackground source={require('@assets/GoogleMapsBackgroundMap.jpg')} resizeMode="cover" style={styles.mapContainer}>
           </ImageBackground>
@@ -37,11 +37,12 @@ export default Ride;
 
 const styles = StyleSheet.create({
   btnContainer: {
-    width: screenWidth*.8,
+    width: 'auto',
     borderRadius: 10,
     borderColor: 'black',
     elevation: 8,
     marginVertical: 10,
+    marginHorizontal: 20,
     backgroundColor: 'white',
   },
   rideContainer: {
@@ -56,7 +57,7 @@ const styles = StyleSheet.create({
   },
   addressText: {
     fontSize: 16,
-    fontWeight: 'bold',
+    fontWeight: '500',
   },
   mapContainer: {
     height: 50,
@@ -76,6 +77,5 @@ const styles = StyleSheet.create({
   },
   date: {
     fontSize: 12,
-    fontWeight: '600',
   }
 });
