@@ -1,4 +1,4 @@
-import { useNavigation } from "@react-navigation/native";
+import * as SecureStore from 'expo-secure-store';
 import { useAuthDispatchActions } from "./slices/useAuthDispatchActions";
 import { useLogOut } from "./useLogOut";
 import { HttpError } from "utils/HttpError";
@@ -8,8 +8,7 @@ import { HttpError } from "utils/HttpError";
  * @returns The following methods: getRequest, postRequest.
  */
 export const useHttpRequest = () => {
-    const {accessToken, refreshToken, setNewAccessToken, cleanUp} = useAuthDispatchActions();
-    const navigation = useNavigation();
+    const {accessToken, refreshToken, setNewAccessToken} = useAuthDispatchActions();
     const {logOut} = useLogOut();
 
     let headers = {
@@ -18,9 +17,8 @@ export const useHttpRequest = () => {
     }
 
     /**
-     * Returns a new jwt access token.
      * @todo Before logout, notify the user that the session has expired by a modal.    
-     * @returns The a promise of a new access token in string format.
+     * @returns A new access token promise.
      * @throws
      * Throws an error if the refreshToken from the 'useAuthDispatchActions' is undefined.
      * @throws
@@ -30,11 +28,17 @@ export const useHttpRequest = () => {
         if (refreshToken == undefined)
             throw new Error('The Access Token is null or undefined.');
         try {
-            const response: any = await postRequest('auth/refresh-jwt-token', {refreshToken: `Bearer ${refreshToken}`});
-            return response.access_token;
+            const response: any = await fetch(`${process.env.EXPO_PUBLIC_BASE_URL}/auth/refresh-jwt-token`, {
+                method: 'POST', 
+                headers: headers,
+                body: JSON.stringify({refreshToken: `Bearer ${refreshToken}`})
+            });
+            let jsonResponse: any = await response.json();
+            if (!response.ok) throw new HttpError(jsonResponse.message ?? 'Unknown http error.', jsonResponse.statusCode ?? 500);
+            return jsonResponse.access_token;
         } catch (error: any) {
             // TODO: Before logout, notify the user that the session has expired by a modal.
-            if (error.message == 'refresh jwt expired') {
+            if (error.statusCode === 401) {
                 await logOut();
             } else throw error;
         }
@@ -45,6 +49,7 @@ export const useHttpRequest = () => {
      */
     const onAccessTokenExpires = async () => {
         let newAccessToken = await getNewAccessToken();
+        await SecureStore.setItemAsync('access_token', newAccessToken ?? '');
         setNewAccessToken(newAccessToken);
         headers['Authorization'] = `Bearer ${newAccessToken}`;
     }
@@ -65,7 +70,9 @@ export const useHttpRequest = () => {
             if (jsonResponse.message == 'jwt expired') {
                 await onAccessTokenExpires();
                 return await requestFn();
-            } else throw new HttpError(jsonResponse.message ?? 'Unknown http error.', jsonResponse.statusCode ?? 500);
+            } 
+            else if (jsonResponse.statusCode === 401) await logOut();
+            else throw new HttpError(jsonResponse.message ?? 'Unknown http error.', jsonResponse.statusCode ?? 500);
         } else return jsonResponse;
     }
     

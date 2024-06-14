@@ -24,8 +24,10 @@ const EmptyListMessage = () => (
   const [total, setTotal] = useState<undefined|number>(undefined);
 
   useEffect(() => {
-    fetchPaginatedRides();
-    fetchTotalRides();
+    (async () => {
+      await fetchPaginatedRides();
+      await fetchTotalRides();
+    })
   }, []);
 
   const fetchTotalRides = async () => {
@@ -58,7 +60,7 @@ const EmptyListMessage = () => (
   return (
     <>
       <ScreenHeader title='Viajes' >
-        <Text style={styles.text}>{total ? `Estas viendo ${rides.length} viajes de ${total}` : ''}</Text>
+        {/* <Text style={styles.text}>{total ? `Estas viendo ${rides.length} viajes de ${total}` : ''}</Text> */}
       </ScreenHeader>
 
       <FlashList scrollEnabled showsVerticalScrollIndicator 

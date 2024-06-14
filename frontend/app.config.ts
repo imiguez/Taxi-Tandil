@@ -5,9 +5,9 @@ export default (): ExpoConfig => ({
   slug: "Ride",
   version: "1.0.0",
   orientation: "portrait",
-  icon: "./assets/icon.png",
+  icon: "./public/assets/icon.png",
   splash: {
-    image: "./assets/splash.png",
+    image: "./public/assets/splash.png",
     resizeMode: "contain",
     backgroundColor: "#ffcf00"
   },
@@ -39,7 +39,7 @@ export default (): ExpoConfig => ({
       "android.permission.INTERNET",
     ],
     adaptiveIcon: {
-      foregroundImage: "./assets/adaptive-icon.png",
+      foregroundImage: "./public/assets/adaptive-icon.png",
       backgroundColor: "#ffcf00"
     },
     package: "com.imiguez.ride",

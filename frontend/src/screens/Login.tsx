@@ -1,4 +1,4 @@
-import { FC, useEffect, useState } from 'react';
+import { FC, useContext, useState } from 'react';
 import { KeyboardAvoidingView, Platform, ScrollView, StyleSheet, Text, TextInput, TouchableHighlight, View } from 'react-native';
 import { useNavigation } from '@react-navigation/native';
 import { StackNavigationProp } from '@react-navigation/stack';
@@ -7,18 +7,16 @@ import { useHttpRequest } from 'hooks/useHttpRequest';
 import { input, emptyInput } from 'types/Auth';
 import RootStackParamList from 'types/RootStackParamList';
 import { initialAuthSliceStateType } from 'types/slices/authSliceTypes';
+import { SessionContext } from '@hooks/useSessionContext';
 
 export const Login: FC = () => {
   const navigation = useNavigation<StackNavigationProp<RootStackParamList>>();
+  const { setIsLogged } = useContext(SessionContext)!;
   const [formEmail, setFormEmail] = useState<input>(emptyInput);
   const [formPassword, setFormPassword] = useState<input>(emptyInput);
   const [serverMsg, setServerMsg] = useState<string>('');
-  const { setUserAuthData, sessionCheck, storeAuthentication } = useAuthDispatchActions();
+  const { setUserAuthData, storeAuthentication } = useAuthDispatchActions();
   const { postRequest } = useHttpRequest();
-
-  useEffect(() => {
-    sessionCheck();
-  }, []);
 
   const onSubmitLogin = async () => {
     /**
@@ -55,10 +53,10 @@ export const Login: FC = () => {
       setServerMsg('');
       setUserAuthData(data);
       storeAuthentication(data);
-      navigation.navigate('Main', { screen: 'Home', params: { screen: 'NewRide' } });
+      setIsLogged(true);
     } catch (error: any) {
       console.log(`error from catch: ${error}`);
-      if (error.message.includes('Could not find any entity')) {
+      if (error.statusCode === 404) {
         setFormEmail({...formEmail, msg: 'No existe usuario con el email ingresado', error: true});
         return;
       }

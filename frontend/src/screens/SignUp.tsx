@@ -54,25 +54,25 @@ export const SignUp = () => {
     };
     try {
       const response = await postRequest('auth/sign-up', body);
-      let data: initialAuthSliceStateType = {
-        id: response.user.id,
-        firstName: response.user.firstName,
-        lastName: response.user.lastName,
-        email: response.user.email,
-        roles: response.user.roles,
-        access_token: response.access_token,
-        refresh_token: response.refresh_token,
-      };
-      // Empty the useStates.
-      setFormFirstName(emptyInput);
-      setFormLastName(emptyInput);
-      setFormEmail(emptyInput);
-      setFormPassword(emptyInput);
-      setFormConfirmPassword(emptyInput);
-      setServerMsg('');
-      setUserAuthData(data);
-      storeAuthentication(data);
-      navigation.navigate('Main', { screen: 'Home', params: { screen: 'NewRide' } });
+      // let data: initialAuthSliceStateType = {
+      //   id: response.user.id,
+      //   firstName: response.user.firstName,
+      //   lastName: response.user.lastName,
+      //   email: response.user.email,
+      //   roles: response.user.roles,
+      //   access_token: response.access_token,
+      //   refresh_token: response.refresh_token,
+      // };
+      // // Empty the useStates.
+      // setFormFirstName(emptyInput);
+      // setFormLastName(emptyInput);
+      // setFormEmail(emptyInput);
+      // setFormPassword(emptyInput);
+      // setFormConfirmPassword(emptyInput);
+      // setServerMsg('');
+      // setUserAuthData(data);
+      // storeAuthentication(data);
+      // navigation.navigate('Main', { screen: 'Home', params: { screen: 'NewRide' } });
     } catch (error: any) {
       console.log(`error from catch: ${error}`);
       if (error.message.includes('duplicate key value')) {

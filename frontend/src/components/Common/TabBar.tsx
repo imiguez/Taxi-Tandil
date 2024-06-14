@@ -13,7 +13,7 @@ import { useTaxiDispatchActions } from 'hooks/slices/useTaxiDispatchActions';
 import { useGlobalocketEvents } from 'hooks/useGlobalSocketEvents';
 import { useSocketConnectionEvents } from 'hooks/useSocketConnectionEvents';
 import { MainTabParamList } from 'types/RootStackParamList';
-import { Ride } from 'types/Location';
+import { RideWithAddresses } from 'types/Location';
 import CountdownBar from './CountdownBar';
 
 interface TabBarInterface {
@@ -82,10 +82,6 @@ const TabBar: FC<TabBarInterface> = ({ state, descriptors, navigation }) => {
     const keyboardShowListener = Keyboard.addListener('keyboardDidShow', onKeyboardShow);
     const keyboardNotShowListener = Keyboard.addListener('keyboardDidHide', onKeyboardNotShow);
     
-    navigation.addListener('beforeRemove', (e: any) => {
-      if (e.data.action.type != 'POP_TO_TOP') e.preventDefault();
-    });
-    
     if (roles.find((role) => role.name === 'taxi'))
       defineBackgroundTask();
     
@@ -93,13 +89,10 @@ const TabBar: FC<TabBarInterface> = ({ state, descriptors, navigation }) => {
       subscription.remove();
       keyboardShowListener.remove();
       keyboardNotShowListener.remove();
-      navigation.removeListener('beforeRemove', (e: any) => {
-        if (e.data.action.type != 'POP_TO_TOP') e.preventDefault();
-      });
     };
   }, []);
 
-  const handleRideRequest = (ride: Ride, userId: string, username: string) => {
+  const handleRideRequest = (ride: RideWithAddresses, userId: string, username: string) => {
     onRideRequest(ride, userId, username);
     setCountdown(true);
     timeoutRef.current = setTimeout(async () => {

@@ -10,7 +10,8 @@
       "@screens/*": ["screens/*"],
       "@types/*": ["types/*"],
       "@utils/*": ["utils/*"],
-      "@assets/*": ["assets/*"]
+      "@assets/*": ["assets/*"],
+      "@public/*": ["./../public/*"]
     },
   },
   "include": ["src", "slices"],

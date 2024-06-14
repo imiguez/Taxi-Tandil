@@ -1,11 +1,8 @@
 import { useDispatch, useSelector } from "react-redux";
 import * as SecureStore from 'expo-secure-store';
-import { useNavigation } from "@react-navigation/native";
-import { StackNavigationProp } from "@react-navigation/stack";
 import { initialState, selectAccessToken, selectEmail, selectFirstName, selectId, selectLastName, selectRefreshToken, selectRoles, 
     setAccessToken, setEmail, setFirstName, setId, setLastName, setRefreshToken, setRoles, } from "../../../slices/authSlice";
 import { SecureStoreItems } from "constants/index";
-import RootStackParamList from "types/RootStackParamList";
 import { initialAuthSliceStateType } from "types/slices/authSliceTypes";
 import { OneSignal } from 'react-native-onesignal';
 
@@ -18,40 +15,39 @@ export const useAuthDispatchActions = () => {
     const roles = useSelector(selectRoles);
     const accessToken = useSelector(selectAccessToken);
     const refreshToken = useSelector(selectRefreshToken);
-    const navigation = useNavigation<StackNavigationProp<RootStackParamList>>();
 
 
-    const sessionCheck = async () => {
+    const sessionCheck = async (): Promise<boolean> => {
         let access_token = await SecureStore.getItemAsync('access_token');
         let refresh_token = await SecureStore.getItemAsync('refresh_token');
+
+        if (access_token == null || access_token == '' || refresh_token == null || refresh_token == '') return false;
         
-        if (access_token != null && access_token != '' && refresh_token != null && refresh_token != '') {
-            
-            const response = await fetch(`${process.env.EXPO_PUBLIC_BASE_URL}/auth/refresh-jwt-token`, {
-                method: 'POST',
-                headers: { 'Content-Type': 'application/json', Authorization: `Bearer ${access_token}` },
-                body: JSON.stringify({ refreshToken: `Bearer ${refresh_token}` }),
-            });
-            
-            const json = await response.json();
-            
-            if (json.access_token == undefined) {
-                for (const item in SecureStoreItems) 
-                    await SecureStore.deleteItemAsync(item);
-            } else {
-                let data: any = {
-                    id: await SecureStore.getItemAsync('id'),
-                    firstName: await SecureStore.getItemAsync('firstName'),
-                    lastName: await SecureStore.getItemAsync('lastName'),
-                    email: await SecureStore.getItemAsync('email'),
-                    roles: JSON.parse((await SecureStore.getItemAsync('roles')) ?? ''),
-                    access_token: json.access_token,
-                    refresh_token: await SecureStore.getItemAsync('refresh_token'),
-                };
-                setUserAuthData(data);
-                navigation.navigate('Main', { screen: 'Home', params: { screen: 'NewRide' } });
-            }
-        }
+        const response = await fetch(`${process.env.EXPO_PUBLIC_BASE_URL}/auth/refresh-jwt-token`, {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json', Authorization: `Bearer ${access_token}` },
+            body: JSON.stringify({ refreshToken: `Bearer ${refresh_token}` }),
+        });
+        
+        const json = await response.json();
+        
+        if (json.access_token == undefined) {
+            for (const item in SecureStoreItems) 
+                await SecureStore.deleteItemAsync(item);
+            return false;
+        } 
+
+        let data: any = {
+            id: await SecureStore.getItemAsync('id'),
+            firstName: await SecureStore.getItemAsync('firstName'),
+            lastName: await SecureStore.getItemAsync('lastName'),
+            email: await SecureStore.getItemAsync('email'),
+            roles: JSON.parse((await SecureStore.getItemAsync('roles')) ?? ''),
+            access_token: json.access_token,
+            refresh_token: await SecureStore.getItemAsync('refresh_token'),
+        };
+        setUserAuthData(data);
+        return true;
     };
 
 

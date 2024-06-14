@@ -2,16 +2,16 @@ import { NavigationContainer } from "@react-navigation/native";
 import { CardStyleInterpolators, createStackNavigator } from "@react-navigation/stack";
 import { createBottomTabNavigator } from '@react-navigation/bottom-tabs';
 import React,{ FC, PropsWithChildren } from "react";
-import { Login } from "./src/screens/Login";
-import { NewRide } from "./src/screens/UserScreens/NewRide";
-import RootStackParamList, { HomeStackParamList, MainTabParamList, TaxiStackParamList } from "./src/types/RootStackParamList";
-import { Settings } from "./src/screens/Settings";
-import { ConfirmedRide } from "./src/screens/UserScreens/ConfirmedRide";
-import { AcceptedRide } from "./src/screens/TaxiScreens/AcceptedRide";
-import { SignUp } from "./src/screens/SignUp";
-import TabBar from "./src/components/Common/TabBar";
-import TaxiHome from "./src/screens/TaxiScreens/TaxiHome";
-import Rides from "./src/screens/Rides";
+import { Login } from "./screens/Login";
+import { NewRide } from "./screens/UserScreens/NewRide";
+import RootStackParamList, { HomeStackParamList, MainTabParamList, TaxiStackParamList } from "./types/RootStackParamList";
+import { Settings } from "./screens/Settings";
+import { ConfirmedRide } from "./screens/UserScreens/ConfirmedRide";
+import { AcceptedRide } from "./screens/TaxiScreens/AcceptedRide";
+import { SignUp } from "./screens/SignUp";
+import TaxiHome from "./screens/TaxiScreens/TaxiHome";
+import Rides from "./screens/Rides";
+import TabBar from "@components/Common/TabBar";
 
 
 const HomeStack = createStackNavigator<HomeStackParamList>();
@@ -43,20 +43,22 @@ const TaxiScreenStack: FC = () => {
     );
 }
 
-const MainScreenTabs: FC = () => {
+export const MainScreenTabs: FC = () => {
     return (
-        <MainTabs.Navigator backBehavior="history"
-            tabBar={(props) => <TabBar {...props}/>} 
-            screenOptions={{headerShown: false}}>
-            <MainTabs.Screen name="Taxi" component={TaxiScreenStack} />
-            <MainTabs.Screen name="Rides" component={Rides} options={{title: 'Viajes'}} />
-            <MainTabs.Screen name="Home" component={HomeScreenStack} />
-            <MainTabs.Screen name="Settings" component={Settings} options={{title: 'Configuraciones'}} />
-        </MainTabs.Navigator>
+        <NavigationContainer>
+            <MainTabs.Navigator backBehavior="history" initialRouteName="Home"
+                tabBar={(props) => <TabBar {...props}/>} 
+                screenOptions={{headerShown: false}}>
+                <MainTabs.Screen name="Taxi" component={TaxiScreenStack} />
+                <MainTabs.Screen name="Rides" component={Rides} options={{title: 'Viajes'}} />
+                <MainTabs.Screen name="Home" component={HomeScreenStack} />
+                <MainTabs.Screen name="Settings" component={Settings} options={{title: 'Configuraciones'}} />
+            </MainTabs.Navigator>
+        </NavigationContainer>
     )
 }
 
-const Routes: FC<PropsWithChildren> = () => {
+export const AuthRoutes: FC<PropsWithChildren> = () => {
 
     return (
         <NavigationContainer>
@@ -66,10 +68,7 @@ const Routes: FC<PropsWithChildren> = () => {
                 }}>
                 <RootStack.Screen name="Login" component={Login}/>
                 <RootStack.Screen name="SignUp" component={SignUp}/>
-                <RootStack.Screen name="Main" component={MainScreenTabs}/>
             </RootStack.Navigator>
         </NavigationContainer>
     );
 };
-
-export default Routes;

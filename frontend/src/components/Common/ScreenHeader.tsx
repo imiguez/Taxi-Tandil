@@ -31,7 +31,6 @@ const styles = StyleSheet.create({
     borderBottomColor: 'rgb(216, 216, 216)',
     height: screenHeight * 0.12,
     borderColor: 'black',
-    elevation: 8,
   },
   title: {
     fontSize: 20,
