@@ -1,4 +1,4 @@
-import { LatLng } from "src/Types/Location.type";
+import { LatLng } from "src/types/location.type";
 
 export const calculateDistances = (location1: LatLng, location2: LatLng) => {
     const lat1 = location1.latitude;

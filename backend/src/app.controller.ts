@@ -21,7 +21,6 @@ export class AppController {
   @Public()
   @Delete('delete-account')
   async deleteAccount(@Body() loginDto: LoginDto) {
-    let user = await this.authService.validateUser(loginDto);
-    return await this.authService.deleteAccount(user);
+    return await this.authService.deleteAccount(loginDto);
   }
 }

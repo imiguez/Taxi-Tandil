@@ -6,6 +6,9 @@ import { Ticket } from "src/ticket/entities/ticket.entity";
 
 @Entity({name: 'users'})
 export class User extends BaseEntity {
+    @Column({ name: 'account_verified', default: false })
+    accountVerified: boolean;
+
     @Column({ name: 'first_name', length: 25 })
     firstName: string;
   

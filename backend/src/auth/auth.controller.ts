@@ -1,4 +1,4 @@
-import { Controller, Post, Body, Req } from '@nestjs/common';
+import { Controller, Post, Body, Req, Get, Param } from '@nestjs/common';
 import { Public } from 'src/custom-decorators';
 import { AuthService } from './auth.service';
 import { Request } from 'express';
@@ -12,15 +12,30 @@ export class AuthController {
   @Public()
   @Post('sign-up')
   async signUp(@Body() signUpDto: SignUpDto) {
-    const user = await this.authService.signUp(signUpDto);
-    return await this.authService.login(user);
+    return await this.authService.signUp(signUpDto);
   }
 
   @Public()
   @Post('login')
   async login(@Body() loginDto: LoginDto) {
-    let user = await this.authService.validateUser(loginDto);
-    return await this.authService.login(user);
+    return await this.authService.login(loginDto);
+  }
+
+  @Get('logout')
+  async logout(@Req() req: Request) {
+    await this.authService.logout(req.user);
+  }
+
+  @Public()
+  @Post('verify-account/:email')
+  async verifyAccount(@Param('email') email: string) {
+    await this.authService.verifyAccount(email);
+  }
+
+  @Public()
+  @Get('account-verified/:code')
+  async validateCode(@Param('code') code: string) {
+    await this.authService.validateCode(code);
   }
 
   @Post('refresh-jwt-token')

@@ -63,19 +63,14 @@ export class RidesService {
       .createQueryBuilder("rides")
       .leftJoinAndSelect("rides.user", "user")
       .leftJoinAndSelect("rides.driver", "driver")
+      .select(["rides", "user.id", "user.firstName", "user.lastName", "driver.id", "driver.firstName", "driver.lastName"])
       .where("user.id = :userId", { userId: userId })
       .orWhere("driver.id = :driverId", { driverId: userId })
       .orderBy("rides.created_at", "DESC")
       .offset(page*10)
       .limit(10)
-      .getMany().then((rides) => {
-        // Optional: Map the results to a desired structure
-        return rides.map((ride) => ({
-          ...ride,
-          user: { id: ride.user.id, firstName: ride.user.firstName +' '+ ride.user.lastName },
-          driver: { id: ride.driver.id, firstName: ride.driver.firstName +' '+ ride.user.lastName },
-        }));
-      });
+      .getMany();
+
       return result;
     } catch (error) {
       throw new HttpException(error.message, HttpStatus.NOT_FOUND);
