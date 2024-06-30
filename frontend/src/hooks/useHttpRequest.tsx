@@ -1,4 +1,3 @@
-import * as SecureStore from 'expo-secure-store';
 import { useAuthDispatchActions } from "./slices/useAuthDispatchActions";
 import { useLogOut } from "./useLogOut";
 import { HttpError } from "utils/HttpError";
@@ -8,12 +7,14 @@ import { HttpError } from "utils/HttpError";
  * @returns The following methods: getRequest, postRequest.
  */
 export const useHttpRequest = () => {
-    const {accessToken, refreshToken, setNewAccessToken} = useAuthDispatchActions();
+    const {getAccessToken, setAccessToken, getRefreshToken} = useAuthDispatchActions();
     const {logOut} = useLogOut();
 
-    let headers = {
-        "Content-Type": "application/json",
-        "Authorization": accessToken ? `Bearer ${accessToken}` : '',
+    const getHeaders = async () => {
+        const access_token = await getAccessToken();
+        let headers = {"Content-Type": "application/json", "Authorization": 'Bearer '};
+        if (access_token) headers.Authorization = `Bearer ${access_token}`;
+        return headers;
     }
 
     /**
@@ -24,10 +25,12 @@ export const useHttpRequest = () => {
      * @throws
      * Can throw a nested post request error.
      */
-    const getNewAccessToken: () => Promise<string> = async () => { 
+    const getNewAccessToken: () => Promise<string | null> = async () => { 
+        let refreshToken = await getRefreshToken();
         if (refreshToken == undefined)
             throw new Error('The Access Token is null or undefined.');
         try {
+            const headers = await getHeaders();
             const response: any = await fetch(`${process.env.EXPO_PUBLIC_BASE_URL}/auth/refresh-jwt-token`, {
                 method: 'POST', 
                 headers: headers,
@@ -35,23 +38,15 @@ export const useHttpRequest = () => {
             });
             let jsonResponse: any = await response.json();
             if (!response.ok) throw new HttpError(jsonResponse.message ?? 'Unknown http error.', jsonResponse.statusCode ?? 500);
+            await setAccessToken(jsonResponse.access_token);
             return jsonResponse.access_token;
         } catch (error: any) {
             // TODO: Before logout, notify the user that the session has expired by a modal.
             if (error.statusCode === 401) {
                 await logOut();
+                return null;
             } else throw error;
         }
-    }
-
-    /**
-     * Obtains a new jwt access token and uploads the headers.
-     */
-    const onAccessTokenExpires = async () => {
-        let newAccessToken = await getNewAccessToken();
-        await SecureStore.setItemAsync('access_token', newAccessToken ?? '');
-        setNewAccessToken(newAccessToken);
-        headers['Authorization'] = `Bearer ${newAccessToken}`;
     }
 
     /**
@@ -65,11 +60,12 @@ export const useHttpRequest = () => {
      * @returns The response of the request in json() format.
      */
     const handleResponse = async (response: Response, requestFn: () => Promise<any>) => {
-        let jsonResponse: any = await response.json();
+        const contentLenght = response.headers.get('Content-Length');
+        let jsonResponse: any;
+        if (Number(contentLenght) > 0) jsonResponse = await response.json();
         if (!response.ok) {
             if (jsonResponse.message == 'jwt expired') {
-                await onAccessTokenExpires();
-                return await requestFn();
+                if (await getNewAccessToken()) return await requestFn();
             } 
             else if (jsonResponse.statusCode === 401) await logOut();
             else throw new HttpError(jsonResponse.message ?? 'Unknown http error.', jsonResponse.statusCode ?? 500);
@@ -82,6 +78,7 @@ export const useHttpRequest = () => {
      * @returns The json form of the response as any type.
      */
     const getRequest: (endpoint: string) => Promise<any> = async (endpoint: string) => {
+        const headers = await getHeaders();
         let response = await fetch(`${process.env.EXPO_PUBLIC_BASE_URL}/${endpoint}`, {
             method: 'GET',
             headers: headers,
@@ -95,9 +92,10 @@ export const useHttpRequest = () => {
      * @param body - Object that will be send to the backend.
      * @returns The json form of the response as any type.
      */
-    const postRequest: (endpoint: string, body: object) => Promise<any> = async (endpoint: string, body: object) => {
+    const postRequest: (endpoint: string, body?: object) => Promise<any> = async (endpoint: string, body?: object) => {
+        const headers = await getHeaders();
         // This previous verification is for avoid JSON errors due the body can be parsed again on the handleResponse.
-        let stringifiedBody = typeof body === 'string' ? body : JSON.stringify(body);
+        let stringifiedBody = body ? (typeof body === 'string' ? body : JSON.stringify(body)) : undefined;
         let response = await fetch(`${process.env.EXPO_PUBLIC_BASE_URL}/${endpoint}`, {
             method: "POST",
             headers: headers,
@@ -113,9 +111,10 @@ export const useHttpRequest = () => {
      * @param body - Object that will be send to the backend.
      * @returns The json form of the response as any type.
      */
-    const putRequest: (endpoint: string, body: object) => Promise<any> = async (endpoint: string, body: object) => {
+    const putRequest: (endpoint: string, body?: object) => Promise<any> = async (endpoint: string, body?: object) => {
+        const headers = await getHeaders();
         // This previous verification is for avoid JSON errors due the body can be parsed again on the handleResponse.
-        let stringifiedBody = typeof body === 'string' ? body : JSON.stringify(body);
+        let stringifiedBody = body ? (typeof body === 'string' ? body : JSON.stringify(body)) : undefined;
         let response = await fetch(`${process.env.EXPO_PUBLIC_BASE_URL}/${endpoint}`, {
             method: "PUT",
             headers: headers,

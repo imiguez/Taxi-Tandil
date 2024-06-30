@@ -5,7 +5,6 @@ export const initialState: initialCommonSliceStateType = {
   error: false,
   errorMessage: undefined,
   notifications: [],
-  pushNotificationsPermissionAlreadyRequested: false,
 };
 
 export const commonSlice = createSlice({
@@ -35,17 +34,13 @@ export const commonSlice = createSlice({
           break;
       }
     },
-    setPushNotificationsPermissionAlreadyRequested: (state, action) => {
-      state.pushNotificationsPermissionAlreadyRequested = action.payload;
-    },
   },
 });
 
-export const { setError, setErrorMessage, setNotifications, setPushNotificationsPermissionAlreadyRequested } = commonSlice.actions;
+export const { setError, setErrorMessage, setNotifications } = commonSlice.actions;
 
 export const selectError: (state: any) => initialCommonSliceStateType['error'] = (state: any) => state.common.error;
 export const selectErrorMessage: (state: any) => initialCommonSliceStateType['errorMessage'] = (state: any) => state.common.errorMessage;
 export const selectNotifications: (state: any) => initialCommonSliceStateType['notifications'] = (state: any) => state.common.notifications;
-export const selectPushNotificationsPermissionAlreadyRequested: (state: any) => initialCommonSliceStateType['pushNotificationsPermissionAlreadyRequested'] = (state: any) => state.common.pushNotificationsPermissionAlreadyRequested;
 
 export default commonSlice.reducer;

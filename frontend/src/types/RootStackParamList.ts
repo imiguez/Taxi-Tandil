@@ -17,16 +17,14 @@ export type MainTabParamList = {
   Settings: undefined,
 }
 
-export type RootStackParamList = {
+export type AuthStackParamList = {
   Login: undefined,
   SignUp: undefined,
-  Main: NavigatorScreenParams<MainTabParamList>,
+  EmailVerification: undefined,
 }
 
 declare global {
   namespace ReactNavigation {
-    interface RootParamList extends RootStackParamList {}
+    interface RootParamList extends AuthStackParamList, MainTabParamList {}
   }
 }
-
-export default RootStackParamList;

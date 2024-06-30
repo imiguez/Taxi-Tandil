@@ -1,4 +1,4 @@
-import { LatLng, RideWithAddress } from "../Location";
+import { LatLng, RideWithAddresses } from "../Location";
 
 export type focusInput = {
     focusInput: 'origin' | 'destination',
@@ -22,4 +22,4 @@ export type taxiInfo = {
 
 export type initialUserRideSliceStateType = {
     selectInMap: boolean,
-} & rideStatusType & lastModified & focusInput & RideWithAddress & taxiInfo
+} & rideStatusType & lastModified & focusInput & RideWithAddresses & taxiInfo

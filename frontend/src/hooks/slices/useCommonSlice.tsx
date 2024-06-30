@@ -4,8 +4,6 @@ import { selectError, selectErrorMessage,
     setErrorMessage,
     selectNotifications,
     setNotifications,
-    selectPushNotificationsPermissionAlreadyRequested,
-    setPushNotificationsPermissionAlreadyRequested as setPushNotificationsPermissionAlreadyRequestedFromCommonSlice
 } from "../../../slices/commonSlice";
 import { notificationKeyType } from "types/slices/commonSliceTypes";
 
@@ -15,7 +13,6 @@ export const useCommonSlice = () => {
     const error = useSelector(selectError);
     const errorMessage = useSelector(selectErrorMessage);
     const notifications = useSelector(selectNotifications);
-    const pushNotificationsPermissionAlreadyRequested = useSelector(selectPushNotificationsPermissionAlreadyRequested);
 
     const setError = (message: string | undefined = undefined) => {
         dispatch(setErrorFromCommonSlice(true));
@@ -41,13 +38,9 @@ export const useCommonSlice = () => {
         dispatch(setNotifications([]));
     }
 
-    const setPushNotificationsPermissionAlreadyRequested = (requested: boolean) => {
-        dispatch(setPushNotificationsPermissionAlreadyRequestedFromCommonSlice(requested));
-    }
-
     return {
         error, errorMessage, setError, cleanError,
-        notifications, addNotification, removeNotification, setPushNotificationsPermissionAlreadyRequested, pushNotificationsPermissionAlreadyRequested,
+        notifications, addNotification, removeNotification,
         cleanUp
     }
 }

@@ -4,7 +4,7 @@ import { useMapDispatchActions } from '@hooks/slices/useMapDispatchActions';
 import { SocketContext } from '@hooks/useSocketContext';
 import { useNavigation } from '@react-navigation/native';
 import { StackNavigationProp } from '@react-navigation/stack';
-import RootStackParamList from 'types/RootStackParamList';
+import { MainTabParamList } from 'types/RootStackParamList';
 import RideCardBtn from '@components/Common/Cards/RideCardBtn';
 
 interface ConfirmedRideBtnInterface {
@@ -14,7 +14,7 @@ interface ConfirmedRideBtnInterface {
 const ConfirmedRideBtn: FC<ConfirmedRideBtnInterface> = ({ taxiDisconnected }) => {
   const { socket } = useContext(SocketContext)!;
   const { setRideStatus, rideStatus, setTaxiInfo } = useMapDispatchActions();
-  const navigation = useNavigation<StackNavigationProp<RootStackParamList>>();
+  const navigation = useNavigation<StackNavigationProp<MainTabParamList>>();
   const { removeNotification } = useCommonSlice();
 
   const onCancel = () => {

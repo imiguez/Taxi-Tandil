@@ -5,7 +5,7 @@ import { useCommonSlice } from 'hooks/slices/useCommonSlice';
 import { useMapDispatchActions } from 'hooks/slices/useMapDispatchActions';
 import { useSocketConnectionEvents } from 'hooks/useSocketConnectionEvents';
 import { SocketContext } from 'hooks/useSocketContext';
-import { OneSignal } from 'react-native-onesignal';
+import { PushNotificationsPermissions } from '@utils/PushNotificationsPermissions';
 
 const NewRideBtn: FC = () => {
   const navigation = useNavigation();
@@ -13,7 +13,7 @@ const NewRideBtn: FC = () => {
   const { origin, destination, rideStatus } = useMapDispatchActions();
   const [confirmBtn, setConfirmBtn] = useState<boolean>(false);
   const { connectAsUser } = useSocketConnectionEvents();
-  const { setError, pushNotificationsPermissionAlreadyRequested, setPushNotificationsPermissionAlreadyRequested } = useCommonSlice();
+  const { setError } = useCommonSlice();
 
   useMemo(() => {
     setConfirmBtn(
@@ -23,23 +23,7 @@ const NewRideBtn: FC = () => {
     );
   }, [rideStatus, origin, destination]);
 
-  const beforeOnConfirmRide = async () => {
-    // Check the push notification permission
-    let hasPushNotificationPermissions = await OneSignal.Notifications.getPermissionAsync();
-    if (!hasPushNotificationPermissions && !pushNotificationsPermissionAlreadyRequested) {
-      OneSignal.InAppMessages.addTrigger("first_user_request_ride", "true");
-      setPushNotificationsPermissionAlreadyRequested(true);
-    } else {
-      if (hasPushNotificationPermissions) {
-        OneSignal.User.pushSubscription.optIn();
-      } else {
-        OneSignal.User.pushSubscription.optOut();
-      }
-      onConfirmRide();
-    }
-  }
-
-  const onConfirmRide = () => {
+  const onConfirmRide = async () => {
     if (socket != undefined && socket.auth.role == 'taxi') {
       setError('Usted ya tiene una conexión activa como taxista/remisero, para poder pedir un viaje debe dejar de estar disponible como taxista/remisero.');
       return;
@@ -49,6 +33,9 @@ const NewRideBtn: FC = () => {
       console.log('Error: the origin or the destination its undefined.');
       return;
     }
+    
+    await PushNotificationsPermissions.requestPermissions();
+
     const ride = {
       origin: origin,
       destination: destination
@@ -61,9 +48,9 @@ const NewRideBtn: FC = () => {
       {origin && destination && (
         <TouchableHighlight
           style={styles.button}
-          onPress={() => {
-            if (confirmBtn) beforeOnConfirmRide();
-            else navigation.navigate('Main', {screen: 'Home', params: {screen: 'ConfirmedRide'}});
+          onPress={async () => {
+            if (confirmBtn) await onConfirmRide();
+            else navigation.navigate('Home', {screen: 'ConfirmedRide'});
           }}
         >
           <Text style={styles.btnText}>{confirmBtn ? 'Confirmar viaje' : 'Ver viaje'}</Text>

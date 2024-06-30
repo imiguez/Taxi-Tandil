@@ -21,23 +21,12 @@ const EmptyListMessage = () => (
   const [isLoading, setIsLoading] = useState<boolean>(false);
   const [hasMoreRides, setHasMoreRides] = useState<boolean>(true);
   const [pageNumber, setPageNumber] = useState(0);
-  const [total, setTotal] = useState<undefined|number>(undefined);
 
   useEffect(() => {
     (async () => {
       await fetchPaginatedRides();
-      await fetchTotalRides();
     })
   }, []);
-
-  const fetchTotalRides = async () => {
-    try {
-      const totalRides = await getRequest(`rides/count/${id}`);
-      setTotal(totalRides);
-    } catch (error) {
-      console.error('Error fetching data:', error);
-    }
-  }
 
   const fetchPaginatedRides = async () => {
     if (isLoading || !hasMoreRides) return;
@@ -59,9 +48,7 @@ const EmptyListMessage = () => (
 
   return (
     <>
-      <ScreenHeader title='Viajes' >
-        {/* <Text style={styles.text}>{total ? `Estas viendo ${rides.length} viajes de ${total}` : ''}</Text> */}
-      </ScreenHeader>
+      <ScreenHeader title='Viajes' />
 
       <FlashList scrollEnabled showsVerticalScrollIndicator 
         data={rides}

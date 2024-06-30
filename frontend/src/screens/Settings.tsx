@@ -1,5 +1,5 @@
 import { FC, useRef, useState } from "react";
-import { StyleSheet, Text, TouchableOpacity, View } from "react-native";
+import { Platform, StyleSheet, Text, TouchableOpacity, View } from "react-native";
 import { Ionicons, FontAwesome } from '@expo/vector-icons';
 import * as WebBrowser from 'expo-web-browser';
 import LogoutModal from "components/Common/Settings/LogoutModal";
@@ -7,14 +7,15 @@ import WorkWithUsModal from "components/Common/Settings/WorkWithUsModal";
 import { useAuthDispatchActions } from "hooks/slices/useAuthDispatchActions";
 import { MaterialIcons, Entypo } from '@expo/vector-icons';
 import CreateTicketModal from "@components/Common/Settings/CreateTicketModal";
-import { OneSignal } from "react-native-onesignal";
 import ScreenHeader from "@components/Common/ScreenHeader";
+import { PushNotificationsPermissions } from "@utils/PushNotificationsPermissions";
 
 export const Settings: FC = () => {
     const {firstName, lastName} = useAuthDispatchActions();
     const [showLogoutPopUp, setShowLogoutPopUp] = useState<boolean>(false);
     const [showWorkWithUs, setShowWorkWithUs] = useState<boolean>(false);
     const [showTicket, setShowTicket] = useState<boolean>(false);
+    const [pushNotificationMsg, setPushNotificationMsg] = useState<boolean>(false);
     const settingsContainer = useRef<View>(null);
 
     const policyUrl = `${process.env.EXPO_PUBLIC_BASE_URL}/private-policy`;
@@ -31,10 +32,19 @@ export const Settings: FC = () => {
             <Text style={styles.name}>{`${firstName} ${lastName}`}</Text>
             <View style={styles.card}>
             
-                <TouchableOpacity style={styles.cardRow} onPress={async () => await OneSignal.Notifications.requestPermission(true)}>
+                <TouchableOpacity style={styles.cardRow} onPress={async () => {
+                        setPushNotificationMsg(true);
+                        await PushNotificationsPermissions.requestPermissions()
+                    }}>
                     <Entypo name="notification" size={24} color="black" />
                     <Text>Activar Notificaciones Push</Text>
                 </TouchableOpacity>
+                
+                {pushNotificationMsg && (Platform.OS === 'android' && Number(Platform.Version) < 33) &&
+                    <View style={[styles.cardRow, styles.cardRowMsg]}>
+                        <Text>Para que los permisos se actualicen, deberá reabrir la aplicación.</Text>
+                    </View>
+                }
 
                 <TouchableOpacity style={styles.cardRow} onPress={() => setShowTicket(true)}>
                     <MaterialIcons name="headset-mic" size={24} color="black" />
@@ -98,4 +108,8 @@ const styles = StyleSheet.create({
         flexDirection: 'row',
         justifyContent: 'space-between',
     },
+    cardRowMsg: {
+        borderBottomWidth: 1,
+        marginBottom: 10,
+    }
 })

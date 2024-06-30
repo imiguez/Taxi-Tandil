@@ -7,6 +7,8 @@ import { SocketContext } from 'hooks/useSocketContext';
 import { Coords } from 'utils/Coords';
 import { useCommonSlice } from '@hooks/slices/useCommonSlice';
 import RideCardBtn from '@components/Common/Cards/RideCardBtn';
+import { StackNavigationProp } from '@react-navigation/stack';
+import { MainTabParamList } from 'types/RootStackParamList';
 
 interface AcceptRideBtnInterface {
   userDisconnected: boolean;
@@ -15,7 +17,7 @@ interface AcceptRideBtnInterface {
 export const AcceptRideBtn: FC<AcceptRideBtnInterface> = ({ userDisconnected }) => {
   const { socket } = useContext(SocketContext)!;
   const { startBackgroundUpdate, stopBackgroundUpdate, stopForegroundUpdate } = useExpoTaskManager();
-  const navigation = useNavigation();
+  const navigation = useNavigation<StackNavigationProp<MainTabParamList>>();
   const { userId, setRide, setRideStatus, rideStatus, cleanUp } = useTaxiDispatchActions();
   const { updateLocationToBeAvailable } = useGlobalocketEvents();
   const { removeNotification } = useCommonSlice();
@@ -49,7 +51,7 @@ export const AcceptRideBtn: FC<AcceptRideBtnInterface> = ({ userDisconnected }) 
     await updateLocationToBeAvailable();
     setRideStatus(null);
     setRide(null, null, null);
-    navigation.navigate('Main', { screen: 'Taxi', params: { screen: 'TaxiHome' } });
+    navigation.navigate('Taxi', { screen: 'TaxiHome' });
   };
 
   const onCancelRideBecauseUserDisconnect = async () => {

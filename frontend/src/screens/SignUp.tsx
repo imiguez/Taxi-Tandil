@@ -2,20 +2,18 @@ import { KeyboardAvoidingView, Platform, ScrollView, StyleSheet, Text, TextInput
 import React, { useState } from 'react';
 import { useNavigation } from '@react-navigation/native';
 import { StackNavigationProp } from '@react-navigation/stack';
-import { useAuthDispatchActions } from 'hooks/slices/useAuthDispatchActions';
 import { useHttpRequest } from 'hooks/useHttpRequest';
 import { input, emptyInput } from 'types/Auth';
-import RootStackParamList from 'types/RootStackParamList';
-import { initialAuthSliceStateType } from 'types/slices/authSliceTypes';
+import { OneSignal } from 'react-native-onesignal';
+import { AuthStackParamList } from 'types/RootStackParamList';
 
 export const SignUp = () => {
-  const navigation = useNavigation<StackNavigationProp<RootStackParamList>>();
+  const navigation = useNavigation<StackNavigationProp<AuthStackParamList>>();
   const [formFirstName, setFormFirstName] = useState<input>(emptyInput);
   const [formLastName, setFormLastName] = useState<input>(emptyInput);
   const [formEmail, setFormEmail] = useState<input>(emptyInput);
   const [formPassword, setFormPassword] = useState<input>(emptyInput);
   const [formConfirmPassword, setFormConfirmPassword] = useState<input>(emptyInput);
-  const { setUserAuthData, storeAuthentication } = useAuthDispatchActions();
   const { postRequest } = useHttpRequest();
   const [serverMsg, setServerMsg] = useState<string>('');
 
@@ -52,35 +50,23 @@ export const SignUp = () => {
       email: formEmail.value,
       password: formPassword.value,
     };
+
     try {
       const response = await postRequest('auth/sign-up', body);
-      // let data: initialAuthSliceStateType = {
-      //   id: response.user.id,
-      //   firstName: response.user.firstName,
-      //   lastName: response.user.lastName,
-      //   email: response.user.email,
-      //   roles: response.user.roles,
-      //   access_token: response.access_token,
-      //   refresh_token: response.refresh_token,
-      // };
-      // // Empty the useStates.
-      // setFormFirstName(emptyInput);
-      // setFormLastName(emptyInput);
-      // setFormEmail(emptyInput);
-      // setFormPassword(emptyInput);
-      // setFormConfirmPassword(emptyInput);
-      // setServerMsg('');
-      // setUserAuthData(data);
-      // storeAuthentication(data);
-      // navigation.navigate('Main', { screen: 'Home', params: { screen: 'NewRide' } });
+      OneSignal.login(response.id);
+      OneSignal.User.addEventListener('change', async () => {
+        await postRequest(`auth/verify-account/${response.email}`);
+        OneSignal.User.removeEventListener('change', async () => await postRequest(`auth/verify-account/${response.email}`));
+      });
+      OneSignal.User.addEmail(response.email);
     } catch (error: any) {
-      console.log(`error from catch: ${error}`);
+      if (process.env.ENVIRONMENT === 'dev') console.log(`error from catch: ${error}`);
       if (error.message.includes('duplicate key value')) {
-        setFormEmail({...formEmail, msg: 'El email ingresado ya fue registrado', error: true});
+        setFormEmail({ ...formEmail, msg: 'El email ingresado ya fue registrado', error: true });
         return;
       }
       if (error.message.includes('email must be an email')) {
-        setFormEmail({...formEmail, msg: 'Email inválido', error: true});
+        setFormEmail({ ...formEmail, msg: 'Email inválido', error: true });
         return;
       }
       setServerMsg('Error con el servidor, intente de nuevo. Si sigue ocurriendo puede ser una falla del servidor.');
@@ -154,8 +140,12 @@ export const SignUp = () => {
 
         <View style={styles.bar} />
 
-        <TouchableHighlight style={styles.signUpBtn} onPress={onSubmitSignUp}>
-          <Text style={styles.signUpText}>Registrarse</Text>
+        <TouchableHighlight style={[styles.btns, styles.signUpBtn]} onPress={onSubmitSignUp}>
+          <Text style={styles.btnsText}>Registrarse</Text>
+        </TouchableHighlight>
+
+        <TouchableHighlight style={[styles.btns, styles.emailVerificationBtn]} onPress={() => navigation.navigate('EmailVerification')}>
+          <Text style={[styles.btnsText, styles.emailVerificationText]}>Reenviar email de verificaión</Text>
         </TouchableHighlight>
 
         <View style={styles.optionsContainer}>
@@ -219,19 +209,31 @@ const styles = StyleSheet.create({
     backgroundColor: '#d9d9d9',
     marginVertical: 20,
   },
-  signUpBtn: {
+  btns: {
     width: '80%',
-    backgroundColor: '#ffe700',
     paddingVertical: 10,
     borderRadius: 10,
     borderStyle: 'solid',
     borderWidth: 1,
-    borderColor: '#f9e200',
   },
-  signUpText: {
+  btnsText: {
     textAlign: 'center',
     fontSize: 20,
     fontWeight: '700',
+  },
+  signUpBtn: {
+    backgroundColor: '#ffe700',
+    borderColor: '#f9e200',
+    marginBottom: 20,
+  },
+  emailVerificationBtn: {
+    backgroundColor: 'white',
+    borderColor: 'black',
+  },
+  emailVerificationText: {
+    color: 'black',
+    fontWeight: '500',
+    fontSize: 16,
   },
   optionsContainer: {
     marginTop: 25,

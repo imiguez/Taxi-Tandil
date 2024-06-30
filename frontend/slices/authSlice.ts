@@ -7,8 +7,6 @@ export const initialState: initialAuthSliceStateType = {
   lastName: undefined,
   email: undefined,
   roles: [],
-  access_token: undefined,
-  refresh_token: undefined,
 };
 
 export const authSlice = createSlice({
@@ -30,16 +28,10 @@ export const authSlice = createSlice({
     setRoles: (state, action) => {
       state.roles = action.payload;
     },
-    setAccessToken: (state, action) => {
-      state.access_token = action.payload;
-    },
-    setRefreshToken: (state, action) => {
-      state.refresh_token = action.payload;
-    },
   },
 });
 
-export const { setId, setFirstName, setLastName, setEmail, setRoles, setAccessToken, setRefreshToken } =
+export const { setId, setFirstName, setLastName, setEmail, setRoles } =
   authSlice.actions;
 
 export const selectId: (
@@ -61,13 +53,5 @@ export const selectRoles: (
   state: any
 ) => initialAuthSliceStateType["roles"] = (state: any) =>
   state.auth.roles;
-export const selectAccessToken: (
-  state: any
-) => initialAuthSliceStateType["access_token"] = (state: any) =>
-  state.auth.access_token;
-export const selectRefreshToken: (
-  state: any
-) => initialAuthSliceStateType["refresh_token"] = (state: any) =>
-  state.auth.refresh_token;
 
 export default authSlice.reducer;

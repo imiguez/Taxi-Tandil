@@ -97,7 +97,7 @@ const TabBar: FC<TabBarInterface> = ({ state, descriptors, navigation }) => {
     setCountdown(true);
     timeoutRef.current = setTimeout(async () => {
       socket!.emit('ride-response', { accepted: false, userApiId: userId });
-      navigation.navigate('Main', {screen: 'Taxi', params: {screen: 'TaxiHome'}});
+      navigation.navigate('Taxi', {screen: 'TaxiHome'});
       setCountdown(false);
       cleanUp();
       await updateLocationToBeAvailable();

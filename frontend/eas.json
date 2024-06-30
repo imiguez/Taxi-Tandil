@@ -6,51 +6,47 @@
     "base": {
       "node": "18.20.3"
     },
-    "dev-aws-url": {
+    "dev-base": {
       "extends": "base",
+      "env": {
+        "EXPO_PUBLIC_BASE_URL": "http://192.168.0.187:2000",
+        "ENVIRONMENT": "dev"
+      }
+    },
+    "prod-base": {
+      "extends": "base",
+      "env": {
+        "EXPO_PUBLIC_BASE_URL": "https://ride-company.com",
+        "ENVIRONMENT": "prod"
+      }
+    },
+    "dev-local": {
+      "extends": "dev-base",
       "distribution": "internal",
       "android": {
-        "buildType": "apk",
-        "env": {
-          "EXPO_PUBLIC_BASE_URL": "https://www.taxistandil.online"
-        }
+        "buildType": "apk"
       },
       "ios": {
         "simulator": true
       }
     },
-    "dev-local-url": {
-      "extends": "dev-aws-url",
-      "android": {
-        "buildType": "apk",
-        "env": {
-          "EXPO_PUBLIC_BASE_URL": "https://glowworm-light-infinitely.ngrok-free.app"
-        }
-      }
-    },
-    "production": {
-      "extends": "base",
-      "autoIncrement": "true",
-      "distribution": "store",
-      "env": {
-        "EXPO_PUBLIC_BASE_URL": "https://www.taxistandil.online"
-      },
-      "android": {
-        "buildType": "app-bundle"
-      },
-      "channel": "production"
-    },
     "staging": {
-      "extends": "base",
-      "autoIncrement": "true",
+      "extends": "prod-base",
+      "__commented__autoIncrement": "true",
       "distribution": "store",
-      "env": {
-        "EXPO_PUBLIC_BASE_URL": "https://www.taxistandil.online"
-      },
       "android": {
         "buildType": "app-bundle"
       },
       "channel": "staging"
+    },
+    "production": {
+      "extends": "base",
+      "__commented__autoIncrement": "true",
+      "distribution": "store",
+      "android": {
+        "buildType": "app-bundle"
+      },
+      "channel": "production"
     }
   }
 }

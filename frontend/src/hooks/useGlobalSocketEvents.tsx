@@ -10,7 +10,7 @@ import { useSocketConnectionEvents } from "./useSocketConnectionEvents";
 import { useCommonSlice } from "./slices/useCommonSlice";
 import { BACKGROUND_LOCATION_TASK_NAME } from "constants/index";
 import { LatLng, RideWithAddresses } from "types/Location";
-import RootStackParamList from "types/RootStackParamList";
+import { MainTabParamList } from "types/RootStackParamList";
 import { Coords } from "utils/Coords";
 import { LocationPermissions } from "@utils/LocationPermissions";
 import { Socket } from "socket.io-client";
@@ -24,7 +24,7 @@ export const useGlobalocketEvents = () => {
     const setTaxiRideStatus = useTaxiDispatchActions().setRideStatus;
     const taxiCleanUp = useTaxiDispatchActions().cleanUp;
     const {startBackgroundUpdate, stopBackgroundUpdate, startForegroundUpdate, stopForegroundUpdate, checkForegroundPermissions} = useExpoTaskManager();
-    const navigation = useNavigation<StackNavigationProp<RootStackParamList>>();
+    const navigation = useNavigation<StackNavigationProp<MainTabParamList>>();
     const { reconnect } = useSocketConnectionEvents();
     const { addNotification, removeNotification } = useCommonSlice();
     const { firstName, lastName } = useAuthDispatchActions();
@@ -47,7 +47,7 @@ export const useGlobalocketEvents = () => {
         if (role === 'user') {
             setTaxiInfo({username: foreingName, location: null});
             setRideStatus(arrived ? 'arrived' : 'accepted');
-            navigation.navigate('Main', {screen: 'Home', params: {screen: 'ConfirmedRide'}});
+            navigation.navigate('Home', {screen: 'ConfirmedRide'});
             setLocation(ride.origin, 'origin');
             setLocation(ride.destination, 'destination');
         }
@@ -56,7 +56,7 @@ export const useGlobalocketEvents = () => {
             setTaxiRideStatus(arrived ? 'arrived' : 'accepted');
             const coords = await Coords.getLatLngCurrentPosition();
             setCurrentLocation(coords!);
-            navigation.navigate('Main', {screen: 'Taxi', params: {screen: 'AcceptedRide'}});
+            navigation.navigate('Taxi', {screen: 'AcceptedRide'});
         }
         reconnect(role);
     }
@@ -72,21 +72,21 @@ export const useGlobalocketEvents = () => {
         } else 
             setPopUp(false);
 
-        console.log('emitted: taxi-location-updated');
+        if (process.env.ENVIRONMENT === 'dev') console.log('emitted: taxi-location-updated');
         socket!.volatile.emit('taxi-location-updated', {location: taxiCoords});
     };
 
     const onRideRequest = (ride: RideWithAddresses, userId: string, username: string) => {
         setRide(ride, userId, username);
         removeNotification('User cancelled ride');
-        navigation.navigate('Main', {screen: 'Taxi', params: {screen: 'TaxiHome'}});
+        navigation.navigate('Taxi', {screen: 'TaxiHome'});
     };
 
     const onPressRideRequest = async () => {
         try {
             if (!(await LocationPermissions.requestGpsEnable())) return;
             await startForegroundUpdate();
-            navigation.navigate('Main', {screen: 'Taxi', params: {screen: 'AcceptedRide'}});
+            navigation.navigate('Taxi', {screen: 'AcceptedRide'});
         } catch (error) {
             console.log(error)
         }
@@ -118,7 +118,7 @@ export const useGlobalocketEvents = () => {
         taxiCleanUp();
         setTaxiRideStatus('user-cancelled');
         addNotification('User cancelled ride');
-        navigation.navigate('Main', {screen: 'Taxi', params: {screen: 'TaxiHome'}});
+        navigation.navigate('Taxi', {screen: 'TaxiHome'});
         await updateLocationToBeAvailable();
     }
 
@@ -131,15 +131,15 @@ export const useGlobalocketEvents = () => {
             setTaxiRideStatus('user-cancelled');
             // Change for a 'Ride cancelled because user disconnection' or something like that
             addNotification('User cancelled ride');
-            navigation.navigate('Main', {screen: 'Taxi', params: {screen: 'TaxiHome'}});
+            navigation.navigate('Taxi', {screen: 'TaxiHome'});
             await updateLocationToBeAvailable();
             return;
         }
 
         const timeout = setTimeout(async () => {
-            navigation.navigate('Main', {screen: 'Taxi', params: {screen: 'AcceptedRide'}});
+            navigation.navigate('Taxi', {screen: 'AcceptedRide'});
             addNotification('User disconnected');
-        }, process.env.DEVELOPMENT_ENV ? 20000 : 5*60*1000);
+        }, process.env.ENVIRONMENT === 'dev' ? 20000 : 5*60*1000);
 
         socket!.once('user-reconnect', async () => {
             clearTimeout(timeout);
@@ -160,11 +160,11 @@ export const useGlobalocketEvents = () => {
                 longitude: longitude,
                 };
                 if (location && userIdRef.current != null && socketRef.current != undefined) {
-                    console.log('location-update-for-user to: '+userIdRef.current);
+                    if (process.env.ENVIRONMENT === 'dev') console.log('location-update-for-user to: '+userIdRef.current);
                     socketRef.current.emit('location-update-for-user', {username: `${firstName} ${lastName}`, location: location, userApiId: userIdRef.current});
                 }
             } catch (error) {
-            console.error(`TaskManager: ${error}`);
+                console.error(`TaskManager: ${error}`);
             }
         });
     }
@@ -174,7 +174,7 @@ export const useGlobalocketEvents = () => {
     const onTaxiConfirmedRide = async (taxiName: string, location: LatLng) => {
         setTaxiInfo({username: taxiName, location: location});
         setRideStatus('accepted');
-        navigation.navigate('Main', {screen: 'Home', params: {screen: 'ConfirmedRide'}});
+        navigation.navigate('Home', {screen: 'ConfirmedRide'});
     };
 
     const onTaxiUpdateLocation = (username: string, location: LatLng) => {
@@ -183,16 +183,16 @@ export const useGlobalocketEvents = () => {
 
     const onTaxiCancelRide = async () => {
         addNotification('Taxi cancelled ride');
-        navigation.navigate('Main', {screen: 'Home', params: {screen: 'NewRide'}});
+        navigation.navigate('Home', {screen: 'NewRide'});
         socket?.disconnect();
         setSocket(undefined);
     }
 
     const onTaxiDisconnect = () => {
         const timeout = setTimeout( () => {
-            navigation.navigate('Main', {screen: 'Home', params: {screen: 'ConfirmedRide'}});
+            navigation.navigate('Home', {screen: 'ConfirmedRide'});
             addNotification('Taxi disconnected');
-        }, process.env.DEVELOPMENT_ENV ? 20000 : 5*60*1000);
+        }, process.env.ENVIRONMENT === 'dev' ? 20000 : 5*60*1000);
 
         socket!.once('taxi-reconnect', () => {
             clearTimeout(timeout);
@@ -202,26 +202,26 @@ export const useGlobalocketEvents = () => {
 
     const onNoTaxisAvailable = () => {
         setRideStatus('no-taxis-available');
-        navigation.navigate('Main', {screen: 'Home', params: {screen: 'ConfirmedRide'}});
+        navigation.navigate('Home', {screen: 'ConfirmedRide'});
         socket!.disconnect();
         setSocket(undefined);
     }
 
     const onAllTaxisReject = () => {
         setRideStatus('all-taxis-reject');
-        navigation.navigate('Main', {screen: 'Home', params: {screen: 'ConfirmedRide'}});
+        navigation.navigate('Home', {screen: 'ConfirmedRide'});
         socket!.disconnect();
         setSocket(undefined);
     }
 
     const onTaxiArrived = () => {
         setRideStatus('arrived');
-        navigation.navigate('Main', {screen: 'Home', params: {screen: 'ConfirmedRide'}});
+        navigation.navigate('Home', {screen: 'ConfirmedRide'});
     }
 
     const onRideCompleted = () => {
         mapCleanUp();
-        navigation.navigate('Main', {screen: 'Home', params: {screen: 'NewRide'}});
+        navigation.navigate('Home', {screen: 'NewRide'});
         socket!.disconnect();
         setSocket(undefined);
     }

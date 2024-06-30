@@ -15,7 +15,7 @@ export const InvertOriginDestinationBtn: FC = () => {
     }
 
     return (
-        <TouchableHighlight underlayColor="white" onPress={process.env.DEVELOPMENT_ENV ? autoAssignLocations : invertLocations} style={styles.btn}>
+        <TouchableHighlight underlayColor="white" onPress={process.env.ENVIRONMENT === 'dev' ? autoAssignLocations : invertLocations} style={styles.btn}>
             <AntDesign name="retweet" size={24} color="black" style={styles.icon} />
         </TouchableHighlight>
     );

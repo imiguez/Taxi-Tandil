@@ -8,6 +8,7 @@ import { useCommonSlice } from './slices/useCommonSlice';
 import { useMapDispatchActions } from './slices/useMapDispatchActions';
 import { LatLng, RideWithAddresses } from 'types/Location';
 import { ReviewersMockedEmails } from '@constants/index';
+import * as SecureStore from 'expo-secure-store';
 
 interface ConnectionOptions {
   transports: string[],
@@ -18,6 +19,7 @@ interface ConnectionOptions {
     apiId: string,
     role: string,
     username: string,
+    notificationSubId: string,
     reconnectionCheck: boolean,
     isReviewer: boolean,
     location?: LatLng,
@@ -28,11 +30,11 @@ interface ConnectionOptions {
 export const useSocketConnectionEvents = () => {
   const navigation = useNavigation();
   const { setSocket, socket } = useContext(SocketContext)!;
-  const { firstName, lastName, accessToken, id, setNewAccessToken, email } = useAuthDispatchActions();
+  const { firstName, lastName, getAccessToken, id, email } = useAuthDispatchActions();
   const { getNewAccessToken } = useHttpRequest();
   const { setRideStatus } = useMapDispatchActions();
   const { setError, removeNotification } = useCommonSlice();
-
+  
   const isReviewer = useMemo(() => {
     return (!!ReviewersMockedEmails.find(e => e === email));
   }, [email]);
@@ -43,9 +45,12 @@ export const useSocketConnectionEvents = () => {
     reconnectionAttempts: 5*60*1000, //  5 * 60 * 1000ms = 5 mins
   };
 
-  const reconnectionCheck = () => {
+  const reconnectionCheck = async () => {
     if (socket != undefined) return;
     if (id == undefined) return;
+    const pushSubId = await SecureStore.getItemAsync('push_sub_id');
+    if (!pushSubId) return;
+    const accessToken = await getAccessToken();
     // In case of reconnection, the backend checks the role with which has to authenticate and return it on reconnect-after-reconnection-check event.
     const options: ConnectionOptions = {
       ...connectionOptions,
@@ -56,6 +61,7 @@ export const useSocketConnectionEvents = () => {
         username: `${firstName} ${lastName}`,
         reconnectionCheck: true,
         isReviewer: isReviewer,
+        notificationSubId: pushSubId,
       },
     };
     const s = io(process.env.EXPO_PUBLIC_BASE_URL!, options);
@@ -69,8 +75,11 @@ export const useSocketConnectionEvents = () => {
     onConnectionError(s, options, onConnect)
   }
 
-  const reconnect = (role: 'user' | 'taxi') => {
+  const reconnect = async (role: 'user' | 'taxi') => {
     if (id == undefined) return;
+    const pushSubId = await SecureStore.getItemAsync('push_sub_id');
+    if (!pushSubId) return;
+    const accessToken = await getAccessToken();
     const options: ConnectionOptions = {
       ...connectionOptions,
       auth: {
@@ -80,6 +89,7 @@ export const useSocketConnectionEvents = () => {
         username: `${firstName} ${lastName}`,
         reconnectionCheck: false,
         isReviewer: isReviewer,
+        notificationSubId: pushSubId,
       },
     };
     const s = io(process.env.EXPO_PUBLIC_BASE_URL!, options);
@@ -90,8 +100,11 @@ export const useSocketConnectionEvents = () => {
     onConnectionError(s, options, onReconnect);
   }
 
-  const connectAsTaxi = (location: LatLng, onSuccess: () => void, onError: () => void) => {
+  const connectAsTaxi = async (location: LatLng, onSuccess: () => void, onError: () => void) => {
     if (id == undefined) return;
+    const pushSubId = await SecureStore.getItemAsync('push_sub_id');
+    if (!pushSubId) return;
+    const accessToken = await getAccessToken();
     const options: ConnectionOptions = {
       ...connectionOptions,
       auth: {
@@ -102,6 +115,7 @@ export const useSocketConnectionEvents = () => {
         location: location,
         reconnectionCheck: false,
         isReviewer: isReviewer,
+        notificationSubId: pushSubId,
       },
     };
     const s = io(process.env.EXPO_PUBLIC_BASE_URL!, options);
@@ -113,8 +127,11 @@ export const useSocketConnectionEvents = () => {
     onConnectionError(s, options, onConnect, onError);
   };
 
-  const connectAsUser = (ride: RideWithAddresses) => {
+  const connectAsUser = async (ride: RideWithAddresses) => {
     if (id == undefined) return;
+    const pushSubId = await SecureStore.getItemAsync('push_sub_id');
+    if (!pushSubId) return;
+    const accessToken = await getAccessToken();
     const options: ConnectionOptions = {
       ...connectionOptions,
       auth: {
@@ -124,13 +141,14 @@ export const useSocketConnectionEvents = () => {
         username: `${firstName} ${lastName}`,
         reconnectionCheck: false,
         isReviewer: isReviewer,
+        notificationSubId: pushSubId,
       }
     };
     const s = io(process.env.EXPO_PUBLIC_BASE_URL!, options);
     const onConnect = (socket: Socket) => {
       socket.emit('new-ride', { ride: ride });
       setRideStatus('emitted');
-      navigation.navigate('Main', { screen: 'Home', params: { screen: 'ConfirmedRide' } });
+      navigation.navigate('Home', { screen: 'ConfirmedRide' } );
     }
 
     const onError = () => {
@@ -150,12 +168,11 @@ export const useSocketConnectionEvents = () => {
 
   const onConnectionError = (s: Socket, connectionOptions: ConnectionOptions, onSuccess: (s: Socket) => void, onError?: () => void) => {
     s.on('connect_error', async (error) => {
-      console.log('Error from socket: ', error);
+      if (process.env.ENVIRONMENT === 'dev') console.log('Error from socket: ', error);
       if (error.message == 'jwt expired') {
         const newAccessToken = await getNewAccessToken();
         connectionOptions.auth.token = `Bearer ${newAccessToken}`;
         const newS = io(process.env.EXPO_PUBLIC_BASE_URL!, connectionOptions);
-        setNewAccessToken(newAccessToken);
         onConnectionSuccess(newS, onSuccess);
         if (onError != undefined)
           onConnectionError(newS, connectionOptions, onSuccess, onError);

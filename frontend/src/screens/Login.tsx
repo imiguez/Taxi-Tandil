@@ -5,17 +5,19 @@ import { StackNavigationProp } from '@react-navigation/stack';
 import { useAuthDispatchActions } from "hooks/slices/useAuthDispatchActions";
 import { useHttpRequest } from 'hooks/useHttpRequest';
 import { input, emptyInput } from 'types/Auth';
-import RootStackParamList from 'types/RootStackParamList';
 import { initialAuthSliceStateType } from 'types/slices/authSliceTypes';
 import { SessionContext } from '@hooks/useSessionContext';
+import { AuthStackParamList } from 'types/RootStackParamList';
+import * as SecureStore from 'expo-secure-store';
+import { OneSignal } from 'react-native-onesignal';
 
 export const Login: FC = () => {
-  const navigation = useNavigation<StackNavigationProp<RootStackParamList>>();
+  const navigation = useNavigation<StackNavigationProp<AuthStackParamList>>();
   const { setIsLogged } = useContext(SessionContext)!;
   const [formEmail, setFormEmail] = useState<input>(emptyInput);
   const [formPassword, setFormPassword] = useState<input>(emptyInput);
   const [serverMsg, setServerMsg] = useState<string>('');
-  const { setUserAuthData, storeAuthentication } = useAuthDispatchActions();
+  const { setUserAuthData, storeAuthentication, setAccessToken, setRefreshToken } = useAuthDispatchActions();
   const { postRequest } = useHttpRequest();
 
   const onSubmitLogin = async () => {
@@ -32,10 +34,12 @@ export const Login: FC = () => {
     }
 
     setServerMsg('');
+
     let body = {
       email: formEmail.value,
       password: formPassword.value,
     };
+
     try {
       const response = await postRequest('auth/login', body);
       let data: initialAuthSliceStateType = {
@@ -44,18 +48,32 @@ export const Login: FC = () => {
         lastName: response.user.lastName,
         email: response.user.email,
         roles: response.user.roles,
-        access_token: response.access_token,
-        refresh_token: response.refresh_token,
       };
+      // OneSignal login and attempts to get the subscription id.
+      data.id ? OneSignal.login(data.id): '';
+      let i = 0;
+      let id = await OneSignal.User.pushSubscription.getIdAsync();
+      let interval = setInterval(async () => {
+        i++;
+        if (id || i >= 20) {
+          if (id) await SecureStore.setItemAsync('push_sub_id', id);
+          clearInterval(interval);
+          return;
+        } 
+        id = await OneSignal.User.pushSubscription.getIdAsync();
+      }, 1000)
       // Empty the email and password useStates.
       setFormEmail(emptyInput);
       setFormPassword(emptyInput);
       setServerMsg('');
+      // Set user authentication data into redux and into the SecureStore.
       setUserAuthData(data);
+      await setAccessToken(response.access_token);
+      await setRefreshToken(response.refresh_token);
       storeAuthentication(data);
       setIsLogged(true);
     } catch (error: any) {
-      console.log(`error from catch: ${error}`);
+      if (process.env.ENVIRONMENT === 'dev') console.log(`error from catch: ${error}`);
       if (error.statusCode === 404) {
         setFormEmail({...formEmail, msg: 'No existe usuario con el email ingresado', error: true});
         return;

@@ -4,7 +4,7 @@ import { createBottomTabNavigator } from '@react-navigation/bottom-tabs';
 import React,{ FC, PropsWithChildren } from "react";
 import { Login } from "./screens/Login";
 import { NewRide } from "./screens/UserScreens/NewRide";
-import RootStackParamList, { HomeStackParamList, MainTabParamList, TaxiStackParamList } from "./types/RootStackParamList";
+import { AuthStackParamList, HomeStackParamList, MainTabParamList, TaxiStackParamList } from "./types/RootStackParamList";
 import { Settings } from "./screens/Settings";
 import { ConfirmedRide } from "./screens/UserScreens/ConfirmedRide";
 import { AcceptedRide } from "./screens/TaxiScreens/AcceptedRide";
@@ -12,12 +12,13 @@ import { SignUp } from "./screens/SignUp";
 import TaxiHome from "./screens/TaxiScreens/TaxiHome";
 import Rides from "./screens/Rides";
 import TabBar from "@components/Common/TabBar";
+import EmailVerification from "@screens/EmailVerification";
 
 
 const HomeStack = createStackNavigator<HomeStackParamList>();
 const TaxiStack = createStackNavigator<TaxiStackParamList>();
 const MainTabs = createBottomTabNavigator<MainTabParamList>();
-const RootStack = createStackNavigator<RootStackParamList>();
+const RootStack = createStackNavigator<AuthStackParamList>();
 
 const HomeScreenStack: FC = () => {
     return (
@@ -68,6 +69,7 @@ export const AuthRoutes: FC<PropsWithChildren> = () => {
                 }}>
                 <RootStack.Screen name="Login" component={Login}/>
                 <RootStack.Screen name="SignUp" component={SignUp}/>
+                <RootStack.Screen name="EmailVerification" component={EmailVerification}/>
             </RootStack.Navigator>
         </NavigationContainer>
     );

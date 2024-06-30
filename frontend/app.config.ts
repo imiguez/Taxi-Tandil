@@ -37,6 +37,7 @@ export default (): ExpoConfig => ({
       "android.permission.FOREGROUND_SERVICE",
       "android.permission.FOREGROUND_SERVICE_LOCATION",
       "android.permission.INTERNET",
+      "android.permission.POST_NOTIFICATIONS",
     ],
     adaptiveIcon: {
       foregroundImage: "./public/assets/adaptive-icon.png",

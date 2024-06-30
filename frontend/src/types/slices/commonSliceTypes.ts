@@ -4,5 +4,4 @@ export type initialCommonSliceStateType = {
     error: boolean,
     errorMessage: string | undefined,
     notifications: notificationKeyType[],
-    pushNotificationsPermissionAlreadyRequested: boolean, 
 }

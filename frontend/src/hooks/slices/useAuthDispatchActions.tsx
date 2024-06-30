@@ -1,10 +1,9 @@
 import { useDispatch, useSelector } from "react-redux";
 import * as SecureStore from 'expo-secure-store';
-import { initialState, selectAccessToken, selectEmail, selectFirstName, selectId, selectLastName, selectRefreshToken, selectRoles, 
-    setAccessToken, setEmail, setFirstName, setId, setLastName, setRefreshToken, setRoles, } from "../../../slices/authSlice";
+import { initialState, selectEmail, selectFirstName, selectId, selectLastName, selectRoles, 
+    setEmail, setFirstName, setId, setLastName, setRoles, } from "../../../slices/authSlice";
 import { SecureStoreItems } from "constants/index";
 import { initialAuthSliceStateType } from "types/slices/authSliceTypes";
-import { OneSignal } from 'react-native-onesignal';
 
 export const useAuthDispatchActions = () => {
     const dispatch = useDispatch();
@@ -13,19 +12,16 @@ export const useAuthDispatchActions = () => {
     const lastName = useSelector(selectLastName);
     const email = useSelector(selectEmail);
     const roles = useSelector(selectRoles);
-    const accessToken = useSelector(selectAccessToken);
-    const refreshToken = useSelector(selectRefreshToken);
-
 
     const sessionCheck = async (): Promise<boolean> => {
-        let access_token = await SecureStore.getItemAsync('access_token');
-        let refresh_token = await SecureStore.getItemAsync('refresh_token');
+        let access_token = await getAccessToken();
+        let refresh_token = await getRefreshToken();
 
         if (access_token == null || access_token == '' || refresh_token == null || refresh_token == '') return false;
         
         const response = await fetch(`${process.env.EXPO_PUBLIC_BASE_URL}/auth/refresh-jwt-token`, {
             method: 'POST',
-            headers: { 'Content-Type': 'application/json', Authorization: `Bearer ${access_token}` },
+            headers: { 'Content-Type': 'application/json', 'Authorization': `Bearer ${access_token}` },
             body: JSON.stringify({ refreshToken: `Bearer ${refresh_token}` }),
         });
         
@@ -43,23 +39,19 @@ export const useAuthDispatchActions = () => {
             lastName: await SecureStore.getItemAsync('lastName'),
             email: await SecureStore.getItemAsync('email'),
             roles: JSON.parse((await SecureStore.getItemAsync('roles')) ?? ''),
-            access_token: json.access_token,
-            refresh_token: await SecureStore.getItemAsync('refresh_token'),
         };
+        await setAccessToken(json.access_token);
         setUserAuthData(data);
         return true;
     };
 
 
-    const storeAuthentication = async (data: any) => {
-        data.id ? OneSignal.login(data.id): '';
+    const storeAuthentication = async (data: initialAuthSliceStateType) => {
         await SecureStore.setItemAsync('id', data.id + '');
         await SecureStore.setItemAsync('firstName', data.firstName + '');
         await SecureStore.setItemAsync('lastName', data.lastName + '');
         await SecureStore.setItemAsync('email', data.email + '');
         await SecureStore.setItemAsync('roles', JSON.stringify(data.roles) + '');
-        await SecureStore.setItemAsync('access_token', data.access_token + '');
-        await SecureStore.setItemAsync('refresh_token', data.refresh_token + '');
     }
 
     const setUserAuthData = (data: initialAuthSliceStateType) => {
@@ -68,12 +60,22 @@ export const useAuthDispatchActions = () => {
         dispatch(setLastName(data.lastName));
         dispatch(setEmail(data.email));
         dispatch(setRoles(data.roles));
-        dispatch(setAccessToken(data.access_token));
-        dispatch(setRefreshToken(data.refresh_token));
     }
 
-    const setNewAccessToken = (token: string) => {
-        dispatch(setAccessToken(token));
+    const setAccessToken = async (token: string) => {
+        await SecureStore.setItemAsync('access_token', token);
+    }
+
+    const getAccessToken = async () => {
+        return await SecureStore.getItemAsync('access_token');
+    }
+
+    const setRefreshToken = async (token: string) => {
+        await SecureStore.setItemAsync('refresh_token', token);
+    }
+    
+    const getRefreshToken = async () => {
+        return await SecureStore.getItemAsync('refresh_token');
     }
 
     const cleanUp = () => {
@@ -81,8 +83,9 @@ export const useAuthDispatchActions = () => {
     }
 
     return {
-        id, firstName, lastName, email, roles, accessToken, refreshToken,
-        setUserAuthData, setNewAccessToken,
+        id, firstName, lastName, email, roles,
+        setUserAuthData, 
+        setAccessToken, getAccessToken, setRefreshToken, getRefreshToken,
         sessionCheck, storeAuthentication,
         cleanUp
     }
