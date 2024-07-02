@@ -15,7 +15,10 @@ export const SignUp = () => {
   const [formPassword, setFormPassword] = useState<input>(emptyInput);
   const [formConfirmPassword, setFormConfirmPassword] = useState<input>(emptyInput);
   const { postRequest } = useHttpRequest();
-  const [serverMsg, setServerMsg] = useState<string>('');
+  const [msg, setMsg] = useState<null|{
+    msg: string,
+    color: string,
+  }>(null);
 
   const onSubmitSignUp = async () => {
     /**
@@ -40,7 +43,7 @@ export const SignUp = () => {
       formConfirmPassword.value == '' ||
       formPassword.value != formConfirmPassword.value
     ) {
-      setServerMsg('');
+      setMsg(null);
       return;
     }
 
@@ -59,7 +62,8 @@ export const SignUp = () => {
         OneSignal.User.removeEventListener('change', async () => await postRequest(`auth/verify-account/${response.email}`));
       });
       OneSignal.User.addEmail(response.email);
-    } catch (error: any) {
+      setMsg({ msg: 'Revisá tu email para validar tu cuenta y ya poder empezar a usar la app. Recordá que el email de verificación puede tardar unos minutos en enviarse.', color: '#7dd87d' })
+   } catch (error: any) {
       if (process.env.ENVIRONMENT === 'dev') console.log(`error from catch: ${error}`);
       if (error.message.includes('duplicate key value')) {
         setFormEmail({ ...formEmail, msg: 'El email ingresado ya fue registrado', error: true });
@@ -69,7 +73,7 @@ export const SignUp = () => {
         setFormEmail({ ...formEmail, msg: 'Email inválido', error: true });
         return;
       }
-      setServerMsg('Error con el servidor, intente de nuevo. Si sigue ocurriendo puede ser una falla del servidor.');
+      setMsg({ msg: 'Error con el servidor, intente de nuevo. Si sigue ocurriendo puede ser una falla del servidor.', color: '#f0386170' });
     }
   };
 
@@ -132,9 +136,9 @@ export const SignUp = () => {
         />
         {formConfirmPassword.error && <Text style={styles.textInputMsg}>{formConfirmPassword.msg}</Text>}
 
-        {serverMsg != '' && (
-          <View style={styles.serverMsg}>
-            <Text>{serverMsg}</Text>
+        {msg && (
+          <View style={[styles.serverMsg, {backgroundColor: msg.color}]}>
+            <Text>{msg.msg}</Text>
           </View>
         )}
 
@@ -190,12 +194,9 @@ const styles = StyleSheet.create({
   serverMsg: {
     width: '80%',
     marginTop: 10,
-    borderColor: 'red',
-    borderWidth: 1,
     borderRadius: 5,
     paddingHorizontal: 10,
     paddingVertical: 10,
-    backgroundColor: '#f0386170',
   },
   link: {
     color: '#1877f2',

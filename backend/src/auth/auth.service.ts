@@ -19,7 +19,7 @@ const otpGenerator = require('otp-generator');
 @Injectable()
 export class AuthService {
   private sessionExpDateInSeconds: number = process.env.DEVELOPMENT_ENV ? 60*50 : 60*60*24*30;
-  private accessTokenTime: string = process.env.DEVELOPMENT_ENV ? '5s' : '15m';
+  private accessTokenTime: string = process.env.DEVELOPMENT_ENV ? '15s' : '15m';
   private refreshTokenTime: string = process.env.DEVELOPMENT_ENV ? '50m' : '30d';
   private iss = ''; // TODO: set to backend url.
 
@@ -40,7 +40,14 @@ export class AuthService {
       lastName: signUpDto.lastName,
       email: signUpDto.email,
       password: signUpDto.password,
-    }).execute();
+    }).execute().catch((reason) => {
+      let msg = '';
+      if (reason && reason.driverError) {
+        if (reason.driverError.detail.includes('Key') && reason.driverError.detail.includes('already exists')) msg = 'duplicate key value';
+        else msg = reason.driverError.detail;
+      }
+      throw new HttpException(msg, HttpStatus.CONFLICT);
+    });
     
     if (result.generatedMaps[0] == null) throw new Error('Cant insert user into database.');
     
@@ -67,14 +74,16 @@ export class AuthService {
 
     const otp = otpGenerator.generate(12, { specialChars: false });
 
-    await redisClient.setex(`code:${otp}`, 60*15, user.id);
+    const expTime = 60*60;
+
+    await redisClient.setex(`code:${otp}`, expTime, user.id);
 
     const emailConfigs: EmailNotification = {
       recipients: {external_ids: [user.id]},
       template_name: 'Email:Sign up',
       custom_data: {
         user: {first_name: user.firstName},
-        exp_time: 15,
+        exp_time: expTime/60,
         verify: {URL:  !!process.env.DEVELOPMENT_ENV ? `http://192.168.0.187:2000/auth/account-verified/${otp}` : `https://www.ride-company.com/auth/account-verified/${otp}`}
       }
     };
