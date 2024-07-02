@@ -45,10 +45,7 @@ export class JwtAuthGuard extends AuthGuard('jwt') {
         if (!session.access_token) throw new UnauthorizedException('Access token from user´s session does not exists.');
         
         const [type, token] = request.headers.authorization.split(' ');
-    
-        if (isLogoutPath) {
-          if (session.refresh_token !== token) throw new UnauthorizedException('Current refresh token doesn´t match with the one in the session.');
-        } else if (session.access_token !== token) throw new UnauthorizedException('Current access token doesn´t match with the one in the session.');
+        if (session.access_token !== token) throw new UnauthorizedException('Current access token doesn´t match with the one in the session.');
     
         if (payload.isRefreshToken && !isLogoutPath) throw new UnauthorizedException('Provided a refresh_token in the Authorization header when must be an access_token.');
         

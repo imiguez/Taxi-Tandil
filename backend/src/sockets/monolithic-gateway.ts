@@ -19,6 +19,8 @@ import { RidesService } from 'src/rides/rides.service';
 import { CancellationReason } from 'src/rides/entities/CancellationReason.enum';
 import { OneSignalStaticClass } from 'src/OneSignalStaticClass';
 import { PushNotification } from 'src/types/notifications.type';
+import { redisClient } from 'src/main';
+import { Serializer } from 'src/utils/serializer.util';
 
 interface SocketUser {
   socketId: string,
@@ -35,7 +37,6 @@ export type activeRideType = {
   taxi: SocketUser | undefined;
   arrived: boolean;
   rideId: string | undefined;
-  requestRidePushNotification: string | undefined,
 };
 
 type taxiLocationType = {
@@ -54,7 +55,7 @@ type reviewConnectionsType = {
 @WebSocketGateway({
   connectionStateRecovery: {
     // the backup duration of the sessions and the packets
-    maxDisconnectionDuration: 120 * 1000,
+    maxDisconnectionDuration: 300 * 1000,
     // whether to skip middlewares upon successful recovery
     skipMiddlewares: true,
   },
@@ -117,12 +118,16 @@ export class MainGateway implements OnGatewayInit, OnGatewayConnection, OnGatewa
       }
     }
 
-    MainGateway.connections.set(apiId, {
+    const userSocketData = {
       socketId: client.id,
       apiId: apiId,
       username: client.data.username,
       notificationSubId: client.data.notificationSubId,
-    }); // Example: ['2', { socketId: 'SGS345rGDS$w', username: 'Juan Ramirez' }]
+    }
+
+    MainGateway.connections.set(apiId, userSocketData); // Example: ['2', { socketId: 'SGS345rGDS$w', username: 'Juan Ramirez' }]
+    
+    redisClient.set(`socket:${apiId}`, Serializer.serializeUserSocketData(userSocketData));
 
     if (client.data.isReviewer) {
       this.reviewConnections.set(apiId, {
@@ -175,14 +180,18 @@ export class MainGateway implements OnGatewayInit, OnGatewayConnection, OnGatewa
             const taxiConnection = MainGateway.connections.get(activeRide.currentRequested);
             this.beingRequested.delete(activeRide.currentRequested);
             if (taxiConnection) {
-              const notification: PushNotification = {
-                recipients: {subscription_ids: [client.data.notificationSubId]},
-                title: {es: `${client.data.username} canceló el viaje`, en: `${client.data.username}handleDisconnect cancelled the ride`},
-                content: {es: `${client.data.username} canceló el viaje`, en: `${client.data.username} cancelled the ride`},
-                android_channel: 'Ride state',
+
+              if (client.data.notificationSubId) {
+                const notification: PushNotification = {
+                  recipients: {subscription_ids: [client.data.notificationSubId]},
+                  title: {es: `${client.data.username} canceló el viaje`, en: `${client.data.username}handleDisconnect cancelled the ride`},
+                  content: {es: `${client.data.username} canceló el viaje`, en: `${client.data.username} cancelled the ride`},
+                  android_channel: 'Ride state',
+                }
+            
+                await OneSignalStaticClass.createPushNotification(notification);
               }
-          
-              await OneSignalStaticClass.createPushNotification(notification);
+
               this.server.to(taxiConnection.socketId).emit('user-cancel-ride');
             }
           }
@@ -192,6 +201,7 @@ export class MainGateway implements OnGatewayInit, OnGatewayConnection, OnGatewa
     }
 
     MainGateway.connections.delete(apiId);
+    redisClient.del(`socket:${apiId}`);
 
     if (client.data.isReviewer) this.reviewConnections.delete(apiId);
 
@@ -301,14 +311,17 @@ export class MainGateway implements OnGatewayInit, OnGatewayConnection, OnGatewa
     activeRide.arrived = true;
     this.activeRides.set(userApiId, activeRide);
 
-    const notification: PushNotification = {
-      recipients: {subscription_ids: [activeRide.issuer.notificationSubId]},
-      title: {es: `${client.data.username} está afuera!`, en: `${client.data.username} is outside!`},
-      content: {es: `${client.data.username} llegó a tu dirección.`, en: `${client.data.username} has arrived to your address.`},
-      android_channel: 'Ride state',
+    if (activeRide.issuer.notificationSubId) {
+      const notification: PushNotification = {
+        recipients: {subscription_ids: [activeRide.issuer.notificationSubId]},
+        title: {es: `${client.data.username} está afuera!`, en: `${client.data.username} is outside!`},
+        content: {es: `${client.data.username} llegó a tu dirección.`, en: `${client.data.username} has arrived to your address.`},
+        android_channel: 'Ride state',
+      }
+  
+      await OneSignalStaticClass.createPushNotification(notification);
     }
 
-    await OneSignalStaticClass.createPushNotification(notification);
     this.server.to(activeRide.issuer.socketId).emit('taxi-arrived');
   }
 
@@ -328,14 +341,16 @@ export class MainGateway implements OnGatewayInit, OnGatewayConnection, OnGatewa
     const activeRide = this.activeRides.get(userApiId);
     if (!activeRide) return;
 
-    const notification: PushNotification = {
-      recipients: {subscription_ids: [activeRide.issuer.notificationSubId]},
-      title: {es: `${client.data.username} canceló el viaje`, en: `${client.data.username} cancelled the ride`},
-      content: {es: `${client.data.username} canceló el viaje luego de que te hayas desconectado por más de 5 minutos.`, en: `${client.data.username} has cancelled the ride after you disconnected for more than 5 minutes.`},
-      android_channel: 'Ride state',
+    if (activeRide.issuer.notificationSubId) {
+      const notification: PushNotification = {
+        recipients: {subscription_ids: [activeRide.issuer.notificationSubId]},
+        title: {es: `${client.data.username} canceló el viaje`, en: `${client.data.username} cancelled the ride`},
+        content: {es: `${client.data.username} canceló el viaje luego de que te hayas desconectado por más de 5 minutos.`, en: `${client.data.username} has cancelled the ride after you disconnected for more than 5 minutes.`},
+        android_channel: 'Ride state',
+      }
+  
+      await OneSignalStaticClass.createPushNotification(notification);
     }
-
-    await OneSignalStaticClass.createPushNotification(notification);
 
     if (activeRide.rideId) {
       await this.ridesService.update(activeRide.rideId, {
@@ -361,15 +376,18 @@ export class MainGateway implements OnGatewayInit, OnGatewayConnection, OnGatewa
     if (activeRide.arrived) return;
 
     this.activeRides.delete(userApiId);
-
-    const notification: PushNotification = {
-      recipients: {subscription_ids: [activeRide.issuer.notificationSubId]},
-      title: {es: `${client.data.username} canceló el viaje`, en: `${client.data.username} cancelled the ride`},
-      content: {es: `${client.data.username} canceló el viaje`, en: `${client.data.username} cancelled the ride`},
-      android_channel: 'Ride state',
+    
+    if (activeRide.issuer.notificationSubId) {
+      const notification: PushNotification = {
+        recipients: {subscription_ids: [activeRide.issuer.notificationSubId]},
+        title: {es: `${client.data.username} canceló el viaje`, en: `${client.data.username} cancelled the ride`},
+        content: {es: `${client.data.username} canceló el viaje`, en: `${client.data.username} cancelled the ride`},
+        android_channel: 'Ride state',
+      }
+  
+      await OneSignalStaticClass.createPushNotification(notification);
     }
-
-    await OneSignalStaticClass.createPushNotification(notification);
+    
     this.server.to(activeRide.issuer.socketId).emit('taxi-cancel-ride');
   }
 
@@ -426,15 +444,16 @@ export class MainGateway implements OnGatewayInit, OnGatewayConnection, OnGatewa
 
       this.beingRequested.set(nearestTaxi.id, taxiConnection);
 
-      const notification: PushNotification = {
-        recipients: {subscription_ids: [taxiConnection.notificationSubId]},
-        title: {es: `Viaje solicitado!`, en: `Ride requested!`},
-        content: {es: `${activeRide.issuer.username} solicitó un viaje, lo tomarás?`, en: `${activeRide.issuer.username} request a ride, will you accept it?`},
-        android_channel: 'Ride state',
+      if (taxiConnection.notificationSubId) {
+        const notification: PushNotification = {
+          recipients: {subscription_ids: [taxiConnection.notificationSubId]},
+          title: {es: `Viaje solicitado!`, en: `Ride requested!`},
+          content: {es: `${activeRide.issuer.username} solicitó un viaje, lo tomarás?`, en: `${activeRide.issuer.username} request a ride, will you accept it?`},
+          android_channel: 'Ride state',
+        }
+  
+        await OneSignalStaticClass.createPushNotification(notification);
       }
-
-      const notificationResponse = await OneSignalStaticClass.createPushNotification(notification);
-      activeRide.requestRidePushNotification = notificationResponse.id;
 
       this.server.to(taxiConnection.socketId).emit('ride-request', activeRide.ride, userApiId, activeRide.issuer.username);
 
@@ -510,13 +529,17 @@ export class MainGateway implements OnGatewayInit, OnGatewayConnection, OnGatewa
         activeRide.rideId = response.id;
         this.activeRides.set(userApiId, activeRide);
         this.taxisLocation.delete(taxiApiId);
-        const notification: PushNotification = {
-          recipients: {subscription_ids: [activeRide.issuer.notificationSubId]},
-          title: {es: `Viaje aceptado!`, en: `Ride accepted!`},
-          content: {es: `${taxiUsername} aceptó tu pedido de viaje.`, en: `${taxiUsername} accepted your ride request.`},
-          android_channel: 'Ride state',
+        
+        if (activeRide.issuer.notificationSubId) {
+          const notification: PushNotification = {
+            recipients: {subscription_ids: [activeRide.issuer.notificationSubId]},
+            title: {es: `Viaje aceptado!`, en: `Ride accepted!`},
+            content: {es: `${taxiUsername} aceptó tu pedido de viaje.`, en: `${taxiUsername} accepted your ride request.`},
+            android_channel: 'Ride state',
+          }
+          
+          await OneSignalStaticClass.createPushNotification(notification);
         }
-        await OneSignalStaticClass.createPushNotification(notification);
       } catch (error) {
         this.activeRides.delete(userApiId);
         this.server.to(activeRide.issuer.socketId).emit('taxi-cancelled-ride'); // Its not actually a cancelled ride event.
@@ -623,14 +646,16 @@ export class MainGateway implements OnGatewayInit, OnGatewayConnection, OnGatewa
         }
       }
       if (taxi) {
-        const notification: PushNotification = {
-          recipients: {subscription_ids: [taxi.notificationSubId]},
-          title: {es: `Viaje solicitado!`, en: `Ride requested!`},
-          content: {es: `${client.data.username} solicitó un viaje, lo tomarás?`, en: `${client.data.username} request a ride, will you accept it?`},
-          android_channel: 'Ride state',
+        if (taxi.notificationSubId) {
+          const notification: PushNotification = {
+            recipients: {subscription_ids: [taxi.notificationSubId]},
+            title: {es: `Viaje solicitado!`, en: `Ride requested!`},
+            content: {es: `${client.data.username} solicitó un viaje, lo tomarás?`, en: `${client.data.username} request a ride, will you accept it?`},
+            android_channel: 'Ride state',
+          }
+    
+          await OneSignalStaticClass.createPushNotification(notification);
         }
-  
-        const notificationResponse = await OneSignalStaticClass.createPushNotification(notification);
 
         this.activeRides.set(userApiId, {
           issuer: {
@@ -645,7 +670,6 @@ export class MainGateway implements OnGatewayInit, OnGatewayConnection, OnGatewa
           taxi: undefined,
           arrived: false,
           rideId: undefined,
-          requestRidePushNotification: notificationResponse.id
         });
         this.server.to(taxi.socketId).emit('ride-request', ride, userApiId, username);
       } else this.server.to(client.id).emit('no-taxis-available');
@@ -679,7 +703,6 @@ export class MainGateway implements OnGatewayInit, OnGatewayConnection, OnGatewa
       taxi: undefined,
       arrived: false,
       rideId: undefined,
-      requestRidePushNotification: undefined
     });
 
     await this.checkLastLocationUpdate(userApiId);
@@ -733,7 +756,7 @@ export class MainGateway implements OnGatewayInit, OnGatewayConnection, OnGatewa
     const activeRide = this.activeRides.get(client.data.apiId);
     if (!activeRide) return;
 
-    if (activeRide.taxi) {
+    if (activeRide.taxi && activeRide.taxi.notificationSubId) {
       const notification: PushNotification = {
         recipients: {subscription_ids: [activeRide.taxi.notificationSubId]},
         title: {es: `${client.data.username} canceló el viaje`, en: `${client.data.username} cancelled the ride`},

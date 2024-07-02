@@ -21,3 +21,10 @@ export const EmptySession: Session = {
     refresh_token: null,
     exp_date_in_ms: null
 }
+
+export interface UserSocketData {
+    socketId: string,
+    apiId: string,
+    username: string,
+    notificationSubId: string | null,
+}

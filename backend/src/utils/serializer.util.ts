@@ -1,4 +1,4 @@
-import { Session, UserToSerialize } from "src/types/serializer.type";
+import { Session, UserSocketData, UserToSerialize } from "src/types/serializer.type";
 
 export class Serializer {
 
@@ -15,4 +15,11 @@ export class Serializer {
         return JSON.parse(session);
     }
 
+    public static serializeUserSocketData(userData: UserSocketData): string {
+        return JSON.stringify(userData);
+    }
+
+    public static deserializeUserSocketData(userData: string): UserSocketData {
+        return JSON.parse(userData);
+    }
 }

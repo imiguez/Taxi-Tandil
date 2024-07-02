@@ -1,5 +1,5 @@
 import { StyleSheet, Text, TouchableHighlight } from 'react-native';
-import React, { FC, useContext, useMemo, useState } from 'react';
+import React, { FC, useContext, useMemo, useRef, useState } from 'react';
 import { useNavigation } from '@react-navigation/native';
 import { useCommonSlice } from 'hooks/slices/useCommonSlice';
 import { useMapDispatchActions } from 'hooks/slices/useMapDispatchActions';
@@ -14,7 +14,8 @@ const NewRideBtn: FC = () => {
   const [confirmBtn, setConfirmBtn] = useState<boolean>(false);
   const { connectAsUser } = useSocketConnectionEvents();
   const { setError } = useCommonSlice();
-
+  const hasBeenClicked = useRef<boolean>(false);
+  
   useMemo(() => {
     setConfirmBtn(
       origin != null &&
@@ -24,15 +25,19 @@ const NewRideBtn: FC = () => {
   }, [rideStatus, origin, destination]);
 
   const onConfirmRide = async () => {
+    if (hasBeenClicked.current) return;
+    
     if (socket != undefined && socket.auth.role == 'taxi') {
       setError('Usted ya tiene una conexión activa como taxista/remisero, para poder pedir un viaje debe dejar de estar disponible como taxista/remisero.');
       return;
     }
-
+    
     if (!(origin && origin.location != null) || !(destination && destination.location != null)) {
       console.log('Error: the origin or the destination its undefined.');
       return;
     }
+    
+    hasBeenClicked.current = true;
     
     await PushNotificationsPermissions.requestPermissions();
 
@@ -40,7 +45,11 @@ const NewRideBtn: FC = () => {
       origin: origin,
       destination: destination
     };
-    connectAsUser(ride);
+    await connectAsUser(ride);
+    // This allows the navigation to ConfirmedRide be conclude before the btn could be clickable again.
+    setTimeout(() => {
+      hasBeenClicked.current = false;
+    }, 1000);
   };
 
   return (

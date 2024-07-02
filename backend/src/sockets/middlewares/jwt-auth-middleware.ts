@@ -9,7 +9,7 @@ interface ClientData {
     reconnectionCheck: boolean,
     username: string,
     isReviewer: boolean,
-    notificationSubId: string,
+    notificationSubId: string | null,
 }
 
 type SocketAuthMiddleWareReturnType = (client: Socket, next: (err?: Error) => void) => any;
@@ -25,7 +25,7 @@ export const SocketAuthMiddleWare = (): SocketAuthMiddleWareReturnType => {
                 reconnectionCheck: reconnectionCheck,
                 username: username+'',
                 isReviewer: !!isReviewer,
-                notificationSubId: notificationSubId+'',
+                notificationSubId: notificationSubId,
             }
             
             if (role == 'taxi' && client.handshake.auth.location != undefined) data.location = client.handshake.auth.location;

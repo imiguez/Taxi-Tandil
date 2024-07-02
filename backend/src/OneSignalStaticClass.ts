@@ -49,7 +49,11 @@ export class OneSignalStaticClass {
         notification.is_android = true;
         notification.is_ios = true;
 
-        return await this.getClient().createNotification(notification);
+        try {
+            await this.getClient().createNotification(notification);
+        } catch (error) {
+            console.log(error);
+        }
     }
 
     public static createEmailNotification = async (configs: EmailNotification) => {
@@ -63,7 +67,11 @@ export class OneSignalStaticClass {
         notification.template_id = configs.template_name ? this.templates.get(configs.template_name) : undefined;
         notification.custom_data = configs.custom_data;
         
-        return await this.getClient().createNotification(notification);
+        try {
+            return await this.getClient().createNotification(notification);
+        } catch (error) {
+            console.log(error);
+        }
     }
 
     public static getSubscriptionsFromUserByExternalId = async (id: string): Promise<OneSignal.Subscription[] | undefined> => {

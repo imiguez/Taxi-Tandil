@@ -19,7 +19,7 @@ interface ConnectionOptions {
     apiId: string,
     role: string,
     username: string,
-    notificationSubId: string,
+    notificationSubId: string | null,
     reconnectionCheck: boolean,
     isReviewer: boolean,
     location?: LatLng,
@@ -49,7 +49,6 @@ export const useSocketConnectionEvents = () => {
     if (socket != undefined) return;
     if (id == undefined) return;
     const pushSubId = await SecureStore.getItemAsync('push_sub_id');
-    if (!pushSubId) return;
     const accessToken = await getAccessToken();
     // In case of reconnection, the backend checks the role with which has to authenticate and return it on reconnect-after-reconnection-check event.
     const options: ConnectionOptions = {
@@ -78,7 +77,6 @@ export const useSocketConnectionEvents = () => {
   const reconnect = async (role: 'user' | 'taxi') => {
     if (id == undefined) return;
     const pushSubId = await SecureStore.getItemAsync('push_sub_id');
-    if (!pushSubId) return;
     const accessToken = await getAccessToken();
     const options: ConnectionOptions = {
       ...connectionOptions,
@@ -103,7 +101,6 @@ export const useSocketConnectionEvents = () => {
   const connectAsTaxi = async (location: LatLng, onSuccess: () => void, onError: () => void) => {
     if (id == undefined) return;
     const pushSubId = await SecureStore.getItemAsync('push_sub_id');
-    if (!pushSubId) return;
     const accessToken = await getAccessToken();
     const options: ConnectionOptions = {
       ...connectionOptions,
@@ -130,7 +127,6 @@ export const useSocketConnectionEvents = () => {
   const connectAsUser = async (ride: RideWithAddresses) => {
     if (id == undefined) return;
     const pushSubId = await SecureStore.getItemAsync('push_sub_id');
-    if (!pushSubId) return;
     const accessToken = await getAccessToken();
     const options: ConnectionOptions = {
       ...connectionOptions,
