@@ -98,7 +98,8 @@ export const useSocketConnectionEvents = () => {
     onConnectionError(s, options, onReconnect);
   }
 
-  const connectAsTaxi = async (location: LatLng, onSuccess: () => void, onError: () => void) => {
+  const connectAsTaxi = async (location: LatLng) => {
+    if (socket != undefined) return;
     if (id == undefined) return;
     const pushSubId = await SecureStore.getItemAsync('push_sub_id');
     const accessToken = await getAccessToken();
@@ -117,11 +118,10 @@ export const useSocketConnectionEvents = () => {
     };
     const s = io(process.env.EXPO_PUBLIC_BASE_URL!, options);
     const onConnect = () => {
-      onSuccess();
       removeNotification('Taxi connection failed');
     }
     onConnectionSuccess(s, onConnect);
-    onConnectionError(s, options, onConnect, onError);
+    onConnectionError(s, options, onConnect);
   };
 
   const connectAsUser = async (ride: RideWithAddresses) => {

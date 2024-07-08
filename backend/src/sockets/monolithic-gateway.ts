@@ -37,6 +37,7 @@ export type activeRideType = {
   taxi: SocketUser | undefined;
   arrived: boolean;
   rideId: string | undefined;
+  countdownTimer: NodeJS.Timeout | undefined;
 };
 
 type taxiLocationType = {
@@ -67,7 +68,7 @@ export class MainGateway implements OnGatewayInit, OnGatewayConnection, OnGatewa
   private taxisLocation: Map<string, taxiLocationType> = new Map<string, taxiLocationType>();
   private frequencyToCheckLastUpdate = 10;
   private taxisAvailable: Map<string, string> = new Map<string, string>();
-  private beingRequested: Map<string, SocketUser> = new Map<string, SocketUser>();
+  private beingRequested: Map<string, SocketUser&{requestedBy: string}> = new Map<string, SocketUser&{requestedBy: string}>();
 
   private reviewConnections: Map<string, reviewConnectionsType> = new Map<string, reviewConnectionsType>();
   
@@ -169,33 +170,37 @@ export class MainGateway implements OnGatewayInit, OnGatewayConnection, OnGatewa
 
     if (client.data.role == 'user') {
       const activeRide = this.activeRides.get(apiId);
-      // If ride exists and taxi hasn't arrived yet.
-      if (activeRide != undefined && !activeRide.arrived) {
-        // If the ride emitted was accepted
-        if (activeRide.taxi != undefined) this.server.to(activeRide.taxi.socketId).emit('user-disconnect', activeRide.rideId);
-        // Else, if the ride emitted hasn't been accepted yet
-        else {
-          // If exists a taxi who's being requested
-          if (activeRide.currentRequested != undefined) {
-            const taxiConnection = MainGateway.connections.get(activeRide.currentRequested);
-            this.beingRequested.delete(activeRide.currentRequested);
-            if (taxiConnection) {
+      // If ride exists.
+      if (activeRide != undefined) {
+        clearTimeout(activeRide.countdownTimer);
+        // If taxi hasn't arrived yet. (If hasn't it could mean the ride wasn't accepted yet)
+        if (!activeRide.arrived) {
+          // If the ride emitted was accepted
+          if (activeRide.taxi != undefined) this.server.to(activeRide.taxi.socketId).emit('user-disconnect', activeRide.rideId);
+          // Else, if the ride emitted hasn't been accepted yet
+          else {
+            // If exists a taxi who's being requested
+            if (activeRide.currentRequested != undefined) {
+              const taxiConnection = MainGateway.connections.get(activeRide.currentRequested);
+              this.beingRequested.delete(activeRide.currentRequested);
+              if (taxiConnection) {
 
-              if (client.data.notificationSubId) {
-                const notification: PushNotification = {
-                  recipients: {subscription_ids: [client.data.notificationSubId]},
-                  title: {es: `${client.data.username} canceló el viaje`, en: `${client.data.username}handleDisconnect cancelled the ride`},
-                  content: {es: `${client.data.username} canceló el viaje`, en: `${client.data.username} cancelled the ride`},
-                  android_channel: 'Ride state',
+                if (taxiConnection.notificationSubId) {
+                  const notification: PushNotification = {
+                    recipients: {subscription_ids: [taxiConnection.notificationSubId]},
+                    title: {es: `${client.data.username} canceló el viaje`, en: `${client.data.username} cancelled the ride`},
+                    content: {es: `${client.data.username} canceló el viaje`, en: `${client.data.username} cancelled the ride`},
+                    android_channel: 'Ride state',
+                  }
+              
+                  await OneSignalStaticClass.createPushNotification(notification);
                 }
-            
-                await OneSignalStaticClass.createPushNotification(notification);
-              }
 
-              this.server.to(taxiConnection.socketId).emit('user-cancel-ride');
+                this.server.to(taxiConnection.socketId).emit('user-cancel-ride');
+              }
             }
+            this.activeRides.delete(apiId);
           }
-          this.activeRides.delete(apiId);
         }
       }
     }
@@ -207,10 +212,10 @@ export class MainGateway implements OnGatewayInit, OnGatewayConnection, OnGatewa
 
     if (client.data.role == 'taxi') {
       
-      const issuer = this.beingRequested.get(apiId);
-      if (issuer) this.handleRideResponse(false, apiId, client.data.username, issuer.apiId);
-      
-      else if (!this.taxisAvailable.has(apiId)) { // If it doesn't exists in taxisAvailable and also doesn't exists in beingRequested, it means that it has an activeRide.
+      const beingRequested = this.beingRequested.get(apiId);
+      if (beingRequested) this.handleRideResponse(false, apiId, client.data.username, beingRequested.requestedBy);
+      // Else, if it doesn't exists in taxisAvailable and also doesn't exists in beingRequested, it means that it has an activeRide.
+      else if (!this.taxisAvailable.has(apiId)) { 
         for (const [userApiId, activeRide] of this.activeRides) {
           if (activeRide.taxi?.apiId === apiId) {
             this.server.to(activeRide.issuer.socketId).emit('taxi-disconnect');
@@ -279,7 +284,7 @@ export class MainGateway implements OnGatewayInit, OnGatewayConnection, OnGatewa
   }
 
   @SubscribeMessage('ride-response')
-  rideResponse(@MessageBody() data: { accepted: boolean, userApiId: string }, @ConnectedSocket() client: Socket) {
+  async rideResponse(@MessageBody() data: { accepted: boolean, userApiId: string }, @ConnectedSocket() client: Socket) {
     const { accepted, userApiId } = data;
     const taxiApiId = client.data.apiId;
     const taxiUsername = client.data.username;
@@ -289,7 +294,7 @@ export class MainGateway implements OnGatewayInit, OnGatewayConnection, OnGatewa
       return;
     }
 
-    this.handleRideResponse(accepted, taxiApiId, taxiUsername, userApiId);
+    await this.handleRideResponse(accepted, taxiApiId, taxiUsername, userApiId);
   }
 
   @SubscribeMessage('taxi-arrived')
@@ -341,6 +346,8 @@ export class MainGateway implements OnGatewayInit, OnGatewayConnection, OnGatewa
     const activeRide = this.activeRides.get(userApiId);
     if (!activeRide) return;
 
+    clearTimeout(activeRide.countdownTimer);
+
     if (activeRide.issuer.notificationSubId) {
       const notification: PushNotification = {
         recipients: {subscription_ids: [activeRide.issuer.notificationSubId]},
@@ -372,8 +379,7 @@ export class MainGateway implements OnGatewayInit, OnGatewayConnection, OnGatewa
       return;
     }
 
-    // In the frontend it should never let the taxi cancel a ride if it has already arrived.
-    if (activeRide.arrived) return;
+    clearTimeout(activeRide.countdownTimer);
 
     this.activeRides.delete(userApiId);
     
@@ -442,7 +448,7 @@ export class MainGateway implements OnGatewayInit, OnGatewayConnection, OnGatewa
       activeRide.currentRequested = nearestTaxi.id;
       this.taxisAvailable.delete(nearestTaxi.id);
 
-      this.beingRequested.set(nearestTaxi.id, taxiConnection);
+      this.beingRequested.set(nearestTaxi.id, {...taxiConnection, requestedBy: userApiId});
 
       if (taxiConnection.notificationSubId) {
         const notification: PushNotification = {
@@ -455,7 +461,13 @@ export class MainGateway implements OnGatewayInit, OnGatewayConnection, OnGatewa
         await OneSignalStaticClass.createPushNotification(notification);
       }
 
-      this.server.to(taxiConnection.socketId).emit('ride-request', activeRide.ride, userApiId, activeRide.issuer.username);
+      const expirationInMs = Date.now() + 60000;
+      this.server.to(taxiConnection.socketId).emit('ride-request', activeRide.ride, userApiId, activeRide.issuer.username, expirationInMs);
+      activeRide.countdownTimer = setTimeout(async () => {
+        if (activeRide && activeRide.currentRequested == taxiConnection.apiId) {
+          await this.handleRideResponse(false, taxiConnection.apiId, taxiConnection.username, userApiId);
+        }
+      }, 70000); // 10s extra to avoid frontend errors. 
 
     } else {
       this.server.to(activeRide.issuer.socketId).emit('all-taxis-reject');
@@ -505,14 +517,16 @@ export class MainGateway implements OnGatewayInit, OnGatewayConnection, OnGatewa
       console.log('On handleRideResponse, this.activeRides.get(userApiId) returned undefined.');
       return;
     }
-
-    const taxiConnection = MainGateway.connections.get(taxiApiId);
-    if (!taxiConnection) {
-      console.log('On handleRideResponse, MainGateway.connections.get(taxiApiId) returned undefined.');
-      return;
-    }
+    
+    clearTimeout(activeRide.countdownTimer);
 
     if (accepted) {
+      const taxiConnection = MainGateway.connections.get(taxiApiId);
+      if (!taxiConnection) {
+        console.log('On handleRideResponse, MainGateway.connections.get(taxiApiId) returned undefined.');
+        return;
+      }
+    
       activeRide.taxi = taxiConnection;
       const taxiLocation = this.taxisLocation.get(taxiApiId)?.location;
       this.server.to(activeRide.issuer.socketId).emit('taxi-confirmed-ride', taxiUsername, taxiLocation);
@@ -670,8 +684,11 @@ export class MainGateway implements OnGatewayInit, OnGatewayConnection, OnGatewa
           taxi: undefined,
           arrived: false,
           rideId: undefined,
+          countdownTimer: undefined,
         });
-        this.server.to(taxi.socketId).emit('ride-request', ride, userApiId, username);
+
+        const expirationInMs = Date.now() + 60000;
+        this.server.to(taxi.socketId).emit('ride-request', ride, userApiId, username, expirationInMs);
       } else this.server.to(client.id).emit('no-taxis-available');
       return;
     }
@@ -703,6 +720,7 @@ export class MainGateway implements OnGatewayInit, OnGatewayConnection, OnGatewa
       taxi: undefined,
       arrived: false,
       rideId: undefined,
+      countdownTimer: undefined,
     });
 
     await this.checkLastLocationUpdate(userApiId);
@@ -715,6 +733,8 @@ export class MainGateway implements OnGatewayInit, OnGatewayConnection, OnGatewa
     // If the ride doesnt exists in activeRides
     let activeRide = this.activeRides.get(userApiId);
     if (activeRide == undefined) return;
+    
+    clearTimeout(activeRide.countdownTimer);
 
     let taxiNotificationSubId;
     // In case taxi've already accepted the ride

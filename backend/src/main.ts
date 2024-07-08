@@ -27,12 +27,12 @@ async function bootstrap() {
   const fs = require('fs');
   const keyFile  = fs.readFileSync(`./certificates/private.key`);
   const certFile = fs.readFileSync(`./certificates/certificate.cer`);
-  // const ca = fs.readFileSync(`./certificates/ca_bundle.crt`);
+  const ca = fs.readFileSync(`./certificates/certificate_INTERMEDIATE.cer`);
 
   const httpsOptions = process.env.DEVELOPMENT_ENV ? undefined : {
     key: keyFile,
     cert: certFile,
-    // ca: ca,
+    ca: ca,
   };
 
   const app = await NestFactory.create<NestExpressApplication>(AppModule, {

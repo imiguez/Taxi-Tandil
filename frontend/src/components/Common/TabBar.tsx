@@ -43,14 +43,13 @@ const TabBar: FC<TabBarInterface> = ({ state, descriptors, navigation }) => {
   } = useGlobalocketEvents();
   const { roles } = useAuthDispatchActions();
   const {origin, destination, rideStatus, taxi} = useMapDispatchActions();
-  const {ride, userId, username, available, cleanUp} = useTaxiDispatchActions();
+  const {ride, userId, username, cleanUp} = useTaxiDispatchActions();
   const taxiRideStatus = useTaxiDispatchActions().rideStatus;
-  const setTaxiRideStatus = useTaxiDispatchActions().setRideStatus;
   const {reconnectionCheck} = useSocketConnectionEvents();
   const [showTab, setShowTab] = useState<boolean>(true);
   const { error, errorMessage, cleanError } = useCommonSlice();
-  const [countdown, setCountdown] = useState<boolean>(false);
-  const timeoutRef = useRef<NodeJS.Timeout | null>();
+  const [countdown, setCountdown] = useState<number|null>(null);
+  const timeoutRef = useRef<NodeJS.Timeout | undefined>();
 
   const onKeyboardShow = () => setShowTab(false);
   const onKeyboardNotShow = () => setShowTab(true);
@@ -67,7 +66,6 @@ const TabBar: FC<TabBarInterface> = ({ state, descriptors, navigation }) => {
           await SecureStore.setItemAsync('ride', JSON.stringify(ride));
           await SecureStore.setItemAsync('userId', JSON.stringify(userId));
           await SecureStore.setItemAsync('username', JSON.stringify(username));
-          await SecureStore.setItemAsync('available', JSON.stringify(available));
           await SecureStore.setItemAsync('taxiRideStatus', JSON.stringify(taxiRideStatus));
         }
       }
@@ -92,16 +90,25 @@ const TabBar: FC<TabBarInterface> = ({ state, descriptors, navigation }) => {
     };
   }, []);
 
-  const handleRideRequest = (ride: RideWithAddresses, userId: string, username: string) => {
+  const handleRideRequest = async (ride: RideWithAddresses, userId: string, username: string, expirationInMs: number) => {
     onRideRequest(ride, userId, username);
-    setCountdown(true);
-    timeoutRef.current = setTimeout(async () => {
-      socket!.emit('ride-response', { accepted: false, userApiId: userId });
-      navigation.navigate('Taxi', {screen: 'TaxiHome'});
-      setCountdown(false);
-      cleanUp();
-      await updateLocationToBeAvailable();
-    }, 20000);
+    let time = (expirationInMs - Date.now());
+    setCountdown(expirationInMs);
+    if (expirationInMs > Date.now()) {
+      timeoutRef.current = setTimeout(async () => {
+        await handleRideRequestExpired();
+      }, time);
+    } else {
+      await handleRideRequestExpired();
+    }
+  }
+
+  const handleRideRequestExpired = async () => {
+    clearTimeout(timeoutRef.current);
+    navigation.navigate('Taxi', {screen: 'TaxiHome'});
+    setCountdown(null);
+    cleanUp();
+    await updateLocationToBeAvailable();
   }
 
   useMemo(() => {
@@ -126,13 +133,9 @@ const TabBar: FC<TabBarInterface> = ({ state, descriptors, navigation }) => {
   }, [socket]);
 
   useMemo(() => {
-    if (countdown && !(taxiRideStatus === null || taxiRideStatus === 'arrived')) {
-      clearTimeout(timeoutRef.current ?? undefined);
-      setCountdown(false);
-      if (taxiRideStatus === 'rejected' || taxiRideStatus === 'user-cancelled') {
-        setTaxiRideStatus(null);
-      }
-    }
+    // If there is a change in taxiRideStatus it means that the request was handled.
+    clearTimeout(timeoutRef.current);
+    setCountdown(null);
   }, [taxiRideStatus]);
 
   return (
@@ -141,7 +144,7 @@ const TabBar: FC<TabBarInterface> = ({ state, descriptors, navigation }) => {
         <WarningModal close={cleanError} text={errorMessage} />
       }
 
-      {countdown && <CountdownBar/>}
+      {countdown && <CountdownBar expiresAt={countdown} />}
 
       <LinearGradient
         style={[styles.linearGradient, !showTab ? { display: 'none' } : {}]}

@@ -1,4 +1,4 @@
-import { FC, useContext, useEffect } from "react";
+import { FC, useContext, useMemo, useState } from "react";
 import { StyleSheet, Text, TouchableOpacity, View,  } from "react-native";
 import * as ExpoLocation from 'expo-location';
 import { useCommonSlice } from "hooks/slices/useCommonSlice";
@@ -16,31 +16,33 @@ type AvailableBtnProps = {
 export const AvailableBtn: FC<AvailableBtnProps> = ({setShowPopUp}) => {
     const {socket, setSocket} = useContext(SocketContext)!;
     const {stopBackgroundUpdate} = useExpoTaskManager();
-    const {available, setAvailable, setRide, rideStatus} = useTaxiDispatchActions();
+    const {setRide, rideStatus} = useTaxiDispatchActions();
     const { connectAsTaxi } = useSocketConnectionEvents();
     const { addNotification, removeNotification } = useCommonSlice();
 
-    useEffect(() => {
-        setAvailable(socket != undefined);
+    const [isConnected, setIsConnected] = useState<boolean>(false);
+    const [isLoading, setIsLoading] = useState<boolean>(false);
+
+    useMemo(() => {
+        setIsConnected(socket != undefined);
     }, [socket]);
 
     /**
      * @see link https://docs.expo.dev/versions/latest/sdk/location/#locationreversegeocodeasynclocation-options
      */
     const handleDisp = async (available: boolean) => {
-        setAvailable('loading');
+        setIsLoading(true);
 
         if (!available) {
             let timeout = setTimeout(() => {
                 if (!available) {
-                    setAvailable(false);
                     addNotification('Taxi connection failed');
                     return;
                 }
             }, 10000);
             socket!.on('disconnect', () => {
                 setSocket(undefined);
-                setAvailable(false)
+                setIsLoading(false);
             });
             setRide(null, null, null);
             socket!.disconnect();
@@ -64,7 +66,6 @@ export const AvailableBtn: FC<AvailableBtnProps> = ({setShowPopUp}) => {
                         
                         let timeout = setTimeout(() => {
                             if (currentLocation === undefined) {
-                                setAvailable(false)
                                 addNotification('Taxi connection failed');
                                 return;
                             }
@@ -78,12 +79,7 @@ export const AvailableBtn: FC<AvailableBtnProps> = ({setShowPopUp}) => {
                             longitude: currentLocation.coords.longitude,
                         };
             
-                        connectAsTaxi(location, () => {
-                            setAvailable(true);
-                        }, () => {
-                            setAvailable(false);
-                        });
-                        removeNotification('Taxi connection failed');
+                        connectAsTaxi(location);
                         return;
                     }
                 }
@@ -93,16 +89,16 @@ export const AvailableBtn: FC<AvailableBtnProps> = ({setShowPopUp}) => {
             console.log(`error from AvailableBtn: ${error}`);
         } finally {
             setShowPopUp(true);
-            setAvailable(!available);
+            setIsLoading(false);
         }
     }
 
     return (
         <View style={styles.container}>
             <TouchableOpacity style={[styles.btn, {
-                backgroundColor: available === true ? '#f95959' :  '#a5a5a5', //: '#42b883',
-            }]} onPress={async () => handleDisp(!available)} disabled={available==='loading' || rideStatus != null}>
-                <Text>{available==='loading' ? 'Cargando...' : 'Disponible'}</Text>
+                backgroundColor: isConnected ? '#f95959' :  '#a5a5a5', //: '#42b883',
+            }]} onPress={async () => handleDisp(!isConnected)} disabled={isLoading || rideStatus === 'accepted' || rideStatus === 'arrived'}>
+                <Text>{isLoading ? 'Cargando...' : 'Disponible'}</Text>
             </TouchableOpacity>
         </View>
     );

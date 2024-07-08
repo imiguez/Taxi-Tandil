@@ -13,6 +13,7 @@ import { Serializer } from '../utils/serializer.util';
 import { OneSignalStaticClass } from 'src/OneSignalStaticClass';
 import { EmailNotification, PushNotification } from 'src/types/notifications.type';
 import { EmptySession, Session } from 'src/types/serializer.type';
+import { MainGateway } from 'src/sockets/monolithic-gateway';
 const otpGenerator = require('otp-generator');
 
 
@@ -126,8 +127,8 @@ export class AuthService {
     // Extract data from user.
     let {id, firstName, lastName, email, roles} = user;
     // Check user doesnt have an active ride.
-    const socketSession = await redisClient.get(`socket:${id}`);
-    if (socketSession) throw new HttpException('The user has a socket session active, user can not login during an active socket session.', HttpStatus.FORBIDDEN);
+    // const socketSession = await redisClient.get(`socket:${id}`);
+    if (MainGateway.connections.has(user.id)) throw new HttpException('The user has a socket session active, user can not login during an active socket session.', HttpStatus.FORBIDDEN);
     // Notify all subscribers with the external id equlas to user id about the login.
     const notification: PushNotification = {
       recipients: {external_ids: [id]},

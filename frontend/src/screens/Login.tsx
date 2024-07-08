@@ -86,6 +86,14 @@ export const Login: FC = () => {
         setFormPassword({...formPassword, msg: 'Contraseña incorrecta', error: true});
         return;
       }
+      if (error.message.includes('user can not login during an active socket session')) {
+        setServerMsg(`No puedes iniciar sesión mientras tenés un viaje activo.`);
+        return;
+      }
+      if (error.message.includes('Your account is not verified')) {
+        setServerMsg(`Tu cuenta aún no esta verificada.`);
+        return;
+      }
       setServerMsg(`Error con el servidor, intente de nuevo. Si sigue ocurriendo puede ser una falla del servidor.`);
     }
   };
@@ -107,7 +115,7 @@ export const Login: FC = () => {
         />
         {formPassword.error && <Text style={styles.textInputMsg}>{formPassword.msg}</Text>}
 
-        <Text style={styles.link}>Olvidaste la contraseña?</Text>
+        {/* <Text style={styles.link}>Olvidaste la contraseña?</Text> */}
 
         {serverMsg != '' && (
           <View style={styles.serverMsg}>

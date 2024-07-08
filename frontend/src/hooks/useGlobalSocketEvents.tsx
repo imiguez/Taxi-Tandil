@@ -20,7 +20,7 @@ export const useGlobalocketEvents = () => {
     const {socket, setSocket} = useContext(SocketContext)!;
     const {setRideStatus, setTaxiInfo, rideStatus, setLocation} = useMapDispatchActions();
     const mapCleanUp = useMapDispatchActions().cleanUp;
-    const {setRide, userId, ride, setCurrentLocation, popUp, setPopUp, setAvailable} = useTaxiDispatchActions();
+    const {setRide, userId, ride, setCurrentLocation, popUp, setPopUp} = useTaxiDispatchActions();
     const setTaxiRideStatus = useTaxiDispatchActions().setRideStatus;
     const taxiCleanUp = useTaxiDispatchActions().cleanUp;
     const {startBackgroundUpdate, stopBackgroundUpdate, startForegroundUpdate, stopForegroundUpdate, checkForegroundPermissions} = useExpoTaskManager();
@@ -93,7 +93,6 @@ export const useGlobalocketEvents = () => {
     }
 
     const updateLocationToBeAvailable = async () => {
-        setAvailable('loading');
         let taxiCoords: undefined | LatLng;
         
         let timeout = setTimeout(async () => {
@@ -104,7 +103,6 @@ export const useGlobalocketEvents = () => {
         
         socket?.once('location-updated-to-be-available-received', () => {
             clearTimeout(timeout);
-            setAvailable(true);
         });
 
         taxiCoords = await Coords.getLatLngCurrentPosition();

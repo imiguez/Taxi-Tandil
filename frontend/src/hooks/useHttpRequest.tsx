@@ -67,7 +67,7 @@ export const useHttpRequest = () => {
             if (jsonResponse.message == 'jwt expired') {
                 if (await getNewAccessToken()) return await requestFn();
             } 
-            else if (jsonResponse.statusCode === 401) await logOut();
+            else if (jsonResponse.statusCode === 401 && (await getAccessToken())) await logOut();
             else throw new HttpError(jsonResponse.message ?? 'Unknown http error.', jsonResponse.statusCode ?? 500);
         } else return jsonResponse;
     }

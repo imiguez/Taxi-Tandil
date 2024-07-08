@@ -57,12 +57,11 @@ export const SignUp = () => {
     try {
       const response = await postRequest('auth/sign-up', body);
       OneSignal.login(response.id);
-      OneSignal.User.addEventListener('change', async () => {
-        await postRequest(`auth/verify-account/${response.email}`);
-        OneSignal.User.removeEventListener('change', async () => await postRequest(`auth/verify-account/${response.email}`));
-      });
       OneSignal.User.addEmail(response.email);
-      setMsg({ msg: 'Revisá tu email para validar tu cuenta y ya poder empezar a usar la app. Recordá que el email de verificación puede tardar unos minutos en enviarse.', color: '#7dd87d' })
+      setTimeout(async () => {
+        await postRequest(`auth/verify-account/${response.email}`);
+      }, 10000);
+      setMsg({ msg: 'Revisá tu email para validar tu cuenta y ya poder empezar a usar la app. Recordá que el email de verificación puede tardar unos minutos en enviarse. En caso de que no lo recibas siempre podés reenviarlo.', color: '#7dd87d' })
    } catch (error: any) {
       if (process.env.ENVIRONMENT === 'dev') console.log(`error from catch: ${error}`);
       if (error.message.includes('duplicate key value')) {
