@@ -17,9 +17,11 @@ export type taxiInfo = {
     taxi: {
         username: string | null,
         location: LatLng | null,
-    } | null | undefined
+        carOrientation: null | 'top' | 'right' | 'down' | 'left';
+    } | null
 }
 
 export type initialUserRideSliceStateType = {
     selectInMap: boolean,
+    distance: number | null,
 } & rideStatusType & lastModified & focusInput & RideWithAddresses & taxiInfo

@@ -1,6 +1,7 @@
 import React, { FC, useMemo, useRef, useState } from "react";
 import { SafeAreaView, StyleSheet } from "react-native";
 import MapView, { Details, LatLng, MapMarker, Marker, MarkerDragStartEndEvent, PROVIDER_GOOGLE, Region } from "react-native-maps";
+import MapViewDirections from "react-native-maps-directions";
 import { SelectInMapOptions } from "./SelectInMapOptions";
 import SelectInMapErrorNotification from "./SelectInMapErrorNotification";
 import { tandilLocation, screenWidth, windowHeight, GOOGLE_REVERSE_GEOCODE_API_URL } from "constants/index";
@@ -10,7 +11,7 @@ import { GoogleReverseGeocodeApiResponse, LocationWithAddresses } from "types/Lo
 
 export const RideMap: FC = () => {
 
-    const {origin, destination, lastModified, selectInMap, setLocation, focusInput, setSelectInMap} = useMapDispatchActions();
+    const {origin, destination, lastModified, selectInMap, setLocation, focusInput, setSelectInMap, setRideDistance} = useMapDispatchActions();
     
     const mapRef = useRef<MapView>(null);
     const markerRef = useRef<MapMarker>(null);
@@ -44,6 +45,8 @@ export const RideMap: FC = () => {
     }, [selectInMap]);
 
     const animationToLastModified = useMemo(() => {
+        if (!origin || !destination) setRideDistance(null);
+
         let hasChanged = false;
         let region = {
             latitude: tandilLocation.latitude,
@@ -162,16 +165,26 @@ export const RideMap: FC = () => {
                 onRegionChangeComplete={handleRegionChangeComplete} >
 
                 {origin?.location && !selectInMap && 
-                    <Marker coordinate={origin.location} title={origin.shortAddress}/>
+                    <Marker coordinate={origin.location} title={origin.shortAddress}
+                    image={require("@assets/origin_map_marker.png")} />
                 }
 
                 {destination?.location && !selectInMap &&
-                    <Marker coordinate={destination.location} title={destination.shortAddress}/>
+                    <Marker coordinate={destination.location} title={destination.shortAddress}
+                    image={require("@assets/destination_map_marker.png")} />
                 }
+
+                {origin && destination && <MapViewDirections
+                    onReady={(args) => setRideDistance(args.distance)}
+                    origin={origin.location} destination={destination.location}
+                    apikey={process.env.EXPO_PUBLIC_GOOGLE_MAPS_API_KEY!}
+                    strokeColor="black" strokeWidth={4}
+                />}
 
                 {selectInMap && <Marker ref={markerRef}
                     coordinate={markerCoords}
-                    draggable onDragEnd={handleDrag}
+                    draggable onDragEnd={handleDrag} 
+                    image={focusInput == 'origin' ? require("@assets/origin_map_marker.png") : require("@assets/destination_map_marker.png")} 
                 />}
             </MapView>
             

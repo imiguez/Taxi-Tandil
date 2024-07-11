@@ -7,8 +7,9 @@ const initialState: initialUserRideSliceStateType = {
   focusInput: 'origin',
   lastModified: null,
   selectInMap: false,
+  distance: null,
   rideStatus: null,
-  taxi: undefined,
+  taxi: null,
 }
 
 export const userRideSlice = createSlice({
@@ -30,6 +31,9 @@ export const userRideSlice = createSlice({
       setSelectInMap: (state, action) => {
         state.selectInMap = action.payload;
       },
+      setDistance: (state, action) => {
+        state.distance = action.payload;
+      },
       setRideStatus: (state, action) => {
         state.rideStatus = action.payload;
       },
@@ -39,14 +43,15 @@ export const userRideSlice = createSlice({
     }
 })
   
-export const { setOrigin, setDestination, setLastModified, setSelectInMap, 
+export const { setOrigin, setDestination, setLastModified, setSelectInMap, setDistance,
   setFocusInput, setRideStatus, setTaxi } = userRideSlice.actions;
 
 export const selectOrigin: (state: any) => initialUserRideSliceStateType['origin'] = (state: any) => state.userRide.origin;
 export const selectDestination: (state: any) => initialUserRideSliceStateType['destination'] = (state: any) => state.userRide.destination;
 export const selectFocusInput: (state: any) => initialUserRideSliceStateType['focusInput'] = (state: any) => state.userRide.focusInput;
 export const selectLastModified: (state: any) => initialUserRideSliceStateType['lastModified'] = (state: any) => state.userRide.lastModified;
-export const selectSelectInMap: (state: any) => boolean = (state: any) => state.userRide.selectInMap;
+export const selectSelectInMap: (state: any) => initialUserRideSliceStateType['selectInMap'] = (state: any) => state.userRide.selectInMap;
+export const selectDistance: (state: any) => initialUserRideSliceStateType['distance']  = (state: any) => state.userRide.distance;
 export const selectRideStatus: (state: any) => initialUserRideSliceStateType['rideStatus'] = (state: any) => state.userRide.rideStatus;
 export const selectTaxi: (state: any) => initialUserRideSliceStateType['taxi'] = (state: any) => state.userRide.taxi;
 

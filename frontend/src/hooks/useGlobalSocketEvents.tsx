@@ -18,7 +18,7 @@ import { useAuthDispatchActions } from "./slices/useAuthDispatchActions";
 
 export const useGlobalocketEvents = () => {
     const {socket, setSocket} = useContext(SocketContext)!;
-    const {setRideStatus, setTaxiInfo, rideStatus, setLocation} = useMapDispatchActions();
+    const {setRideStatus, setTaxiInfo, rideStatus, setLocation, taxi} = useMapDispatchActions();
     const mapCleanUp = useMapDispatchActions().cleanUp;
     const {setRide, userId, ride, setCurrentLocation, popUp, setPopUp} = useTaxiDispatchActions();
     const setTaxiRideStatus = useTaxiDispatchActions().setRideStatus;
@@ -45,7 +45,7 @@ export const useGlobalocketEvents = () => {
     const onReconnect = async (role: 'user' | 'taxi', ride: RideWithAddresses, arrived: boolean, foreingName: string, foreingId: string) => {
         socket?.disconnect();
         if (role === 'user') {
-            setTaxiInfo({username: foreingName, location: null});
+            setTaxiInfo({username: foreingName, location: null, carOrientation: null});
             setRideStatus(arrived ? 'arrived' : 'accepted');
             navigation.navigate('Home', {screen: 'ConfirmedRide'});
             setLocation(ride.origin, 'origin');
@@ -170,13 +170,18 @@ export const useGlobalocketEvents = () => {
 //-------------------------------------- User Functions ------------------------------------
 
     const onTaxiConfirmedRide = async (taxiName: string, location: LatLng) => {
-        setTaxiInfo({username: taxiName, location: location});
+        setTaxiInfo({username: taxiName, location: location, carOrientation: 'left'});
         setRideStatus('accepted');
         navigation.navigate('Home', {screen: 'ConfirmedRide'});
     };
 
     const onTaxiUpdateLocation = (username: string, location: LatLng) => {
-        setTaxiInfo({username: username, location: location});
+        // if (taxi && taxi.location) {
+        //     let y = taxi.location.latitude - location.latitude;
+        //     let x = taxi.location.longitude - location.longitude;
+        //     if (!(y === 0 && x === 0) && (Math.sqrt(y)/y) > (Math.sqrt(x)/x))
+        // }
+        setTaxiInfo({username: username, location: location, carOrientation: 'right'});
     }
 
     const onTaxiCancelRide = async () => {

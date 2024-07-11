@@ -14,7 +14,7 @@ type AutoCompleteAddressInputProps = {
 
 export const AutoCompleteAddressInput: FC<AutoCompleteAddressInputProps> = ({placeholder, set}) => {
   const ref = useRef<GooglePlacesAutocompleteRef>(null);
-  const {setLocation, origin, destination, selectInMap, setFocusInput, rideStatus} = useMapDispatchActions();
+  const {setLocation, origin, destination, selectInMap, setFocusInput, rideStatus, rideDistance} = useMapDispatchActions();
   const [isFocus, setIsFocus] = useState<boolean>(false);
 
   const setInputValue = (address: string) => {
@@ -56,7 +56,7 @@ export const AutoCompleteAddressInput: FC<AutoCompleteAddressInputProps> = ({pla
           width: screenWidth,
           position: 'absolute',
           left: ((screenWidth-20)*-.12)-10, 
-          top: set == 'destination' ? 195 : 245,
+          top: set == 'destination' ? (rideDistance ? 234 : 195) : (rideDistance ? 284 : 245),
         }
       }}
       ref={ref}
@@ -122,7 +122,7 @@ export const AutoCompleteAddressInput: FC<AutoCompleteAddressInputProps> = ({pla
         borderWidth: 0,
         borderColor: 'red',
         borderStyle: 'solid',
-        top: set=='origin' ? 105 : 55,
+        top: set=='origin' ? (rideDistance ? 144 : 105) : (rideDistance ? 94 : 55),
         left: ((screenWidth-20)*-.12) - 10,
       }}>
         <CurrentLocationInBetweenCompo set={set} />

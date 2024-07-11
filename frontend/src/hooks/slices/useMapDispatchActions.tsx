@@ -4,7 +4,9 @@ import { selectDestination, selectOrigin, selectLastModified, selectSelectInMap,
     setFocusInput as setFocusInputFromRideSlice, 
     setSelectInMap as setSelectInMapFromRideSlice, 
     setRideStatus as setRideStatusFromRideSlice,
-    selectTaxi, setTaxi } from "../../../slices/userRideSlice";
+    selectTaxi, setTaxi, 
+    selectDistance,
+    setDistance} from "../../../slices/userRideSlice";
 import { LocationWithAddresses } from "types/Location";
 import { initialUserRideSliceStateType } from "types/slices/userRideSliceTypes";
 
@@ -15,6 +17,7 @@ export const useMapDispatchActions = () => {
     const lastModified = useSelector(selectLastModified);
     const selectInMap = useSelector(selectSelectInMap);
     const focusInput = useSelector(selectFocusInput);
+    const rideDistance = useSelector(selectDistance);
     const rideStatus = useSelector(selectRideStatus);
     const taxi = useSelector(selectTaxi);
 
@@ -44,6 +47,10 @@ export const useMapDispatchActions = () => {
         dispatch(setFocusInputFromRideSlice(input));
     }
 
+    const setRideDistance = (param: initialUserRideSliceStateType['distance']) => {
+        dispatch(setDistance(param));
+    }
+
     const setRideStatus = (param: initialUserRideSliceStateType['rideStatus']) => {
         dispatch(setRideStatusFromRideSlice(param));
     }
@@ -58,13 +65,14 @@ export const useMapDispatchActions = () => {
         dispatch(setLastModified(null));
         dispatch(setSelectInMapFromRideSlice(false));
         dispatch(setFocusInputFromRideSlice('origin'));
+        dispatch(setDistance(null));
         dispatch(setRideStatusFromRideSlice(null));
         dispatch(setTaxi(null));
     }
 
     return {
-        setLocation, invertLocations, setSelectInMap, setFocusInput, setRideStatus, setTaxiInfo,
-        origin, destination, lastModified, selectInMap, focusInput, rideStatus, taxi,
+        setLocation, invertLocations, setSelectInMap, setFocusInput, setRideDistance, setRideStatus, setTaxiInfo,
+        origin, destination, lastModified, selectInMap, focusInput, rideDistance, rideStatus, taxi,
         cleanUp
     }
 }
