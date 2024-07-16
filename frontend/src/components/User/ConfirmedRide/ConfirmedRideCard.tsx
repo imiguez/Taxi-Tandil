@@ -2,11 +2,9 @@ import { FC, useMemo, useState } from "react";
 import { StyleSheet, Text, View } from "react-native";
 import { useMapDispatchActions } from "hooks/slices/useMapDispatchActions";
 import { useCommonSlice } from "@hooks/slices/useCommonSlice";
-import { NotificationsMap } from "@constants/index";
+import { NotificationsMap, windowHeight } from "@constants/index";
 import ConfirmedRideBtn from "./ConfirmedRideBtn";
 import RideCard from "@components/Common/Cards/RideCard";
-import RideCardBtnsContainer from "@components/Common/Cards/RideCardBtnsContainer";
-
 
 export const ConfirmedRideCard: FC = () => {
     const {origin, destination, rideStatus, taxi} = useMapDispatchActions();
@@ -45,7 +43,7 @@ export const ConfirmedRideCard: FC = () => {
     }, [notifications]);
 
     return (
-        <RideCard>
+        <RideCard maxYTranslation={-windowHeight+100} minYTranslation={-140}>
             <View>
                 <Text numberOfLines={1} style={styles.addressText}>{origin?.longAddress}</Text>
                 <Text numberOfLines={1} style={styles.addressText}>{destination?.longAddress}</Text>
@@ -55,9 +53,7 @@ export const ConfirmedRideCard: FC = () => {
                 <Text>{ taxiDisconnected ? NotificationsMap.get('Taxi disconnected') : msg }</Text>
             </View>
 
-            <RideCardBtnsContainer>
-                <ConfirmedRideBtn taxiDisconnected={taxiDisconnected} />
-            </RideCardBtnsContainer>
+            <ConfirmedRideBtn taxiDisconnected={taxiDisconnected} />
         </RideCard>
     );
 };

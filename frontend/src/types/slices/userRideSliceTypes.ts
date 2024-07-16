@@ -1,7 +1,7 @@
 import { LatLng, RideWithAddresses } from "../Location";
 
 export type focusInput = {
-    focusInput: 'origin' | 'destination',
+    focusInput: 'origin' | 'destination' | null,
 }
 
 export type lastModified = {
@@ -9,7 +9,7 @@ export type lastModified = {
 }
 
 export type rideStatusType = {
-    rideStatus: 'emitted' | 'canceled' | 'accepted' | 'all-taxis-reject' 
+    rideStatus: 'emitted' | 'accepted' | 'all-taxis-reject' 
     | 'no-taxis-available' | 'arrived' | null,
 }
 

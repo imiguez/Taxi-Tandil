@@ -3,6 +3,7 @@ import { ActivityIndicator, StyleSheet, Text, View } from "react-native";
 import { Entypo } from '@expo/vector-icons';
 import { TouchableHighlight } from "react-native-gesture-handler";
 import { screenWidth } from "constants/index";
+import { useMapDispatchActions } from "@hooks/slices/useMapDispatchActions";
 
 type SelectInMapOptionsProps = {
     onConfirm: () => Promise<void>,
@@ -11,10 +12,12 @@ type SelectInMapOptionsProps = {
 
 export const SelectInMapOptions: FC<SelectInMapOptionsProps> = ({onConfirm,onCancel}) => {
 
+    const {rideDistance} = useMapDispatchActions();
+
     const [loadingReverseGeocoding, setLoadingReverseGeocoding] = useState<boolean>(false);
     
     return (
-        <View style={styles.container}>
+        <View style={[styles.container, {top: rideDistance ? 150 : 110}]}>
             {loadingReverseGeocoding ? <ActivityIndicator size="large" style={{ flex: 1, justifyContent: 'center' }} /> :
             <>
                 <TouchableHighlight style={[styles.btns, {backgroundColor: '#f95959'}]} onPress={onCancel}>

@@ -5,19 +5,25 @@ import NewRideBtn from "components/User/NewRide/NewRideBtn";
 import { RideMap } from "components/User/NewRide/RideMap";
 import { RideSelectLocations } from "components/User/NewRide/RideSelectLocations";
 import { useMapDispatchActions } from "@hooks/slices/useMapDispatchActions";
+import { ConfirmedRideCard } from "@components/User/ConfirmedRide/ConfirmedRideCard";
 
 export const NewRide: FC = () => {
-    const { rideDistance } = useMapDispatchActions();
+    const { rideStatus, rideDistance, selectInMap } = useMapDispatchActions();
 
     return (
         <View style={styles.container}>
-            <RideSelectLocations />
-            <LinearGradient style={{width: '100%', height: 15, marginTop: rideDistance ? 150 : 110, position: "absolute", zIndex: 2}}
-                locations={[0, 0.6]}
-                colors={['#0000004b', 'transparent']}
-            />
+            {!rideStatus && <>
+                <RideSelectLocations />
+                <LinearGradient style={{width: '100%', height: 15, marginTop: rideDistance ? 150 : 110, position: "absolute", zIndex: 2}}
+                    locations={[0, 0.6]}
+                    colors={['#0000004b', 'transparent']}
+                />
+            </>}
             <RideMap />
-            <NewRideBtn />
+            {!rideStatus && !selectInMap &&  <NewRideBtn />}
+            {rideStatus && <>
+                <ConfirmedRideCard/>
+            </>}
         </View>
     );
 };

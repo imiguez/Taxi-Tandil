@@ -1,6 +1,5 @@
 import { StyleSheet, Text, TouchableHighlight } from 'react-native';
-import React, { FC, useContext, useMemo, useRef, useState } from 'react';
-import { useNavigation } from '@react-navigation/native';
+import React, { FC, useContext, useRef } from 'react';
 import { useCommonSlice } from 'hooks/slices/useCommonSlice';
 import { useMapDispatchActions } from 'hooks/slices/useMapDispatchActions';
 import { useSocketConnectionEvents } from 'hooks/useSocketConnectionEvents';
@@ -8,22 +7,12 @@ import { SocketContext } from 'hooks/useSocketContext';
 import { PushNotificationsPermissions } from '@utils/PushNotificationsPermissions';
 
 const NewRideBtn: FC = () => {
-  const navigation = useNavigation();
   const { socket } = useContext(SocketContext)!;
-  const { origin, destination, rideStatus } = useMapDispatchActions();
-  const [confirmBtn, setConfirmBtn] = useState<boolean>(false);
+  const { origin, destination } = useMapDispatchActions();
   const { connectAsUser } = useSocketConnectionEvents();
   const { setError } = useCommonSlice();
   const hasBeenClicked = useRef<boolean>(false);
   
-  useMemo(() => {
-    setConfirmBtn(
-      origin != null &&
-        destination != null &&
-        (rideStatus == null || (rideStatus != 'emitted' && rideStatus != 'accepted' && rideStatus != 'arrived'))
-    );
-  }, [rideStatus, origin, destination]);
-
   const onConfirmRide = async () => {
     if (hasBeenClicked.current) return;
     
@@ -57,12 +46,8 @@ const NewRideBtn: FC = () => {
       {origin && destination && (
         <TouchableHighlight
           style={styles.button}
-          onPress={async () => {
-            if (confirmBtn) await onConfirmRide();
-            else navigation.navigate('Home', {screen: 'ConfirmedRide'});
-          }}
-        >
-          <Text style={styles.btnText}>{confirmBtn ? 'Confirmar viaje' : 'Ver viaje'}</Text>
+          onPress={async () => await onConfirmRide()} >
+          <Text style={styles.btnText}>Confirmar viaje</Text>
         </TouchableHighlight>
       )}
     </>

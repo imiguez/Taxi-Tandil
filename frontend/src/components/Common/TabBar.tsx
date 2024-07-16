@@ -133,9 +133,11 @@ const TabBar: FC<TabBarInterface> = ({ state, descriptors, navigation }) => {
   }, [socket]);
 
   useMemo(() => {
-    // If there is a change in taxiRideStatus it means that the request was handled.
-    clearTimeout(timeoutRef.current);
-    setCountdown(null);
+    // If taxiRideStatus changes to 'accepted' or null it means that the request was handled.
+    if ((taxiRideStatus && taxiRideStatus == 'accepted') || !taxiRideStatus) {
+      clearTimeout(timeoutRef.current);
+      setCountdown(null);
+    }
   }, [taxiRideStatus]);
 
   return (

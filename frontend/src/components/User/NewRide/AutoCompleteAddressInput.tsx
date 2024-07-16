@@ -1,4 +1,4 @@
-import { FC, useEffect, useRef, useState } from "react";
+import { FC, useEffect, useMemo, useRef, useState } from "react";
 import { Keyboard, NativeSyntheticEvent, StyleSheet, TextInputChangeEventData, View } from "react-native";
 import { GooglePlacesAutocomplete, GooglePlacesAutocompleteRef } from "react-native-google-places-autocomplete";
 import { AutoCompleteRow } from "./AutoCompleteRow";
@@ -14,7 +14,7 @@ type AutoCompleteAddressInputProps = {
 
 export const AutoCompleteAddressInput: FC<AutoCompleteAddressInputProps> = ({placeholder, set}) => {
   const ref = useRef<GooglePlacesAutocompleteRef>(null);
-  const {setLocation, origin, destination, selectInMap, setFocusInput, rideStatus, rideDistance} = useMapDispatchActions();
+  const {setLocation, origin, destination, selectInMap, setFocusInput, focusInput, rideStatus, rideDistance} = useMapDispatchActions();
   const [isFocus, setIsFocus] = useState<boolean>(false);
 
   const setInputValue = (address: string) => {
@@ -35,13 +35,21 @@ export const AutoCompleteAddressInput: FC<AutoCompleteAddressInputProps> = ({pla
       if (origin && destination) {
         Keyboard.dismiss();
       } else if (origin) {
-        ref.current?.focus();
-        setIsFocus(true);
+        // Comented lines because after setting the origin its not necesary to automaticaly set focus in the destination input.
+        // ref.current?.focus();
+        // setIsFocus(true);
       }
     }
     
     setInputValue(address);
   }, set == 'origin' ? [origin] : [origin, destination]);
+
+  useMemo(() => {
+    if (!focusInput) {
+      setIsFocus(false);
+      ref.current?.blur();
+    }
+  }, [focusInput]);
 
   return (
     <GooglePlacesAutocomplete 
@@ -73,7 +81,7 @@ export const AutoCompleteAddressInput: FC<AutoCompleteAddressInputProps> = ({pla
         onChange: (e: NativeSyntheticEvent<TextInputChangeEventData>) => {
           if (e.nativeEvent.text === '') setLocation(null, set);
         },
-        editable: (rideStatus !== 'emitted' && rideStatus !== 'accepted' && rideStatus !== 'arrived'),
+        editable: !selectInMap && !rideStatus,
       }}
       fetchDetails={true}
       onPress={(data, details = null) => {

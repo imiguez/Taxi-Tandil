@@ -1,6 +1,5 @@
 import { useContext, useMemo } from 'react';
 import { Socket, io } from 'socket.io-client';
-import { useNavigation } from '@react-navigation/native';
 import { useAuthDispatchActions } from './slices/useAuthDispatchActions';
 import { useHttpRequest } from './useHttpRequest';
 import { SocketContext } from './useSocketContext';
@@ -28,7 +27,6 @@ interface ConnectionOptions {
 }
 
 export const useSocketConnectionEvents = () => {
-  const navigation = useNavigation();
   const { setSocket, socket } = useContext(SocketContext)!;
   const { firstName, lastName, getAccessToken, id, email } = useAuthDispatchActions();
   const { getNewAccessToken } = useHttpRequest();
@@ -144,7 +142,6 @@ export const useSocketConnectionEvents = () => {
     const onConnect = (socket: Socket) => {
       socket.emit('new-ride', { ride: ride });
       setRideStatus('emitted');
-      navigation.navigate('Home', { screen: 'ConfirmedRide' } );
     }
 
     const onError = () => {

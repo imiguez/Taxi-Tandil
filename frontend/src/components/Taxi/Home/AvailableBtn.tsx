@@ -98,7 +98,7 @@ export const AvailableBtn: FC<AvailableBtnProps> = ({setShowPopUp}) => {
             <TouchableOpacity style={[styles.btn, {
                 backgroundColor: isConnected ? '#f95959' :  '#a5a5a5', //: '#42b883',
             }]} onPress={async () => handleDisp(!isConnected)} disabled={isLoading || rideStatus === 'accepted' || rideStatus === 'arrived'}>
-                <Text>{isLoading ? 'Cargando...' : 'Disponible'}</Text>
+                <Text style={styles.btnText}>{isLoading ? 'Cargando...' : 'Disponible'}</Text>
             </TouchableOpacity>
         </View>
     );
@@ -119,4 +119,8 @@ const styles = StyleSheet.create({
         alignItems: 'center',
         backgroundColor: 'blue'
     },
+    btnText: {
+        fontSize: 22,
+        fontWeight: '700',
+    }
 });

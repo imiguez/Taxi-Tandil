@@ -2,12 +2,10 @@ import { NavigatorScreenParams } from "@react-navigation/native";
 
 export type HomeStackParamList = {
   NewRide: undefined,
-  ConfirmedRide: undefined,
 }
 
 export type TaxiStackParamList = {
   TaxiHome: undefined,
-  AcceptedRide: undefined,
 }
 
 export type MainTabParamList = {

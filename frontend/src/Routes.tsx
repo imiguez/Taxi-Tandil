@@ -6,8 +6,6 @@ import { Login } from "./screens/Login";
 import { NewRide } from "./screens/UserScreens/NewRide";
 import { AuthStackParamList, HomeStackParamList, MainTabParamList, TaxiStackParamList } from "./types/RootStackParamList";
 import { Settings } from "./screens/Settings";
-import { ConfirmedRide } from "./screens/UserScreens/ConfirmedRide";
-import { AcceptedRide } from "./screens/TaxiScreens/AcceptedRide";
 import { SignUp } from "./screens/SignUp";
 import TaxiHome from "./screens/TaxiScreens/TaxiHome";
 import Rides from "./screens/Rides";
@@ -27,7 +25,6 @@ const HomeScreenStack: FC = () => {
             cardStyleInterpolator: CardStyleInterpolators.forHorizontalIOS,
         })}>
             <HomeStack.Screen name="NewRide" component={NewRide}/>
-            <HomeStack.Screen name="ConfirmedRide" component={ConfirmedRide}/>
         </HomeStack.Navigator>
     );
 };
@@ -39,7 +36,6 @@ const TaxiScreenStack: FC = () => {
             cardStyleInterpolator: CardStyleInterpolators.forHorizontalIOS,
         })}>
             <TaxiStack.Screen name="TaxiHome" component={TaxiHome}/>
-            <TaxiStack.Screen name="AcceptedRide" component={AcceptedRide}/>
         </TaxiStack.Navigator>
     );
 }

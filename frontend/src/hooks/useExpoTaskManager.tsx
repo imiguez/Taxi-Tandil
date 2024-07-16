@@ -3,55 +3,17 @@ import * as ExpoLocation from "expo-location";
 import { useTaxiDispatchActions } from "./slices/useTaxiDispatchActions";
 import { useRef } from "react";
 import { BACKGROUND_LOCATION_TASK_NAME } from "constants/index";
+import { LocationPermissions } from "@utils/LocationPermissions";
 
 
 export const useExpoTaskManager = () => {
   const sub = useRef<ExpoLocation.LocationSubscription>();
   const {setCurrentLocation} = useTaxiDispatchActions();
 
-  const checkForegroundPermissions = async () => {
-    try {
-      const { granted } = await ExpoLocation.getForegroundPermissionsAsync();
-      return granted;
-    } catch (e) {
-      console.log("checkForegroundPermissions " + e);
-      return false;
-    }
-  };
-
-  const checkBackgroundPermissions = async () => {
-    try {
-      const { granted } = await ExpoLocation.getBackgroundPermissionsAsync();
-      return granted;
-    } catch (e) {
-      console.log("checkBackgroundPermissions " + e);
-      return false;
-    }
-  };
-
-  const requestForegroundPermissions = async () => {
-    try {
-      const fgPermissions = await ExpoLocation.requestForegroundPermissionsAsync();
-      return fgPermissions;
-    } catch (e) {
-      console.log("requestForegroundPermissions " + e);
-    }
-  };
-
-  const requestBackgroundPermissions = async () => {
-    try {
-      const bgPermissions = await ExpoLocation.requestBackgroundPermissionsAsync();
-      return bgPermissions;
-    } catch (e) {
-      console.log("requestBackgroundPermissions " + e);
-    }
-  };
-
   const startForegroundUpdate = async () => {
-    // Check if foreground permission is granted
-    const granted = await checkForegroundPermissions();
-    if (!granted) {
-      console.log("startForegroundUpdate: location tracking denied");
+    // Request and check if foreground permission is granted
+    if (!(await LocationPermissions.requestForegroundPermissions()).granted) {
+      if (process.env.ENVIRONMENT == 'dev') console.log("startForegroundUpdate: location tracking denied");
       return false;
     }
     // Make sure that foreground location tracking is not running
@@ -67,7 +29,7 @@ export const useExpoTaskManager = () => {
       },
       (location) => {
         if (!location) return;
-        console.log(`watchPositionAsync`);
+        if (process.env.ENVIRONMENT == 'dev') console.log(`watchPositionAsync`);
         let locationLatLng = {
           latitude: location.coords.latitude,
           longitude: location.coords.longitude,
@@ -84,15 +46,14 @@ export const useExpoTaskManager = () => {
   const stopForegroundUpdate = () => {
     if (sub.current)
       sub.current.remove();
-    // console.log("Foreground location tracking stopped");
+    if (process.env.ENVIRONMENT == 'dev') console.log("Foreground location tracking stopped");
   };
 
   const startBackgroundUpdate = async () => {
-    console.log("startBackgroundUpdate executed!");
+    if (process.env.ENVIRONMENT == 'dev') console.log("startBackgroundUpdate executed!");
     // Don't track position if permission is not granted
-    const granted = await checkBackgroundPermissions();
-    if (!granted) {
-      console.log("startBackgroundUpdate: location tracking denied");
+    if (!(await LocationPermissions.requestBackgroundPermissions()).granted) {
+      if (process.env.ENVIRONMENT == 'dev') console.log("startBackgroundUpdate: location tracking denied");
       return false;
     }
 
@@ -101,7 +62,7 @@ export const useExpoTaskManager = () => {
       BACKGROUND_LOCATION_TASK_NAME
     );
     if (!isTaskDefined) {
-      console.log("Task wasn't defined");
+      if (process.env.ENVIRONMENT == 'dev') console.log("Task wasn't defined");
       return false;
     }
 
@@ -110,9 +71,8 @@ export const useExpoTaskManager = () => {
       BACKGROUND_LOCATION_TASK_NAME
     );
     if (hasStarted) {
-      console.log("Task BACKGROUND_LOCATION_TASK_NAME already started");
+      if (process.env.ENVIRONMENT == 'dev') console.log("Task BACKGROUND_LOCATION_TASK_NAME already started");
       return true;
-      // await stopBackgroundUpdate();
     }
 
     try {
@@ -126,7 +86,7 @@ export const useExpoTaskManager = () => {
             killServiceOnDestroy: true,
             notificationTitle: "Ubicación",
             notificationBody: "Seguimiento de ubicación en segundo plano",
-            notificationColor: "#fff",
+            notificationColor: "#ffe700",
           },
         }
       );
@@ -143,7 +103,7 @@ export const useExpoTaskManager = () => {
       BACKGROUND_LOCATION_TASK_NAME
     );
     if (!isTaskDefined) {
-      console.log("Task wasn't defined");
+      if (process.env.ENVIRONMENT == 'dev') console.log("Task wasn't defined");
       return false;
     }
 
@@ -154,7 +114,7 @@ export const useExpoTaskManager = () => {
       await ExpoLocation.stopLocationUpdatesAsync(
         BACKGROUND_LOCATION_TASK_NAME
       );
-      console.log("Background location tracking stopped");
+      if (process.env.ENVIRONMENT == 'dev') console.log("Background location tracking stopped");
     }
   };
 
@@ -167,8 +127,6 @@ export const useExpoTaskManager = () => {
   };
 
   return {
-    checkForegroundPermissions, requestForegroundPermissions,
-    checkBackgroundPermissions, requestBackgroundPermissions,
     startForegroundUpdate, stopForegroundUpdate,
     startBackgroundUpdate, stopBackgroundUpdate,
     stopAllTaks,

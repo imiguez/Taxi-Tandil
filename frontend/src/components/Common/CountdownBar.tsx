@@ -58,11 +58,13 @@ const CountdownBar: FC<ICountdownBar> = ({ expiresAt }) => {
 
   return (
     <>
+        <View style={[styles.bar, styles.background]} />
         <View style={[styles.bar, styles.container]}>
             <Text style={styles.text}>{countdownText}</Text>
         </View>
         <Animated.View style={[styles.bar, {
             backgroundColor: color,
+            zIndex: 2,
             transform: [{translateX: progress}]
         }]} />
     </>
@@ -72,13 +74,17 @@ const CountdownBar: FC<ICountdownBar> = ({ expiresAt }) => {
 export default CountdownBar
 
 const styles = StyleSheet.create({
+    background: {
+        backgroundColor: 'white',
+        zIndex: 1,
+    },
     container: {
         display: 'flex',
         justifyContent: 'center',
         alignItems: 'center',
-        zIndex: 20,
+        zIndex: 3,
         borderTopWidth: 1,
-        borderColor: 'black',
+        borderColor: '#d8d7d7',
     },
     bar: {
         width: '100%',

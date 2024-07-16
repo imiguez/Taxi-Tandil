@@ -1,22 +1,21 @@
 import React, { FC, useMemo, useRef, useState } from "react";
-import { SafeAreaView, StyleSheet } from "react-native";
+import { StyleSheet, View } from "react-native";
 import MapView, { Details, LatLng, MapMarker, Marker, MarkerDragStartEndEvent, PROVIDER_GOOGLE, Region } from "react-native-maps";
 import MapViewDirections from "react-native-maps-directions";
 import { SelectInMapOptions } from "./SelectInMapOptions";
 import SelectInMapErrorNotification from "./SelectInMapErrorNotification";
-import { tandilLocation, screenWidth, windowHeight, GOOGLE_REVERSE_GEOCODE_API_URL } from "constants/index";
+import { tandilLocation, GOOGLE_REVERSE_GEOCODE_API_URL } from "constants/index";
 import PermissionsPopUp from "components/Common/PermissionsPopUp";
 import { useMapDispatchActions } from "hooks/slices/useMapDispatchActions";
-import { GoogleReverseGeocodeApiResponse, LocationWithAddresses } from "types/Location";
+import { GoogleReverseGeocodeApiResponse, LatLngDelta, LocationWithAddresses } from "types/Location";
 
 export const RideMap: FC = () => {
-
-    const {origin, destination, lastModified, selectInMap, setLocation, focusInput, setSelectInMap, setRideDistance} = useMapDispatchActions();
+    const {origin, destination, selectInMap, setLocation, focusInput, setFocusInput, setSelectInMap, setRideDistance, taxi} = useMapDispatchActions();
     
     const mapRef = useRef<MapView>(null);
     const markerRef = useRef<MapMarker>(null);
+    const mapCoords = useRef<LatLngDelta>(tandilLocation);
     
-    const [mapCoords, setMapCoords] = useState(tandilLocation);
     const [markerCoords, setMarkerCoords] = useState<LatLng>({
         latitude: 0,
         longitude: 0,
@@ -25,57 +24,65 @@ export const RideMap: FC = () => {
     const [showPopUp, setShowPopUp] = useState<boolean>(false);
     const [selectInMapError, setSelectInMapError] = useState<string | null>(null);
 
-    const setCoordsToSelectInMapMarker = useMemo(() => {
-        if (selectInMap && mapRef.current?.props.region) {
-            let lat = mapRef.current.props.region.latitude;
-            let lng = mapRef.current.props.region.longitude;
+    const handleAnimation = () => {
+        if (mapRef.current) {
+            if (origin?.location && destination?.location) {
+                mapRef.current.fitToCoordinates([origin.location, destination.location], {
+                    edgePadding: { top: 120, right: 35, bottom: 100, left: 35 }
+                });
+            } else if (origin?.location) mapRef.current.animateToRegion({...mapCoords.current, ...origin.location});
+            else if (destination?.location) mapRef.current.animateToRegion({...mapCoords.current, ...destination.location});
+        }
+    }
+
+    useMemo(() => {
+        if (!mapRef.current) return;
+
+        if (selectInMap && mapRef.current.props.region) {
+            let coord = {
+                latitude: mapCoords.current.latitude,
+                longitude: mapCoords.current.longitude,
+            }
             if (focusInput == 'origin' && origin?.location) {
-                lat = origin.location.latitude;
-                lng = origin.location.longitude;
+                coord = origin.location;
             }
             if (focusInput == 'destination' && destination?.location) {
-                lat = destination.location.latitude;
-                lng = destination.location.longitude;
+                coord = destination.location;
             }
-            setMarkerCoords({
-                latitude: lat,
-                longitude: lng,
-            });
-        }
+
+            setMarkerCoords(coord);
+            mapRef.current.animateToRegion({...mapCoords.current, ...coord});
+        } else handleAnimation();
+
     }, [selectInMap]);
 
-    const animationToLastModified = useMemo(() => {
+    useMemo(() => {
+        if (mapRef.current && origin?.location) {
+            if (taxi?.location) {
+                mapRef.current.fitToCoordinates([origin.location, taxi.location], {
+                    edgePadding: { top: 50, right: 35, bottom: 200, left: 35 }
+                });
+            } else if (destination?.location) {
+                mapRef.current.fitToCoordinates([origin.location, destination.location], {
+                    edgePadding: { top: 50, right: 35, bottom: 100, left: 35 }
+                });
+            }
+        }
+    }, [taxi]);
+
+    useMemo(() => {
         if (!origin || !destination) setRideDistance(null);
-
-        let hasChanged = false;
-        let region = {
-            latitude: tandilLocation.latitude,
-            longitude: tandilLocation.longitude,
-            latitudeDelta: tandilLocation.latitudeDelta,
-            longitudeDelta: tandilLocation.longitudeDelta,
-        };
-        if (lastModified == 'origin' && origin) {
-            region.latitude = origin.location.latitude;
-            region.longitude = origin.location.longitude;
-            hasChanged = true;
-        }
-        if (lastModified == 'destination' && destination) {
-            region.latitude = destination.location.latitude;
-            region.longitude = destination.location.longitude;
-            hasChanged = true;
-        }
-
-        if (hasChanged) mapRef.current?.animateToRegion(region);
+        handleAnimation();
     }, [origin, destination]);
 
     const handleRegionChangeComplete = (region: Region, details: Details) => {
         if (details.isGesture && mapRef.current?.props.region) {
-            setMapCoords({
+            mapCoords.current = {
                 latitude: region.latitude,
                 longitude: region.longitude,
                 latitudeDelta: region.latitudeDelta,
                 longitudeDelta: region.longitudeDelta,
-            });
+            };
         }
     }
         
@@ -86,46 +93,19 @@ export const RideMap: FC = () => {
         });
     };
 
-    const onCancel = () => {
-        setSelectInMap(false);
-        // Sets the new map region, in other words, where the map should tarjet
-        let newMapRegion = {
-            latitude: mapCoords.latitude,
-            longitude: mapCoords.longitude,
-            latitudeDelta: mapCoords.latitudeDelta,
-            longitudeDelta: mapCoords.longitudeDelta
-        }
-        if (focusInput == 'origin') {
-            if (origin?.location) {
-                newMapRegion.latitude = origin.location.latitude;
-                newMapRegion.longitude = origin.location.longitude;
-            } else if (destination?.location) {
-                newMapRegion.latitude = destination.location.latitude;
-                newMapRegion.longitude = destination.location.longitude;
-            }
-        }
-        if (focusInput == 'destination'){
-            if (destination?.location) {
-                newMapRegion.latitude = destination.location.latitude;
-                newMapRegion.longitude = destination.location.longitude;
-            } else if (origin?.location) {
-                newMapRegion.latitude = origin.location.latitude;
-                newMapRegion.longitude = origin.location.longitude;
-            }
-        }
-        setMapCoords(newMapRegion);
-    }
-
     const onConfirm = async () => {
+        const onError = (msg: string) => {
+            setSelectInMapError(msg);
+            setTimeout(() => {
+                setSelectInMapError(null);
+            }, 5000);
+        }
         try {
             const googleApiFetch = await fetch(`${GOOGLE_REVERSE_GEOCODE_API_URL}latlng=${markerCoords.latitude},${markerCoords.longitude}&lenguage=es&location_type=ROOFTOP&result_type=street_address&key=${process.env.EXPO_PUBLIC_GOOGLE_MAPS_API_KEY}`);
             const reversedLocation: GoogleReverseGeocodeApiResponse = await googleApiFetch.json();
 
             if (reversedLocation.status === 'ZERO_RESULTS') {
-                setSelectInMapError('No se pudo detectar una dirección válida, intente nuevamente.');
-                setTimeout(() => {
-                    setSelectInMapError(null);
-                }, 5000);
+                onError('No se pudo detectar una dirección válida, intente nuevamente.');
                 return;
             } else if (reversedLocation.status !== "OK") throw new Error(`Status: ${reversedLocation.status}.`);
     
@@ -140,29 +120,39 @@ export const RideMap: FC = () => {
             
             setLocation(location, focusInput);
             setSelectInMap(false);
-            setMapCoords({
-                latitude: markerCoords.latitude,
-                longitude: markerCoords.longitude,
-                latitudeDelta: mapCoords.latitudeDelta,
-                longitudeDelta: mapCoords.longitudeDelta
-            });
-
         } catch (error) {
-            setSelectInMapError('Hubo un error, intente nuevamente.');
-            setTimeout(() => {
-                setSelectInMapError(null);
-            }, 5000);
+            onError('Hubo un error, intente nuevamente.');
+        }
+    }
+
+    const onCancel = () => {
+        if (focusInput == 'origin' && destination?.location) {
+            mapCoords.current.latitude = destination.location.latitude;
+            mapCoords.current.longitude = destination.location.longitude;
+        }
+        if (focusInput == 'destination' && origin?.location) {
+            mapCoords.current.latitude = origin.location.latitude;
+            mapCoords.current.longitude = origin.location.longitude;
+        }
+        setSelectInMap(false);
+    }
+
+    const onMapTouchStart = () => {
+        if (!selectInMap && focusInput) {
+            setFocusInput(null);
         }
     }
 
     return (
-        <SafeAreaView style={styles.mapContainer}>
+        <View style={styles.mapContainer}>
+
             {selectInMapError && <SelectInMapErrorNotification msg={selectInMapError} />}
             {showPopUp && <PermissionsPopUp permissionType="foreground" close={() => setShowPopUp(false)} text="Se requiere permiso a la locación para esta funcionalidad."/>}
+
             <MapView ref={mapRef} style={styles.map} provider={PROVIDER_GOOGLE}
-                toolbarEnabled={false} region={mapCoords}
-                initialRegion={tandilLocation} loadingEnabled={true}
-                onRegionChangeComplete={handleRegionChangeComplete} >
+                toolbarEnabled={false} region={tandilLocation}
+                initialRegion={tandilLocation} loadingEnabled={true} onTouchStart={onMapTouchStart}
+                onRegionChangeComplete={handleRegionChangeComplete}>
 
                 {origin?.location && !selectInMap && 
                     <Marker coordinate={origin.location} title={origin.shortAddress}
@@ -186,21 +176,27 @@ export const RideMap: FC = () => {
                     draggable onDragEnd={handleDrag} 
                     image={focusInput == 'origin' ? require("@assets/origin_map_marker.png") : require("@assets/destination_map_marker.png")} 
                 />}
+
+                {taxi && taxi.location && <Marker identifier="taxi" coordinate={taxi.location} title={taxi.username ?? 'Rider'}
+                    image={require("@assets/taxi_map_marker.png")} style={ taxi.carOrientation ? { transform: [{rotate: (
+                        taxi.carOrientation == 'top' ? '-90deg' : (taxi.carOrientation == 'right' ? '0deg' : (
+                            taxi.carOrientation == 'down' ? '90deg' : '180deg'
+                        ))
+                    )}] } : {}} />}
             </MapView>
             
             {selectInMap && 
                 <SelectInMapOptions onConfirm={onConfirm} onCancel={onCancel}/>
             }
-        </SafeAreaView>
+        </View>
     );
 }
 
 const styles = StyleSheet.create({
     mapContainer: {
-        position:'absolute',
-        top: 110,
-        width: screenWidth,
-        height: (windowHeight)-110,
+        position: 'absolute',
+        width: '100%',
+        height: '100%',
         borderWidth: 0,
         borderColor: 'red',
         borderStyle: 'solid',

@@ -3,7 +3,7 @@ import { ExpoConfig } from 'expo/config';
 export default (): ExpoConfig => ({
   name: "Ride",
   slug: "Ride",
-  version: "1.0.0",
+  version: "1.0.4",
   orientation: "portrait",
   icon: "./public/assets/icon.png",
   splash: {
@@ -30,6 +30,7 @@ export default (): ExpoConfig => ({
     }
   },
   android: {
+    versionCode: 5,
     permissions: [
       "android.permission.ACCESS_COARSE_LOCATION",
       "android.permission.ACCESS_FINE_LOCATION",
@@ -48,14 +49,15 @@ export default (): ExpoConfig => ({
       googleMaps: {
         apiKey: process.env.EXPO_PUBLIC_GOOGLE_MAPS_API_KEY
       }
-    }
+    },
+    softwareKeyboardLayoutMode: "pan",
   },
   plugins: [
     "expo-secure-store",
     [
       "onesignal-expo-plugin",
       {
-        mode: !!process.env.DEVELOPMENT_ENV ? "development" : "production",
+        mode: process.env.ENVIRONMENT === "dev" ? "development" : "production",
         smallIconAccentColor: "#ffcf00",
       }
     ],
@@ -69,10 +71,6 @@ export default (): ExpoConfig => ({
     [
       "expo-build-properties",
       {
-        android: {
-          __comment: "Setting usesCleartextTraffic to true is for Http (not Https) request on prod apks builds.",
-          usesCleartextTraffic: false 
-        }
       }
     ]
   ],

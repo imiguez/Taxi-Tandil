@@ -2,10 +2,7 @@ import React, { FC, useContext } from 'react';
 import { useCommonSlice } from '@hooks/slices/useCommonSlice';
 import { useMapDispatchActions } from '@hooks/slices/useMapDispatchActions';
 import { SocketContext } from '@hooks/useSocketContext';
-import { useNavigation } from '@react-navigation/native';
-import { StackNavigationProp } from '@react-navigation/stack';
-import { MainTabParamList } from 'types/RootStackParamList';
-import RideCardBtn from '@components/Common/Cards/RideCardBtn';
+import { StyleSheet, Text, TouchableHighlight } from 'react-native';
 
 interface ConfirmedRideBtnInterface {
   taxiDisconnected: boolean;
@@ -14,45 +11,56 @@ interface ConfirmedRideBtnInterface {
 const ConfirmedRideBtn: FC<ConfirmedRideBtnInterface> = ({ taxiDisconnected }) => {
   const { socket } = useContext(SocketContext)!;
   const { setRideStatus, rideStatus, setTaxiInfo } = useMapDispatchActions();
-  const navigation = useNavigation<StackNavigationProp<MainTabParamList>>();
   const { removeNotification } = useCommonSlice();
 
   const onCancel = () => {
     socket!.emit('user-cancel-ride');
-    setRideStatus('canceled');
+    setRideStatus(null);
     setTaxiInfo(null);
-    navigation.goBack();
   };
 
   const onCancelRideBecauseTaxiDisconnect = () => {
     socket!.emit('cancel-ride-because-taxi-disconnect');
-    setRideStatus('canceled');
+    setRideStatus(null);
     setTaxiInfo(null);
-    navigation.goBack();
     removeNotification('Taxi disconnected');
-  };
-
-  const onGoBack = () => {
-    navigation.goBack();
   };
 
   return (
     <>
-      <RideCardBtn
-        text="Volver atras"
-        onClick={onGoBack}
-        btnStyles={{ width: !taxiDisconnected && (!rideStatus || (rideStatus !== 'emitted' && rideStatus !== 'accepted')) ? '100%' : 'auto' }}
-      />
+      {rideStatus && (rideStatus == 'all-taxis-reject' || rideStatus == 'no-taxis-available') && 
+        <TouchableHighlight style={[styles.btn]} onPress={() => setRideStatus(null)} >
+          <Text style={[styles.btnText]}>Volver atras</Text>
+        </TouchableHighlight>
+      }
 
-      {rideStatus && (rideStatus == 'emitted' || rideStatus == 'accepted') && (
-        <RideCardBtn text="Cancelar viaje" onClick={taxiDisconnected ? onCancelRideBecauseTaxiDisconnect : onCancel} />
-      )}
-
-      {taxiDisconnected && !(rideStatus == 'emitted' || rideStatus == 'accepted') && (
-        <RideCardBtn text="Cancelar viaje" onClick={onCancelRideBecauseTaxiDisconnect} />
-      )}
+      {(rideStatus == 'emitted' || rideStatus == 'accepted' || taxiDisconnected) && 
+        <TouchableHighlight style={[styles.btn, {backgroundColor: '#f95959'}]} onPress={taxiDisconnected ? onCancelRideBecauseTaxiDisconnect : onCancel} >
+          <Text style={[styles.btnText]}>Cancelar viaje</Text>
+        </TouchableHighlight>
+      }
     </>
   );
 };
 
 export default ConfirmedRideBtn;
+
+
+const styles = StyleSheet.create({
+  btn: {
+    width: '100%',
+    height: 60,
+    minWidth: '40%',
+    padding: 10,
+    backgroundColor: 'white',
+    borderRadius: 5,
+    elevation: 8,
+    alignItems: 'center',
+    justifyContent: 'center',
+    marginTop: 15,
+  },
+  btnText: {
+    fontSize: 22,
+    fontWeight: '700',
+  },
+});
